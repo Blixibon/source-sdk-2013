@@ -15,6 +15,10 @@ class CBaseAnimating;
 
 struct animevent_t
 {
+#ifdef SWARM17
+	int Event() const { return event; }
+#endif
+
 	int				event;
 	const char		*options;
 	float			cycle;

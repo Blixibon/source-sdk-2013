@@ -90,6 +90,28 @@ typedef enum
 	AE_NPC_RESPONSE_FORCED,		// Always play a response system concept
 #endif
 
+#ifdef SWARM17
+	// Alien Swarm Infested shared events
+	AE_ASW_FOOTSTEP,		// asw, played as each foot steps down
+	AE_MARINE_FOOTSTEP,
+	AE_MARINE_RELOAD_SOUND_A,	// anim event fired reloading sound
+	AE_MARINE_RELOAD_SOUND_B,	// anim event fired reloading sound
+	AE_MARINE_RELOAD_SOUND_C,	// anim event fired reloading sound
+	AE_REMOVE_CLIENT_AIM,	// asw, removes this entity from the client autoaim list
+
+	AE_MELEE_DAMAGE,
+	AE_MELEE_START_COLLISION_DAMAGE,
+	AE_MELEE_STOP_COLLISION_DAMAGE,
+	AE_SCREEN_SHAKE,
+	AE_START_DETECTING_COMBO,
+	AE_STOP_DETECTING_COMBO,
+	AE_COMBO_TRANSITION,
+	AE_ALLOW_MOVEMENT,
+	AE_SKILL_EVENT,				// marine skill event triggered (event options describes the skill)
+
+	AE_TUG_INCAP,
+#endif
+
 	LAST_SHARED_ANIMEVENT,
 } Animevent;
 

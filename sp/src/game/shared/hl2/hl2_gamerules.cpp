@@ -625,6 +625,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_BARNACLE
@@ -660,6 +675,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_ASW_SHIELDBUG,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_ASW_QUEEN,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_ASW_BUZZER,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_ASW_SHAMAN,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_ASW_MORTAR_BUG,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_BULLSEYE
@@ -692,6 +722,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_PLAYER_ALLY,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_ASW_DRONE,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_ASW_SHIELDBUG,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_ASW_PARASITE,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_ASW_HARVESTER,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_ASW_GRUB,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_ASW_BOOMER,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_ASW_QUEEN,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_ASW_BUZZER,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_ASW_SHAMAN,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_ASW_RUNNER,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_ASW_MORTAR_BUG,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_ASW_RANGER,		D_NU, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_BULLSQUID
@@ -725,6 +770,8 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSQUID,			CLASS_ASW_SHIELDBUG,		D_HT, 0);
 		*/
 		// ------------------------------------------------------------
 		//	> CLASS_CITIZEN_PASSIVE
@@ -757,6 +804,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_PLAYER_ALLY,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_HACKED_ROLLERMINE,D_NU, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_CITIZEN_REBEL
@@ -789,6 +851,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_PLAYER_ALLY,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_HACKED_ROLLERMINE,D_NU, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_COMBINE
@@ -821,6 +898,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_COMBINE_GUNSHIP
@@ -853,6 +945,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_HACKED_ROLLERMINE,D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_ASW_GRUB,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_COMBINE_HUNTER
@@ -885,6 +992,23 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_SHIELDBUG,		D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_CONSCRIPT
@@ -917,6 +1041,23 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_PLAYER_ALLY,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_SHIELDBUG,		D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 		
 		// ------------------------------------------------------------
 		//	> CLASS_FLARE
@@ -950,6 +1091,23 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_PLAYER_ALLY,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_DRONE,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_SHIELDBUG,		D_NU, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_DRONE,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_SHIELDBUG,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_PARASITE,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_HARVESTER,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_GRUB,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_BOOMER,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_QUEEN,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_BUZZER,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_SHAMAN,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_RUNNER,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_MORTAR_BUG,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_ASW_RANGER,		D_NU, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_HEADCRAB
@@ -982,6 +1140,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_HACKED_ROLLERMINE,D_FR, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_ASW_SHIELDBUG,	D_FR, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_ASW_BOOMER,		D_FR, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_ASW_QUEEN,		D_FR, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_HOUNDEYE
@@ -1015,6 +1188,8 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HOUNDEYE,			CLASS_ASW_SHIELDBUG,		D_HT, 0);
 		*/
 
 		// ------------------------------------------------------------
@@ -1048,6 +1223,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_METROPOLICE
@@ -1080,6 +1270,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_HACKED_ROLLERMINE,D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_MILITARY
@@ -1112,6 +1317,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_MISSILE
@@ -1144,6 +1364,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_ASW_GRUB,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_NONE
@@ -1175,6 +1410,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_PLAYER_ALLY,		D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_HACKED_ROLLERMINE,D_NU, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_ASW_DRONE,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_ASW_SHIELDBUG,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_ASW_PARASITE,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_ASW_HARVESTER,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_ASW_GRUB,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_ASW_BOOMER,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_ASW_QUEEN,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_ASW_BUZZER,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_ASW_SHAMAN,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_ASW_RUNNER,		D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_ASW_MORTAR_BUG,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_ASW_RANGER,		D_NU, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_PLAYER
@@ -1207,6 +1457,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_PLAYER_ALLY,		D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_HACKED_ROLLERMINE,D_LI, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_ASW_EGG,			D_HT, -1);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_PLAYER_ALLY
@@ -1239,6 +1504,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_PLAYER_ALLY,		D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_HACKED_ROLLERMINE,D_LI, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_PLAYER_ALLY_VITAL
@@ -1271,6 +1551,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_PLAYER_ALLY,		D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_HACKED_ROLLERMINE,D_LI, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_SCANNER
@@ -1303,6 +1598,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_STALKER
@@ -1335,6 +1645,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_VORTIGAUNT
@@ -1367,6 +1692,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_PLAYER_ALLY,		D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_HACKED_ROLLERMINE,D_LI, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_ZOMBIE
@@ -1399,6 +1739,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_PROTOSNIPER
@@ -1431,6 +1786,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_EARTH_FAUNA
@@ -1466,6 +1836,21 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_PLAYER_ALLY,		D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
 
 		// ------------------------------------------------------------
 		//	> CLASS_HACKED_ROLLERMINE
@@ -1498,6 +1883,608 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_PLAYER_ALLY,		D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
 		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_HACKED_ROLLERMINE,D_LI, 0);
+#ifdef SWARM17
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ASW_DRONE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ASW_SHIELDBUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ASW_PARASITE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ASW_HARVESTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ASW_GRUB,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ASW_BOOMER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ASW_QUEEN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ASW_BUZZER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ASW_SHAMAN,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ASW_EGG,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ASW_RUNNER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ASW_MORTAR_BUG,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_ASW_RANGER,		D_HT, 0);
+#endif
+
+#ifdef SWARM17
+		// ------------------------------------------------------------
+		//	> CLASS_ASW_DRONE
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_NONE,				D_NU, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_PLAYER,			D_HT, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_BARNACLE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_BULLSEYE,			D_NU, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_BULLSQUID,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_CITIZEN_REBEL,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_COMBINE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_COMBINE_HUNTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_CONSCRIPT,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_FLARE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_HEADCRAB,			D_HT, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_HOUNDEYE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_MANHACK,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_METROPOLICE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_MILITARY,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_MISSILE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_SCANNER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_STALKER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_VORTIGAUNT,		D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ZOMBIE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_PROTOSNIPER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ANTLION,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_EARTH_FAUNA,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_PLAYER_ALLY,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ASW_DRONE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ASW_SHIELDBUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ASW_PARASITE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ASW_HARVESTER,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ASW_GRUB,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ASW_BOOMER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ASW_QUEEN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ASW_BUZZER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ASW_SHAMAN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ASW_EGG,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ASW_RUNNER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ASW_MORTAR_BUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_DRONE,			CLASS_ASW_RANGER,		D_LI, 0);
+
+		// ------------------------------------------------------------
+		//	> CLASS_ASW_SHIELDBUG
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_NONE,				D_NU, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_PLAYER,			D_HT, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_BARNACLE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_BULLSEYE,			D_NU, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_BULLSQUID,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_CITIZEN_REBEL,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_COMBINE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_COMBINE_HUNTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_CONSCRIPT,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_FLARE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_HEADCRAB,			D_HT, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_HOUNDEYE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_MANHACK,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_METROPOLICE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_MILITARY,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_MISSILE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_SCANNER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_STALKER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_VORTIGAUNT,		D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ZOMBIE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_PROTOSNIPER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ANTLION,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_EARTH_FAUNA,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_PLAYER_ALLY,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ASW_DRONE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ASW_SHIELDBUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ASW_PARASITE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ASW_HARVESTER,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ASW_GRUB,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ASW_BOOMER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ASW_QUEEN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ASW_BUZZER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ASW_SHAMAN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ASW_EGG,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ASW_RUNNER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ASW_MORTAR_BUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHIELDBUG,			CLASS_ASW_RANGER,		D_LI, 0);
+
+		// ------------------------------------------------------------
+		//	> CLASS_ASW_PARASITE
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_NONE,				D_NU, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_PLAYER,			D_HT, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_BARNACLE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_BULLSEYE,			D_NU, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_BULLSQUID,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_CITIZEN_REBEL,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_COMBINE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_COMBINE_HUNTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_CONSCRIPT,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_FLARE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_HEADCRAB,			D_HT, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_HOUNDEYE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_MANHACK,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_METROPOLICE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_MILITARY,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_MISSILE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_SCANNER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_STALKER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_VORTIGAUNT,		D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ZOMBIE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_PROTOSNIPER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ANTLION,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_EARTH_FAUNA,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_PLAYER_ALLY,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ASW_DRONE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ASW_SHIELDBUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ASW_PARASITE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ASW_HARVESTER,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ASW_GRUB,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ASW_BOOMER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ASW_QUEEN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ASW_BUZZER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ASW_SHAMAN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ASW_EGG,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ASW_RUNNER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ASW_MORTAR_BUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_PARASITE,			CLASS_ASW_RANGER,		D_LI, 0);
+
+		// ------------------------------------------------------------
+		//	> CLASS_ASW_HARVESTER
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_NONE,				D_NU, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_PLAYER,			D_HT, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_BARNACLE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_BULLSEYE,			D_NU, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_BULLSQUID,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_CITIZEN_REBEL,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_COMBINE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_COMBINE_HUNTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_CONSCRIPT,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_FLARE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_HEADCRAB,			D_HT, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_HOUNDEYE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_MANHACK,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_METROPOLICE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_MILITARY,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_MISSILE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_SCANNER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_STALKER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_VORTIGAUNT,		D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ZOMBIE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_PROTOSNIPER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ANTLION,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_EARTH_FAUNA,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_PLAYER_ALLY,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ASW_DRONE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ASW_SHIELDBUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ASW_PARASITE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ASW_HARVESTER,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ASW_GRUB,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ASW_BOOMER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ASW_QUEEN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ASW_BUZZER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ASW_SHAMAN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ASW_EGG,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ASW_RUNNER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ASW_MORTAR_BUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_HARVESTER,			CLASS_ASW_RANGER,		D_LI, 0);
+
+		// ------------------------------------------------------------
+		//	> CLASS_ASW_GRUB
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_NONE,				D_NU, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_PLAYER,			D_HT, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_BARNACLE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_BULLSEYE,			D_NU, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_BULLSQUID,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_CITIZEN_REBEL,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_COMBINE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_COMBINE_HUNTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_CONSCRIPT,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_FLARE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_HEADCRAB,			D_HT, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_HOUNDEYE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_MANHACK,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_METROPOLICE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_MILITARY,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_MISSILE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_SCANNER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_STALKER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_VORTIGAUNT,		D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ZOMBIE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_PROTOSNIPER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ANTLION,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_EARTH_FAUNA,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_PLAYER_ALLY,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ASW_DRONE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ASW_SHIELDBUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ASW_PARASITE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ASW_HARVESTER,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ASW_GRUB,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ASW_BOOMER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ASW_QUEEN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ASW_BUZZER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ASW_SHAMAN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ASW_EGG,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ASW_RUNNER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ASW_MORTAR_BUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_GRUB,			CLASS_ASW_RANGER,		D_LI, 0);
+
+		// ------------------------------------------------------------
+		//	> CLASS_ASW_BOOMER
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_NONE,				D_NU, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_PLAYER,			D_HT, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_BARNACLE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_BULLSEYE,			D_NU, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_BULLSQUID,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_CITIZEN_REBEL,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_COMBINE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_COMBINE_HUNTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_CONSCRIPT,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_FLARE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_HEADCRAB,			D_HT, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_HOUNDEYE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_MANHACK,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_METROPOLICE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_MILITARY,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_MISSILE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_SCANNER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_STALKER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_VORTIGAUNT,		D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ZOMBIE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_PROTOSNIPER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ANTLION,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_EARTH_FAUNA,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_PLAYER_ALLY,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ASW_DRONE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ASW_SHIELDBUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ASW_PARASITE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ASW_HARVESTER,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ASW_GRUB,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ASW_BOOMER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ASW_QUEEN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ASW_BUZZER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ASW_SHAMAN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ASW_EGG,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ASW_RUNNER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ASW_MORTAR_BUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BOOMER,			CLASS_ASW_RANGER,		D_LI, 0);
+
+		// ------------------------------------------------------------
+		//	> CLASS_ASW_QUEEN
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_NONE,				D_NU, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_PLAYER,			D_HT, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_BARNACLE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_BULLSEYE,			D_NU, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_BULLSQUID,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_CITIZEN_REBEL,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_COMBINE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_COMBINE_HUNTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_CONSCRIPT,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_FLARE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_HEADCRAB,			D_HT, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_HOUNDEYE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_MANHACK,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_METROPOLICE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_MILITARY,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_MISSILE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_SCANNER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_STALKER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_VORTIGAUNT,		D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ZOMBIE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_PROTOSNIPER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ANTLION,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_EARTH_FAUNA,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_PLAYER_ALLY,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ASW_DRONE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ASW_SHIELDBUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ASW_PARASITE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ASW_HARVESTER,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ASW_GRUB,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ASW_BOOMER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ASW_QUEEN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ASW_BUZZER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ASW_SHAMAN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ASW_EGG,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ASW_RUNNER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ASW_MORTAR_BUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_QUEEN,			CLASS_ASW_RANGER,		D_LI, 0);
+
+				// ------------------------------------------------------------
+		//	> CLASS_ASW_BUZZER
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_NONE,				D_NU, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_PLAYER,			D_HT, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_BARNACLE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_BULLSEYE,			D_NU, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_BULLSQUID,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_CITIZEN_REBEL,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_COMBINE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_COMBINE_HUNTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_CONSCRIPT,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_FLARE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_HEADCRAB,			D_HT, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_HOUNDEYE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_MANHACK,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_METROPOLICE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_MILITARY,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_MISSILE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_SCANNER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_STALKER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_VORTIGAUNT,		D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ZOMBIE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_PROTOSNIPER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ANTLION,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_EARTH_FAUNA,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_PLAYER_ALLY,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ASW_DRONE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ASW_SHIELDBUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ASW_PARASITE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ASW_HARVESTER,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ASW_GRUB,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ASW_BOOMER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ASW_QUEEN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ASW_BUZZER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ASW_SHAMAN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ASW_EGG,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ASW_RUNNER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ASW_MORTAR_BUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_BUZZER,			CLASS_ASW_RANGER,		D_LI, 0);
+
+				// ------------------------------------------------------------
+		//	> CLASS_ASW_SHAMAN
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_NONE,				D_NU, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_PLAYER,			D_HT, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_BARNACLE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_BULLSEYE,			D_NU, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_BULLSQUID,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_CITIZEN_REBEL,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_COMBINE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_COMBINE_HUNTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_CONSCRIPT,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_FLARE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_HEADCRAB,			D_HT, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_HOUNDEYE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_MANHACK,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_METROPOLICE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_MILITARY,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_MISSILE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_SCANNER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_STALKER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_VORTIGAUNT,		D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ZOMBIE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_PROTOSNIPER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ANTLION,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_EARTH_FAUNA,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_PLAYER_ALLY,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ASW_DRONE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ASW_SHIELDBUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ASW_PARASITE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ASW_HARVESTER,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ASW_GRUB,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ASW_BOOMER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ASW_QUEEN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ASW_BUZZER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ASW_SHAMAN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ASW_EGG,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ASW_RUNNER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ASW_MORTAR_BUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_SHAMAN,			CLASS_ASW_RANGER,		D_LI, 0);
+
+		// ------------------------------------------------------------
+		//	> CLASS_ASW_EGG
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_NONE,				D_NU, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_PLAYER,			D_HT, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_BARNACLE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_BULLSEYE,			D_NU, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_BULLSQUID,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_CITIZEN_REBEL,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_COMBINE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_COMBINE_HUNTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_CONSCRIPT,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_FLARE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_HEADCRAB,			D_HT, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_HOUNDEYE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_MANHACK,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_METROPOLICE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_MILITARY,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_MISSILE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_SCANNER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_STALKER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_VORTIGAUNT,		D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ZOMBIE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_PROTOSNIPER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ANTLION,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_EARTH_FAUNA,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_PLAYER_ALLY,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ASW_DRONE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ASW_SHIELDBUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ASW_PARASITE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ASW_HARVESTER,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ASW_GRUB,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ASW_BOOMER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ASW_QUEEN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ASW_BUZZER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ASW_SHAMAN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ASW_EGG,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ASW_RUNNER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ASW_MORTAR_BUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_EGG,			CLASS_ASW_RANGER,		D_LI, 0);
+
+		// ------------------------------------------------------------
+		//	> CLASS_ASW_RUNNER
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_NONE,				D_NU, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_PLAYER,			D_HT, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_BARNACLE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_BULLSEYE,			D_NU, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_BULLSQUID,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_CITIZEN_REBEL,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_COMBINE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_COMBINE_HUNTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_CONSCRIPT,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_FLARE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_HEADCRAB,			D_HT, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_HOUNDEYE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_MANHACK,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_METROPOLICE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_MILITARY,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_MISSILE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_SCANNER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_STALKER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_VORTIGAUNT,		D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ZOMBIE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_PROTOSNIPER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ANTLION,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_EARTH_FAUNA,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_PLAYER_ALLY,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ASW_DRONE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ASW_SHIELDBUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ASW_PARASITE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ASW_HARVESTER,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ASW_GRUB,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ASW_BOOMER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ASW_QUEEN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ASW_BUZZER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ASW_SHAMAN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ASW_EGG,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ASW_RUNNER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ASW_MORTAR_BUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RUNNER,			CLASS_ASW_RANGER,		D_LI, 0);
+
+				// ------------------------------------------------------------
+		//	> CLASS_ASW_MORTAR_BUG
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_NONE,				D_NU, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_PLAYER,			D_HT, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_BARNACLE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_BULLSEYE,			D_NU, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_BULLSQUID,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_CITIZEN_REBEL,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_COMBINE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_COMBINE_HUNTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_CONSCRIPT,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_FLARE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_HEADCRAB,			D_HT, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_HOUNDEYE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_MANHACK,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_METROPOLICE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_MILITARY,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_MISSILE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_SCANNER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_STALKER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_VORTIGAUNT,		D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ZOMBIE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_PROTOSNIPER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ANTLION,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_EARTH_FAUNA,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_PLAYER_ALLY,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ASW_DRONE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ASW_SHIELDBUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ASW_PARASITE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ASW_HARVESTER,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ASW_GRUB,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ASW_BOOMER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ASW_QUEEN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ASW_BUZZER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ASW_SHAMAN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ASW_EGG,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ASW_RUNNER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ASW_MORTAR_BUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_MORTAR_BUG,			CLASS_ASW_RANGER,		D_LI, 0);
+
+		// ------------------------------------------------------------
+		//	> CLASS_ASW_RANGER
+		// ------------------------------------------------------------
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_NONE,				D_NU, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_PLAYER,			D_HT, 0);			
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_BARNACLE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_BULLSEYE,			D_NU, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_BULLSQUID,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_CITIZEN_PASSIVE,	D_HT, 0);	
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_CITIZEN_REBEL,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_COMBINE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_COMBINE_HUNTER,	D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_CONSCRIPT,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_FLARE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_HEADCRAB,			D_HT, 0);
+		//CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_HOUNDEYE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_MANHACK,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_METROPOLICE,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_MILITARY,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_MISSILE,			D_NU, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_SCANNER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_STALKER,			D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_VORTIGAUNT,		D_HT, 0);		
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ZOMBIE,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_PROTOSNIPER,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ANTLION,			D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_EARTH_FAUNA,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_PLAYER_ALLY,		D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ASW_DRONE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ASW_SHIELDBUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ASW_PARASITE,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ASW_HARVESTER,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ASW_GRUB,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ASW_BOOMER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ASW_QUEEN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ASW_BUZZER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ASW_SHAMAN,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ASW_EGG,			D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ASW_RUNNER,		D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ASW_MORTAR_BUG,	D_LI, 0);
+		CBaseCombatCharacter::SetDefaultRelationship(CLASS_ASW_RANGER,			CLASS_ASW_RANGER,		D_LI, 0);
+#endif
 	}
 
 

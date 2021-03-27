@@ -89,6 +89,11 @@ public:
 
 	bool 			CanHearSound( CSound *pSound );
 
+#ifdef SWARM17
+	// children of this class may need to overload this function to allow for more specialized checks such as angle of elevation, etc.
+	virtual bool	IsWithinSenseDistance( const Vector &source, const Vector &dest, float dist ) { return ( source.DistToSqr( dest ) < dist * dist ); }
+#endif
+
 	//---------------------------------
 	
 	float			GetTimeLastUpdate( CBaseEntity *pEntity );
@@ -106,9 +111,16 @@ private:
 
 	bool			WaitingUntilSeen( CBaseEntity *pSightEnt );
 
+#ifdef SWARM17
+protected:
+#endif
 	void			BeginGather();
 	void 			NoteSeenEntity( CBaseEntity *pSightEnt );
 	void			EndGather( int nSeen, CUtlVector<EHANDLE> *pResult );
+
+#ifdef SWARM17
+private:
+#endif
 	
 	bool 			Look( CBaseEntity *pSightEnt );
 #ifdef PORTAL

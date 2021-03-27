@@ -258,6 +258,12 @@ protected:
 	DECLARE_DATADESC();
 };
 
+#ifdef SWARM17
+// Stubs
+#define LINK_BEHAVIOR_TO_CLASS( localName, className )
+#define LINK_BEHAVIOR_TO_CLASSNAME( className )
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: Template provides provides back bridge to owning class and 
 //			establishes namespace settings
@@ -534,6 +540,11 @@ private:
 #ifdef MAPBASE
 	// For func_tank behavior
 	bool			 BackBridge_CanUnholsterWeapon( void );
+#endif
+
+#ifdef SWARM17
+	// For Alien Swarm NPCs
+	public:
 #endif
 
 	CAI_BehaviorBase **AccessBehaviors();

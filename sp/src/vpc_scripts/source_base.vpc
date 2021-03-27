@@ -44,6 +44,9 @@ $Configuration "Debug"
 
 		// Mapbase base definitions
 		$PreprocessorDefinitions		"$BASE;MAPBASE"		[$MAPBASE]
+		
+		// Swarm 17
+		$PreprocessorDefinitions		"$BASE;SWARM17"
 	}
 }
 
@@ -62,5 +65,8 @@ $Configuration "Release"
 
 		// Mapbase base definitions
 		$PreprocessorDefinitions		"$BASE;MAPBASE"		[$MAPBASE]
+		
+		// Swarm 17
+		$PreprocessorDefinitions		"$BASE;SWARM17"
 	}
 }

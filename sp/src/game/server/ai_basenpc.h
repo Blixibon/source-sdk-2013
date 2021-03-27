@@ -832,6 +832,9 @@ private:
 	bool				m_bUsingStandardThinkTime;
 	float				m_flLastRealThinkTime;
 	int					m_iFrameBlocked;
+#ifdef SWARM17
+protected:
+#endif
 	bool				m_bInChoreo;
 
 	static int			gm_iNextThinkRebalanceTick;
@@ -921,6 +924,10 @@ public:
 #ifdef MAPBASE
 	void				InputSetCondition( inputdata_t &inputdata );
 	void				InputClearCondition( inputdata_t &inputdata );
+#endif
+
+#ifdef SWARM17
+	bool				IsForceGatherConditionsSet() const { return m_bForceConditionsGather; }
 #endif
 
 private:
@@ -2148,7 +2155,11 @@ private:
 	bool				m_fIsUsingSmallHull;
 	bool				m_bCheckContacts;
 
+#ifdef SWARM17
+public:
+#else
 private:
+#endif
 	// Task implementation helpers
 	void StartTurn( float flDeltaYaw );
 	bool FindCoverFromEnemy( bool bNodesOnly = false, float flMinDistance = 0, float flMaxDistance = FLT_MAX );

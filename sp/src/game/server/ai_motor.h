@@ -185,7 +185,11 @@ protected:
 	AIMotorMoveResult_t			MoveGroundExecuteWalk( const AILocalMoveGoal_t &move, float speed, float dist, AIMoveTrace_t *pTraceResult );
 	virtual AIMotorMoveResult_t MoveFlyExecute( const AILocalMoveGoal_t &move, AIMoveTrace_t *pTraceResult );
 	
+#ifdef SWARM17
+public:
+#else
 protected: // made protected while animation transition details worked out, private:
+#endif
 
 	// --------------------------------
 	void				SetMoveVel(const Vector &velocity)		{ m_vecVelocity = velocity; }
