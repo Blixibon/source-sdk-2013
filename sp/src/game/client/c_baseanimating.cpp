@@ -4808,12 +4808,24 @@ void C_BaseAnimating::GetRagdollInitBoneArrays( matrix3x4_t *pDeltaBones0, matri
 	}
 }
 
+#ifdef SWARM17
+C_ClientRagdoll *C_BaseAnimating::CreateClientRagdoll( bool bRestoring )
+{
+	//DevMsg( "Creating ragdoll at tick %d\n", gpGlobals->tickcount );
+	return new C_ClientRagdoll( bRestoring );
+}
+#endif
+
 C_BaseAnimating *C_BaseAnimating::CreateRagdollCopy()
 {
 	//Adrian: We now create a separate entity that becomes this entity's ragdoll.
 	//That way the server side version of this entity can go away. 
 	//Plus we can hook save/restore code to these ragdolls so they don't fall on restore anymore.
+#ifdef SWARM17
+	C_ClientRagdoll *pRagdoll = CreateClientRagdoll( false );
+#else
 	C_ClientRagdoll *pRagdoll = new C_ClientRagdoll( false );
+#endif
 	if ( pRagdoll == NULL )
 		return NULL;
 

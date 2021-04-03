@@ -38,6 +38,9 @@ class C_BaseClientShader
 */
 
 class IRagdoll;
+#ifdef SWARM17
+class C_ClientRagdoll;
+#endif
 class CIKContext;
 class CIKState;
 class ConVar;
@@ -301,6 +304,9 @@ public:
 	bool							IsRagdoll() const;
 	bool							IsAboutToRagdoll() const;
 	virtual C_BaseAnimating			*BecomeRagdollOnClient();
+#ifdef SWARM17
+	virtual C_ClientRagdoll			*CreateClientRagdoll( bool bRestoring = false );
+#endif
 	C_BaseAnimating					*CreateRagdollCopy();
 	bool							InitAsClientRagdoll( const matrix3x4_t *pDeltaBones0, const matrix3x4_t *pDeltaBones1, const matrix3x4_t *pCurrentBonePosition, float boneDt, bool bFixedConstraints=false );
 	void							IgniteRagdoll( C_BaseAnimating *pSource );

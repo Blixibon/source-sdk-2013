@@ -230,7 +230,12 @@ void C_ASW_ClientRagdoll::ClientThink( void )
 		if ( asw_alien_debug_death_style.GetBool() )
 			Msg( "C_ASW_ClientRagdoll::ClientThink: m_nDeathStyle = %d\n",  m_nDeathStyle );
 
+#ifdef SWARM17
+		if ( (m_nDeathStyle == kDIE_BREAKABLE || m_nDeathStyle == kDIE_INSTAGIB || m_nDeathStyle == kDIE_TUMBLEGIB) && asw_breakable_aliens.GetBool() )
+		//if ( m_nDeathStyle == kDIE_BREAKABLE && asw_breakable_aliens.GetBool() )
+#else
 		if ( m_nDeathStyle == kDIE_BREAKABLE && asw_breakable_aliens.GetBool() )
+#endif
 		{
 			BreakRagdoll();
 			return;
@@ -247,6 +252,7 @@ void C_ASW_ClientRagdoll::ClientThink( void )
 			return;
 		}
 
+#ifndef SWARM17 // Don't fade instantly in HL2
 		// if we're set to fade, MAKE IT SO
 		if ( m_nDeathStyle == kDIE_RAGDOLLFADE )
 		{
@@ -325,5 +331,6 @@ void C_ASW_ClientRagdoll::ClientThink( void )
 		*/
 
 		Release();
+#endif
 	}
 }
