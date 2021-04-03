@@ -844,6 +844,10 @@ CBaseEntity *CASW_Alien::CheckTraceHullAttack( const Vector &vStart, const Vecto
 		Vector attackDir = pHitEntity->WorldSpaceCenter() - vecAttackerCenter;
 		VectorNormalize( attackDir );
 		CalculateMeleeDamageForce( &dmgInfo, attackDir, vecAttackerCenter, flForceScale );
+#ifdef SWARM17
+		// For shieldbugs, etc. properly having downwards force
+		ModTraceHullAttack( &dmgInfo, attackDir, vecAttackerCenter, flForceScale );
+#endif
 		tr->m_pEnt->DispatchTraceAttack( dmgInfo, tr->endpos - vecAttackerCenter, tr );
 #ifdef GAME_DLL
 		ApplyMultiDamage();

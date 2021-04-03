@@ -21,12 +21,19 @@ public:
 	virtual ~CASW_Mortarbug( void );
 
 	void Spawn();
+#ifdef SWARM17
+	void OnRestore();
+#endif
 	void Precache();
 	float GetIdealSpeed() const;
 	float GetIdealAccel( ) const;
 	float MaxYawSpeed( void );
 
+#ifdef SWARM17
+	Class_T		Classify( void ) { return CLASS_ASW_MORTAR_BUG; }		// TODO: Different class from harvesters?
+#else
 	Class_T		Classify( void ) { return CLASS_VORTIGAUNT; }		// TODO: Different class from harvesters?
+#endif
 	virtual bool OverrideMoveFacing( const AILocalMoveGoal_t &move, float flInterval );
 	virtual int SelectSchedule();
 	virtual int SelectMortarbugCombatSchedule();

@@ -79,6 +79,10 @@ void CASW_Mortarbug::Spawn( void )
 	
 	SetHullType(HULL_WIDE_SHORT);
 	UTIL_SetSize(this, Vector(-23,-23,0), Vector(23,23,69));
+
+#ifdef SWARM17
+	CollisionProp()->SetSurroundingBoundsType( USE_HITBOXES );
+#endif
 				
 	m_iHealth	= ASWGameRules()->ModifyAlienHealthBySkillLevel(350);
 
@@ -86,6 +90,14 @@ void CASW_Mortarbug::Spawn( void )
 		
 	m_takedamage = DAMAGE_NO;	// alien is invulnerable until she finds her first enemy
 }
+
+#ifdef SWARM17
+void CASW_Mortarbug::OnRestore( void )
+{
+	BaseClass::OnRestore();
+	CollisionProp()->SetSurroundingBoundsType( USE_HITBOXES );
+}
+#endif
 
 void CASW_Mortarbug::Precache( void )
 {

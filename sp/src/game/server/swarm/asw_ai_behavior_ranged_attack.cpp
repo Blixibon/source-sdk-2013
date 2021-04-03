@@ -372,7 +372,11 @@ void CAI_ASW_RangedAttackBehavior::RunTask( const Task_t *pTask )
 
 		case TASK_RANGED_PREPARE_TO_FIRE:
 			{
+#ifdef SWARM17 // Enemies move more rapidly, so ranged fire should always face while preparing
+				UpdateTargetLocation();
+#else
 				if ( !GetOuter()->FInAimCone( m_vMissileLocation ) )
+#endif
 				{
 					GetMotor()->SetIdealYawToTargetAndUpdate( m_vMissileLocation, AI_KEEP_YAW_SPEED );
 				}

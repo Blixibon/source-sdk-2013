@@ -32,6 +32,9 @@ public:
 	int MeleeAttack1Conditions( float flDot, float flDist );
 	int MeleeAttack2Conditions ( float flDot, float flDist );
 	void MeleeAttack( float distance, float damage, QAngle &viewPunch, Vector &shove );
+#ifdef SWARM17
+	void ModTraceHullAttack( CTakeDamageInfo *info, const Vector &vecMeleeDir, const Vector &vecForceOrigin, float flScale );
+#endif
 	float MaxYawSpeed( void );
 	void HandleAnimEvent( animevent_t *pEvent );	
 	Class_T		Classify( void ) { return (Class_T) CLASS_ASW_SHIELDBUG; }	

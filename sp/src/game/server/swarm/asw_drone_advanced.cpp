@@ -948,7 +948,58 @@ void CASW_Drone_Advanced::MeleeAttack( float distance, float damage, QAngle &vie
 
 		// Play a random attack hit sound
 		EmitSound( "ASW_Drone.Attack" );
+
+#ifdef SWARM17
+		CBasePlayer *pPlayer = ToBasePlayer( pHurt );
+		if ( pPlayer != NULL && !(pPlayer->GetFlags() & FL_GODMODE ) )
+		{
+			pPlayer->ViewPunch( viewPunch );
+			
+			pPlayer->VelocityPunch( shove );
+		}
+		else if( !pPlayer && UTIL_ShouldShowBlood(pHurt->BloodColor()) )
+		{
+			// Hit an NPC. Bleed them!
+			Vector vecBloodPos;
+
+			// TEMPTEMP
+			GetAttachment( "eyes", vecBloodPos );
+
+			SpawnBlood( vecBloodPos, g_vecAttackDir, pHurt->BloodColor(), MIN( damage, 30.0f ) );
+		}
+#endif
 	}
+#ifdef SWARM17
+	else
+	{
+		trace_t		tr;
+		Vector		forward;
+
+		GetVectors( &forward, NULL, NULL );
+
+		AI_TraceLine( EyePosition(), EyePosition() + forward * 128, MASK_SOLID, this, COLLISION_GROUP_NONE, &tr );
+
+		if( tr.fraction == 1.0 )
+		{
+			// Didn't hit anything!
+			return;
+		}
+
+		if( tr.fraction < 1.0 && tr.m_pEnt )
+		{
+			const surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
+			if( psurf )
+			{
+				EmitSound( physprops->GetString(psurf->sounds.impactHard) );
+				return;
+			}
+		}
+
+		// Otherwise fall through to the default sound.
+		CPASAttenuationFilter filter( this,"NPC_BaseZombie.PoundDoor" );
+		EmitSound( filter, entindex(),"NPC_BaseZombie.PoundDoor" );
+	}
+#endif
 }
 
 bool CASW_Drone_Advanced::CorpseGib( const CTakeDamageInfo &info )

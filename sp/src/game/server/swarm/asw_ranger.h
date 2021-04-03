@@ -15,6 +15,9 @@
 #include "asw_ai_behavior_ranged_attack.h"
 #include "asw_ai_behavior_chase_enemy.h"
 #include "asw_ai_behavior_idle.h"
+#ifdef SWARM17
+#include "asw_ai_behavior_melee.h"
+#endif
 
 class CASW_Ranger : public CAI_ExpresserHostWithData<CASW_BlendedAlien, CAI_Expresser>
 {
@@ -58,6 +61,10 @@ private:
 	CAI_ASW_RangedAttackBehavior	m_RangedAttackBehavior;
 	CAI_ASW_ChaseEnemyBehavior		m_ChaseEnemyBehavior;
 	CAI_ASW_IdleBehavior			m_IdleBehavior;
+#ifdef SWARM17
+	// Allow rangers to use melee attacks
+	CAI_ASW_MeleeBehavior			m_MeleeBehavior;
+#endif
 
 protected:
 	DEFINE_CUSTOM_AI;

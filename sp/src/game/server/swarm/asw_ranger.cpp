@@ -31,6 +31,15 @@ DEFINE_EMBEDDEDBYREF( m_pExpresser ),
 END_DATADESC()
 
 ConVar asw_ranger_health( "asw_ranger_health", "101.5", FCVAR_CHEAT );
+#ifdef SWARM17
+ConVar sk_asw_ranger_shot_damage( "sk_asw_ranger_shot_damage", "12", FCVAR_CHEAT );
+ConVar sk_asw_ranger_shot_speed( "sk_asw_ranger_shot_speed", "425", FCVAR_CHEAT );
+ConVar sk_asw_ranger_range_min( "sk_asw_ranger_range_min", "0", FCVAR_CHEAT );
+ConVar sk_asw_ranger_range_max( "sk_asw_ranger_range_max", "600", FCVAR_CHEAT );
+ConVar sk_asw_ranger_melee_damage( "sk_asw_ranger_melee_damage", "12", FCVAR_CHEAT );
+ConVar sk_asw_ranger_melee_range( "sk_asw_ranger_melee_range", "0", FCVAR_CHEAT );
+ConVar asw_ranger_melee_force( "asw_ranger_melee_force", "1.67", FCVAR_CHEAT );
+#endif
 extern ConVar asw_debug_alien_damage;
 
 extern int AE_MORTARBUG_LAUNCH;		// actual launch of the projectile
@@ -49,7 +58,12 @@ CASW_Ranger::CASW_Ranger()
 void CASW_Ranger::SetupRangerShot( CASW_AlienShot &shot )
 {
 	shot.m_flSize = 4;
+#ifdef SWARM17
+	shot.m_flDamage_direct = sk_asw_ranger_shot_damage.GetInt();
+	shot.m_iDamageType = DMG_NEVERGIB | DMG_ACID;
+#else
 	shot.m_flDamage_direct = 12;
+#endif
 	shot.m_flDamage_splash = 0;
 	shot.m_flSeek_strength = 0;
 	shot.m_flGravity = 0;
@@ -98,7 +112,11 @@ void CASW_Ranger::Spawn( void )
 	volley.m_rounds[0].m_flEndAngle			= 0;
 	volley.m_rounds[0].m_nNumShots			= 1;
 	volley.m_rounds[0].m_flShotDelay		= 0;
+#ifdef SWARM17
+	volley.m_rounds[0].m_flSpeed			= sk_asw_ranger_shot_speed.GetFloat();
+#else
 	volley.m_rounds[0].m_flSpeed			= 425;
+#endif
 	volley.m_rounds[0].m_flHorizontalOffset = 0;
 
 	volley.m_rounds[1].m_flTime				= 0.1;
@@ -107,7 +125,11 @@ void CASW_Ranger::Spawn( void )
 	volley.m_rounds[1].m_flEndAngle			= 0;
 	volley.m_rounds[1].m_nNumShots			= 1;
 	volley.m_rounds[1].m_flShotDelay		= 0;
+#ifdef SWARM17
+	volley.m_rounds[1].m_flSpeed			= sk_asw_ranger_shot_speed.GetFloat();
+#else
 	volley.m_rounds[1].m_flSpeed			= 425;
+#endif
 	volley.m_rounds[1].m_flHorizontalOffset = 0;
 
 	volley.m_rounds[2].m_flTime				= 0.2;
@@ -116,7 +138,11 @@ void CASW_Ranger::Spawn( void )
 	volley.m_rounds[2].m_flEndAngle			= 0;
 	volley.m_rounds[2].m_nNumShots			= 1;
 	volley.m_rounds[2].m_flShotDelay		= 0;
+#ifdef SWARM17
+	volley.m_rounds[2].m_flSpeed			= sk_asw_ranger_shot_speed.GetFloat();
+#else
 	volley.m_rounds[2].m_flSpeed			= 425;
+#endif
 	volley.m_rounds[2].m_flHorizontalOffset = 0;
 	CreateVolley( "volley1", &volley );
 }
@@ -169,6 +195,10 @@ float CASW_Ranger::MaxYawSpeed( void )
 	return 32.0f;// * GetMovementSpeedModifier();
 }
 
+#ifdef SWARM17
+extern int AE_DRONE_MELEE_HIT1;
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose:	
 // Input:	
@@ -183,6 +213,82 @@ void CASW_Ranger::HandleAnimEvent( animevent_t *pEvent )
 		m_RangedAttackBehavior.HandleBehaviorEvent( this, BEHAVIOR_EVENT_MORTAR_FIRE, 0 );
 		return;
 	}
+
+#ifdef SWARM17
+	if ( nEvent == AE_DRONE_MELEE_HIT1 )
+	{
+		float fDamage = MAX(3.0f, ASWGameRules()->ModifyAlienDamageBySkillLevel(sk_asw_ranger_melee_damage.GetFloat()));
+		Vector vecForceDir;
+
+		// Always hurt bullseyes for now
+		if ( ( GetEnemy() != NULL ) && ( GetEnemy()->Classify() == CLASS_BULLSEYE ) )
+		{
+			vecForceDir = (GetEnemy()->GetAbsOrigin() - GetAbsOrigin());
+			CTakeDamageInfo info( this, this, fDamage, DMG_SLASH );
+			CalculateMeleeDamageForce( &info, vecForceDir, GetEnemy()->GetAbsOrigin() );
+			GetEnemy()->TakeDamage( info );
+			return;
+		}
+
+		CBaseEntity *pHurt = CheckTraceHullAttack( sk_asw_ranger_melee_range.GetFloat(), -Vector( 16, 16, 32 ), Vector( 16, 16, 32 ), fDamage, DMG_SLASH, asw_ranger_melee_force.GetFloat() );
+
+		if ( pHurt )
+		{
+			vecForceDir = ( pHurt->WorldSpaceCenter() - WorldSpaceCenter() );
+
+			// Play a random attack hit sound
+			EmitSound( "ASW_Drone.Attack" );
+
+			CBasePlayer *pPlayer = ToBasePlayer( pHurt );
+			if ( pPlayer != NULL && !(pPlayer->GetFlags() & FL_GODMODE ) )
+			{
+				pPlayer->ViewPunch( QAngle( 20.0f, 0.0f, -12.0f ) );
+			
+				pPlayer->VelocityPunch( Vector( -250.0f, 1.0f, 1.0f ) );
+			}
+			else if( !pPlayer && UTIL_ShouldShowBlood(pHurt->BloodColor()) )
+			{
+				// Hit an NPC. Bleed them!
+				Vector vecBloodPos;
+
+				// TEMPTEMP
+				GetAttachment( "eyes", vecBloodPos );
+
+				SpawnBlood( vecBloodPos, g_vecAttackDir, pHurt->BloodColor(), MIN( fDamage, 30.0f ) );
+			}
+		}
+		else
+		{
+			trace_t		tr;
+			Vector		forward;
+
+			GetVectors( &forward, NULL, NULL );
+
+			AI_TraceLine( EyePosition(), EyePosition() + forward * 128, MASK_SOLID, this, COLLISION_GROUP_NONE, &tr );
+
+			if( tr.fraction == 1.0 )
+			{
+				// Didn't hit anything!
+				return;
+			}
+
+			if( tr.fraction < 1.0 && tr.m_pEnt )
+			{
+				const surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
+				if( psurf )
+				{
+					EmitSound( physprops->GetString(psurf->sounds.impactHard) );
+					return;
+				}
+			}
+
+			// Otherwise fall through to the default sound.
+			CPASAttenuationFilter filter( this,"NPC_BaseZombie.PoundDoor" );
+			EmitSound( filter, entindex(),"NPC_BaseZombie.PoundDoor" );
+		}
+		return;
+	}
+#endif
 
 	BaseClass::HandleAnimEvent( pEvent );
 }
@@ -245,13 +351,27 @@ bool CASW_Ranger::CreateBehaviors()
 	AddBehavior( &m_RetreatBehavior );
 	m_RetreatBehavior.Init();
 
+#ifdef SWARM17
+	m_RangedAttackBehavior.KeyValue( "minRange", sk_asw_ranger_range_min.GetString() );
+	m_RangedAttackBehavior.KeyValue( "maxRange", sk_asw_ranger_range_max.GetString() );
+#else
 	m_RangedAttackBehavior.KeyValue( "minRange", "0" );
 	m_RangedAttackBehavior.KeyValue( "maxRange", "600" );
+#endif
 	m_RangedAttackBehavior.KeyValue( "rate", "4.0" );
 	m_RangedAttackBehavior.KeyValue( "global_shot_delay", "1" );
 	m_RangedAttackBehavior.KeyValue( "volley_type", "volley1" );
 	AddBehavior( &m_RangedAttackBehavior );
 	m_RangedAttackBehavior.Init();
+
+#ifdef SWARM17
+	m_MeleeBehavior.KeyValue( "range", sk_asw_ranger_melee_range.GetString() );
+	m_MeleeBehavior.KeyValue( "min_damage", "4" );
+	m_MeleeBehavior.KeyValue( "max_damage", "6" );
+	m_MeleeBehavior.KeyValue( "force", "4" );
+	AddBehavior( &m_MeleeBehavior );
+	m_MeleeBehavior.Init();
+#endif
 
 	m_ChaseEnemyBehavior.KeyValue( "chase_distance", "200" );
 	AddBehavior( &m_ChaseEnemyBehavior );
