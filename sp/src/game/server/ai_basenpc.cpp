@@ -99,6 +99,10 @@
 #include "mapbase/matchers.h"
 #endif
 
+#ifdef SWARM17
+#include "swarm/asw_shareddefs.h"
+#endif
+
 #include "env_debughistory.h"
 #include "collisionutils.h"
 
@@ -4303,6 +4307,64 @@ bool CAI_BaseNPC::CheckPVSCondition()
 }
 
 
+#ifdef SWARM17
+extern ConVar asw_infest_damage_npc;
+
+void CAI_BaseNPC::ASWThinkEffects()
+{
+	//float fDeltaTime = gpGlobals->curtime - m_fLastASWThink;
+	// general timer for infestation
+	if (IsInfested() && GetHealth() > 0)
+	{
+		while (gpGlobals->curtime >= m_fNextSlowHealTick)
+		{
+			m_fNextSlowHealTick += 0.33f;
+			if (IsInfested())
+			{
+				m_iInfestCycle++;
+				if (m_iInfestCycle >= 3)	// only do the infest damage once per second
+				{
+					//float DamagePerTick = ASWGameRules()->TotalInfestDamage() / 20.0f;
+					float DamagePerTick = asw_infest_damage_npc.GetFloat();
+					CTakeDamageInfo info(this, this, Vector(0,0,0), GetAbsOrigin(), DamagePerTick,
+						DMG_INFEST);
+					TakeDamage(info);
+					SetSchedule(SCHED_BIG_FLINCH);
+
+					//EmitSound("MaleMarine.Pain");
+					m_iInfestCycle = 0;
+
+					m_fInfestedTime-=1.0f;
+					if (m_fInfestedTime <= 0)
+					{
+						m_fInfestedTime = 0;
+						m_bInfested = false;
+
+						// play some effects of the parasite dying
+						CSoundParameters params;
+						if ( CBaseEntity::GetParametersForSound( "ASW_Parasite.Death", params, NULL ) )
+						{
+							Vector vecOrigin = WorldSpaceCenter();
+							CPASAttenuationFilter filter( vecOrigin, params.soundlevel );
+							EmitSound_t ep;
+							ep.m_nChannel = CHAN_AUTO;
+							ep.m_pSoundName = params.soundname;
+							ep.m_flVolume = params.volume;
+							ep.m_SoundLevel = params.soundlevel;
+							ep.m_nPitch = params.pitch;
+							ep.m_pOrigin = &vecOrigin;
+							CBaseEntity::EmitSound( filter, 0 /*sound.entityIndex*/, ep );
+						}
+						//UTIL_ASW_DroneBleed( WorldSpaceCenter(), Vector(0, 0, 1), 4 );
+					}
+				}				
+			}
+		}
+	}
+}
+#endif
+
+
 //-----------------------------------------------------------------------------
 // NPC Think - calls out to core AI functions and handles this
 // npc's specific animation events
@@ -4310,6 +4372,10 @@ bool CAI_BaseNPC::CheckPVSCondition()
 
 void CAI_BaseNPC::NPCThink( void )
 {
+#ifdef SWARM17
+	ASWThinkEffects();
+#endif
+
 	if ( m_bCheckContacts )
 	{
 		CheckPhysicsContacts();

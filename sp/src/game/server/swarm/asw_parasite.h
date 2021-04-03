@@ -89,7 +89,10 @@ public:
 
 	// infesting
 	void FinishedInfesting();
-#ifndef SWARM17 // TODO: Infestation for HL2 NPCs
+#ifdef SWARM17 // Infestation for HL2 NPCs
+	void InfestPlayer(CBasePlayer *pPlayer);
+	void InfestNPC(CAI_BaseNPC *pNPC);
+#else
 	void InfestMarine(CASW_Marine* pMarine);
 	void InfestColonist(CASW_Colonist* pColonist);
 #endif

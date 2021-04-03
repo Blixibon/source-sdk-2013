@@ -296,6 +296,12 @@ public:
 	virtual bool			HasAlienGibs( void );
 	virtual bool			ShouldGib( const CTakeDamageInfo &info ) { return false; }	// Always ragdoll, unless specified by the leaf class
 
+#ifdef SWARM17
+	void				BecomeInfested( CBaseCombatCharacter* pAlien );
+	void				CureInfestation( CBaseCombatCharacter *pHealer, float fCureFraction );
+	bool				IsInfested() { return m_bInfested; }
+#endif
+
 	float GetDamageAccumulator() { return m_flDamageAccumulator; }
 	int	  GetDamageCount( void ) { return m_iDamageCount; }	// # of times NPC has been damaged.  used for tracking 1-shot kills.
 
@@ -647,6 +653,13 @@ protected:
 	CNavArea *m_lastNavArea;
 	CAI_MoveMonitor m_NavAreaUpdateMonitor;
 	int m_registeredNavTeam;	// ugly, but needed to clean up player team counts in nav mesh
+
+#ifdef SWARM17
+	float m_fNextSlowHealTick; // Used for infestation
+	float m_fInfestedTime;	// how much time left on the infestation
+	int m_iInfestCycle;
+	bool m_bInfested;
+#endif
 };
 
 

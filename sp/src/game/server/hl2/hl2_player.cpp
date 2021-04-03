@@ -60,6 +60,10 @@
 #include "mapbase/variant_tools.h"
 #endif
 
+#ifdef SWARM17
+#include "swarm/asw_shareddefs.h"
+#endif
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -1135,6 +1139,10 @@ void CHL2_Player::PreThink(void)
 	}
 }
 
+#ifdef SWARM17
+extern ConVar asw_infest_damage_player;
+#endif
+
 void CHL2_Player::PostThink( void )
 {
 	BaseClass::PostThink();
@@ -1143,6 +1151,55 @@ void CHL2_Player::PostThink( void )
 	{
 		 HandleAdmireGlovesAnimation();
 	}
+
+#ifdef SWARM17
+	if (IsInfested() && GetHealth() > 0)
+	{
+		while (gpGlobals->curtime >= m_fNextSlowHealTick)
+		{
+			m_fNextSlowHealTick += 0.33f;
+			if (IsInfested())
+			{
+				m_iInfestCycle++;
+				if (m_iInfestCycle >= 3)	// only do the infest damage once per second
+				{
+					//float DamagePerTick = ASWGameRules()->TotalInfestDamage() / 20.0f;
+					float DamagePerTick = asw_infest_damage_player.GetFloat();
+					CTakeDamageInfo info(this, this, Vector(0,0,0), GetAbsOrigin(), DamagePerTick,
+						DMG_INFEST);
+					TakeDamage(info);
+
+					//EmitSound("MaleMarine.Pain");
+					m_iInfestCycle = 0;
+
+					m_fInfestedTime-=1.0f;
+					if (m_fInfestedTime <= 0)
+					{
+						m_fInfestedTime = 0;
+						m_bInfested = false;
+
+						// play some effects of the parasite dying
+						CSoundParameters params;
+						if ( CBaseEntity::GetParametersForSound( "ASW_Parasite.Death", params, NULL ) )
+						{
+							Vector vecOrigin = WorldSpaceCenter();
+							CPASAttenuationFilter filter( vecOrigin, params.soundlevel );
+							EmitSound_t ep;
+							ep.m_nChannel = CHAN_AUTO;
+							ep.m_pSoundName = params.soundname;
+							ep.m_flVolume = params.volume;
+							ep.m_SoundLevel = params.soundlevel;
+							ep.m_nPitch = params.pitch;
+							ep.m_pOrigin = &vecOrigin;
+							CBaseEntity::EmitSound( filter, 0 /*sound.entityIndex*/, ep );
+						}
+						//UTIL_ASW_DroneBleed( WorldSpaceCenter(), Vector(0, 0, 1), 4 );
+					}
+				}				
+			}
+		}
+	}
+#endif
 }
 
 void CHL2_Player::StartAdmireGlovesAnimation( void )

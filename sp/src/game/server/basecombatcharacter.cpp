@@ -54,6 +54,11 @@
 	#include "portal_shareddefs.h"
 #endif
 
+#ifdef SWARM17
+//#include "swarm/asw_parasite.h"
+#include "swarm/asw_shareddefs.h"
+#endif
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -122,6 +127,12 @@ BEGIN_DATADESC( CBaseCombatCharacter )
 	DEFINE_FIELD( m_bForceServerRagdoll, FIELD_BOOLEAN ),
 #endif
 	DEFINE_FIELD( m_bPreventWeaponPickup, FIELD_BOOLEAN ),
+
+#ifdef SWARM17
+	DEFINE_FIELD( m_bInfested, FIELD_BOOLEAN ),
+	DEFINE_FIELD( m_fInfestedTime, FIELD_FLOAT ),
+	DEFINE_FIELD( m_fNextSlowHealTick, FIELD_TIME ),
+#endif
 
 #ifndef MAPBASE // See CBaseEntity::InputKilledNPC()
 	DEFINE_INPUTFUNC( FIELD_VOID, "KilledNPC", InputKilledNPC ),
@@ -400,6 +411,37 @@ void CBaseCombatCharacter::CorpseFade( void )
 	IncrementInterpolationFrame();
 	SUB_StartFadeOut();
 }
+
+#ifdef SWARM17
+extern ConVar asw_infest_damage_player;
+extern ConVar asw_infest_damage_npc;
+
+void CBaseCombatCharacter::BecomeInfested( CBaseCombatCharacter* pAlien )
+{
+	m_fInfestedTime = 20;
+	// todo: scream about being infested!
+	m_bInfested = true;
+	if (m_fNextSlowHealTick < gpGlobals->curtime)
+		m_fNextSlowHealTick = gpGlobals->curtime + 0.33f;
+	// do some damage to us immediately
+	float DamagePerTick = (IsPlayer() ? asw_infest_damage_player.GetFloat() : asw_infest_damage_npc.GetFloat());
+	CTakeDamageInfo info(pAlien, pAlien, Vector(0,0,0), GetAbsOrigin(), DamagePerTick,
+		DMG_INFEST);
+	TakeDamage(info);
+	//EmitSound("MaleMarine.Pain");
+}
+
+void CBaseCombatCharacter::CureInfestation( CBaseCombatCharacter *pHealer, float fCureFraction )
+{
+	if (m_fInfestedTime > 0)
+	{
+		m_fInfestedTime = m_fInfestedTime * fCureFraction;
+		//if (pHealer)
+		//	m_hInfestationCurer = pHealer;
+	}
+}
+
+#endif
 
 //-----------------------------------------------------------------------------
 // Visibility caching
@@ -863,6 +905,11 @@ CBaseCombatCharacter::CBaseCombatCharacter( void )
 #ifdef GLOWS_ENABLE
 	m_bGlowEnabled.Set( false );
 #endif // GLOWS_ENABLE
+
+#ifdef SWARM17
+	m_fInfestedTime = 0;
+	m_iInfestCycle = 0;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1717,6 +1764,9 @@ bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vec
 	return BecomeRagdollOnClient( forceVector );
 }
 
+#ifdef SWARM17
+extern void CreateParasiteFromBody( CBaseEntity *pBody, Vector vecSpawnPos, QAngle angParasiteFacing, float fJumpDistance );
+#endif
 
 /*
 ============
@@ -1863,6 +1913,81 @@ void CBaseCombatCharacter::Event_Killed( const CTakeDamageInfo &info )
 #ifdef GLOWS_ENABLE
 	RemoveGlowEffect();
 #endif // GLOWS_ENABLE
+
+#ifdef SWARM17
+	// if we gibbed from infestation damage, spawn some parasites
+	if ( info.GetDamageType() & DMG_INFEST && Classify() != CLASS_ASW_PARASITE )
+	{
+		Msg("character infest gibbed at loc %f, %f, %f\n", GetAbsOrigin().x, GetAbsOrigin().y, GetAbsOrigin().z);
+
+		int iNumParasites = 3 + RandomInt(0,2);
+		QAngle angParasiteFacing[5];
+		float fJumpDistance[5];
+		// for some reason if we calculate these inside the loop, the random numbers all come out the same.  Worrying.
+		angParasiteFacing[0] = GetAbsAngles(); angParasiteFacing[0].y = RandomFloat( -180.0f, 180.0f );
+		angParasiteFacing[1] = GetAbsAngles(); angParasiteFacing[1].y = RandomFloat( -180.0f, 180.0f );
+		angParasiteFacing[2] = GetAbsAngles(); angParasiteFacing[2].y = RandomFloat( -180.0f, 180.0f );
+		angParasiteFacing[3] = GetAbsAngles(); angParasiteFacing[3].y = RandomFloat( -180.0f, 180.0f );
+		angParasiteFacing[4] = GetAbsAngles(); angParasiteFacing[4].y = RandomFloat( -180.0f, 180.0f );
+		fJumpDistance[0] = RandomFloat( 30.0f, 70.0f );
+		fJumpDistance[1] = RandomFloat( 30.0f, 70.0f );
+		fJumpDistance[2] = RandomFloat( 30.0f, 70.0f );
+		fJumpDistance[3] = RandomFloat( 30.0f, 70.0f );
+		fJumpDistance[4] = RandomFloat( 30.0f, 70.0f );
+
+		for ( int i = 0; i < iNumParasites; i++ )
+		{
+			bool bBlocked = true;			
+			int k = 0;
+
+			Vector vecSpawnPos = GetAbsOrigin();
+			float fCircleDegree = ( static_cast< float >( i ) / iNumParasites ) * 2.0f * M_PI;
+			vecSpawnPos.x += sinf( fCircleDegree ) * RandomFloat( 3.0f, 20.0f );
+			vecSpawnPos.y += cosf( fCircleDegree ) * RandomFloat( 3.0f, 20.0f );
+			vecSpawnPos.z += RandomFloat( 20.0f, 40.0f );
+			
+			while ( bBlocked && k < 6 )
+			{
+				if ( k > 0 )
+				{
+					// Scooch it up
+					vecSpawnPos.z += NAI_Hull::Maxs( HULL_TINY ).z - NAI_Hull::Mins( HULL_TINY ).z;
+				}
+						
+				// check if there's room at this position
+				trace_t tr;
+				UTIL_TraceHull( vecSpawnPos, vecSpawnPos + Vector( 0.0f, 0.0f, 1.0f ), 
+					NAI_Hull::Mins(HULL_TINY) + Vector( -4.0f, -4.0f, -4.0f ),NAI_Hull::Maxs(HULL_TINY) + Vector( 4.0f, 4.0f, 4.0f ),
+					MASK_NPCSOLID, this, ASW_COLLISION_GROUP_PARASITE, &tr );	
+
+				if ( tr.fraction == 1.0 )
+				{
+					bBlocked = false;
+				}
+
+				k++;				
+			}
+
+			if (bBlocked)
+				continue;	// couldn't find room for parasites
+
+			CreateParasiteFromBody( this, vecSpawnPos, angParasiteFacing[i], fJumpDistance[i] );
+			/*
+			CASW_Parasite *pParasite = dynamic_cast< CASW_Parasite* >( CreateNoSpawn( "asw_parasite",
+				vecSpawnPos, angParasiteFacing[i], this));
+
+			if ( pParasite )
+			{
+				PhysDisableEntityCollisions( pParasite, this );
+				DispatchSpawn( pParasite );
+				pParasite->SetSleepState(AISS_WAITING_FOR_INPUT);
+				pParasite->SetJumpFromEgg(true, fJumpDistance[i]);
+				pParasite->Wake();
+			}
+			*/
+		}
+	}
+#endif
 }
 
 void CBaseCombatCharacter::Event_Dying( const CTakeDamageInfo &info )

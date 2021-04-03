@@ -23,6 +23,9 @@
 #include "tier0/memdbgon.h"
 
 #define	SWARM_PARASITE_MODEL	 "models/aliens/parasite/parasite.mdl"
+#ifdef SWARM17
+#define	SWARM_HARVESTITE_MODEL	 "models/aliens/parasite/harvestite.mdl"
+#endif
 
 const int ASW_PARASITE_MIN_JUMP_DIST = 48;
 const int ASW_PARASITE_MAX_JUMP_DIST = 170;
@@ -34,6 +37,11 @@ ConVar asw_parasite_speedboost( "asw_parasite_speedboost", "1.0", FCVAR_CHEAT, "
 ConVar asw_infest_angle("asw_infest_angle", "0", 0, "Angle adjustment for parasite infestation attachment");
 ConVar asw_infest_pitch("asw_infest_pitch", "-45", 0, "Angle adjustment for parasite infestation attachment");
 ConVar asw_parasite_inside("asw_parasite_inside", "0", FCVAR_NONE, "If set, parasites will burrow into their victims rather than staying attached");
+#ifdef SWARM17
+ConVar asw_infest_damage_player( "asw_infest_damage_npc", "11.25", FCVAR_CHEAT ); // 225 / 20.0f;
+ConVar asw_infest_damage_npc( "asw_infest_damage_npc", "11.25", FCVAR_CHEAT ); // 225 / 20.0f;
+ConVar asw_parasite_defanged_die_on_touch( "asw_parasite_defanged_die_on_touch", "1", FCVAR_CHEAT );
+#endif
 extern ConVar asw_debug_alien_damage;
 extern ConVar sv_gravity;
 
@@ -107,9 +115,11 @@ void CASW_Parasite::Spawn( void )
 {	
 	SetHullType(HULL_TINY);
 
+#ifndef SWARM17 // Move to be after defang check
 	BaseClass::Spawn();
 
 	SetModel( SWARM_PARASITE_MODEL);
+#endif
 
 	if (FClassnameIs(this, "asw_parasite_defanged"))
 	{
@@ -117,6 +127,10 @@ void CASW_Parasite::Spawn( void )
 		m_iHealth	= ASWGameRules()->ModifyAlienHealthBySkillLevel(10);
 		SetBodygroup( 0, 1 );
 		m_fSuicideTime = gpGlobals->curtime + 60;
+#ifdef SWARM17
+		// This model is a hack because I can't figure out $model bodygroups in Source 2013
+		m_pszAlienModelName = SWARM_HARVESTITE_MODEL;
+#endif
 	}
 	else
 	{
@@ -125,6 +139,10 @@ void CASW_Parasite::Spawn( void )
 		SetBodygroup( 0, 0 );
 		m_fSuicideTime = 0;
 	}
+
+#ifdef SWARM17
+	BaseClass::Spawn();
+#endif
 
 	SetMoveType( MOVETYPE_STEP );
 	SetHullType(HULL_TINY);
@@ -146,7 +164,16 @@ void CASW_Parasite::Event_Killed( const CTakeDamageInfo &info )
 
 	BaseClass::Event_Killed( info );
 
-#ifndef SWARM17
+#ifdef SWARM17
+	if (m_bInfesting && m_hPrepareToInfest)
+	{
+		// Un-infest the target
+		if ( m_hPrepareToInfest->MyCombatCharacterPointer() )
+		{
+			m_hPrepareToInfest->MyCombatCharacterPointer()->CureInfestation( NULL, 0.0f );
+		}
+	}
+#else
 	if ( !m_bDefanged && !m_bDoEggIdle.Get() && ( info.GetDamageType() & DMG_CLUB ) && info.GetAttacker() && info.GetAttacker()->Classify() == CLASS_ASW_MARINE )
 	{
 		CASW_Marine *pMarine = static_cast<CASW_Marine*>( info.GetAttacker() );
@@ -173,14 +200,21 @@ CASW_Parasite::~CASW_Parasite()
 
 void CASW_Parasite::Precache( void )
 {	
-	
+#ifndef SWARM17 // m_pszAlienModelName handles this
 	PrecacheModel( SWARM_PARASITE_MODEL );
+#endif
 
 	PrecacheScriptSound("ASW_Parasite.Death");
 	PrecacheScriptSound("ASW_Parasite.Attack");
 	PrecacheScriptSound("ASW_Parasite.Idle");
 	PrecacheScriptSound("ASW_Parasite.Pain");
 	PrecacheScriptSound("ASW_Parasite.Attack");
+
+#ifdef SWARM17
+	// Marines aren't around to precache these
+	PrecacheParticleSystem( "marine_bloodsplat_light" );
+	PrecacheParticleSystem( "marine_bloodsplat_heavy" );
+#endif
 
 	BaseClass::Precache();
 }
@@ -627,8 +661,11 @@ static const char *s_pStartInfestContext = "StartInfestContext";
 
 void CASW_Parasite::NormalTouch( CBaseEntity* pOther )
 {
-#ifndef SWARM17 // TODO: Infestation for HL2 NPCs
+#ifdef SWARM17 // Infestation for HL2 NPCs
+	if ( !m_bDefanged && !m_hPrepareToInfest.Get() && pOther )
+#else
 	if ( !m_bDefanged && !m_hPrepareToInfest.Get() && pOther && ( pOther->Classify() == CLASS_ASW_COLONIST || pOther->Classify() == CLASS_ASW_MARINE ) )
+#endif
 	{
 		SetCollisionGroup( ASW_COLLISION_GROUP_BUZZER );		// stop collisions with the marine/colonist
 
@@ -642,12 +679,38 @@ void CASW_Parasite::NormalTouch( CBaseEntity* pOther )
 		m_hPrepareToInfest = pOther;
 		SetContextThink( &CASW_Parasite::StartInfestation, gpGlobals->curtime + 0.2f, s_pStartInfestContext );
 	}
-#endif
 }
 
 bool CASW_Parasite::CheckInfestTarget( CBaseEntity *pOther )
 {
-#ifndef SWARM17 // TODO: Infestation for HL2 NPCs
+#ifdef SWARM17 // Infestation for HL2 NPCs
+	if ( pOther->m_takedamage == DAMAGE_NO )
+	{
+		// We're in the death cam... no fair infesting there
+		return false;
+	}
+
+	if ( IsOnFire() )
+	{
+		// don't actually infest if we're on fire, since we'll die very shortly
+		return false;
+	}
+
+	if (IRelationType( pOther ) > D_FR)
+	{
+		// Don't infest friendlies (Swarm 17)
+		return false;
+	}
+
+	if ( pOther->IsPlayer() )
+	{
+		return true;
+	}
+	else if ( pOther->IsNPC() )
+	{
+		return true;
+	}
+#else
 	CASW_Marine* pMarine = CASW_Marine::AsMarine( pOther );
 	if ( pOther )
 	{
@@ -688,7 +751,19 @@ bool CASW_Parasite::CheckInfestTarget( CBaseEntity *pOther )
 
 void CASW_Parasite::StartInfestation()
 {
-#ifndef SWARM17 // TODO: Infestation for HL2 NPCs
+#ifdef SWARM17 // Infestation for HL2 NPCs
+	if ( m_hPrepareToInfest )
+	{
+		if ( m_hPrepareToInfest->IsPlayer() )
+		{
+			InfestPlayer( static_cast<CBasePlayer*>(m_hPrepareToInfest.Get()) );
+		}
+		else if ( m_hPrepareToInfest->IsNPC() )
+		{
+			InfestNPC( m_hPrepareToInfest->MyNPCPointer() );
+		}
+	}
+#else
 	CASW_Marine* pMarine = CASW_Marine::AsMarine( m_hPrepareToInfest.Get() );
 	if ( pMarine )
 	{
@@ -716,7 +791,13 @@ void CASW_Parasite::InfestThink( void )
 
 	DispatchAnimEvents( this );
 
-#ifndef SWARM17 // TODO: Infestation for HL2 NPCs
+#ifdef SWARM17 // Infestation for HL2 NPCs
+	CBaseCombatCharacter *pBCC = GetParent() ? GetParent()->MyCombatCharacterPointer() : NULL;
+	if ( !pBCC || !pBCC->IsInfested() || pBCC->IsEffectActive( EF_NODRAW ) )
+	{
+		FinishedInfesting();
+	}
+#else
 	CASW_Marine *pMarine = dynamic_cast<CASW_Marine*>(GetParent());
 	if ( !pMarine || !pMarine->IsInfested() || pMarine->IsEffectActive( EF_NODRAW ) )
 	{
@@ -725,7 +806,135 @@ void CASW_Parasite::InfestThink( void )
 #endif
 }
 
-#ifndef SWARM17 // TODO: Infestation for HL2 NPCs
+#ifdef SWARM17 // Infestation for HL2 NPCs
+void CASW_Parasite::InfestPlayer(CBasePlayer* pPlayer)
+{
+	if ( !pPlayer )	
+		return;
+
+	pPlayer->BecomeInfested( this );
+
+	// attach
+	Vector vAttachmentPos = pPlayer->EyePosition();
+	if ( vAttachmentPos.IsValid() )
+	{
+		//SetSolid( SOLID_NONE );
+		//SetOwnerEntity( pPlayer );
+
+		SetMoveType( MOVETYPE_NONE );
+		QAngle current(0,0,0);
+
+		Vector diff = pPlayer->GetAbsOrigin() - GetAbsOrigin();
+		float angle = UTIL_VecToYaw(diff);
+		angle -= pPlayer->GetAbsAngles()[YAW];	// get the diff between our angle from the marine and the marine's facing;
+		
+		current = GetAbsAngles();
+
+		// Make sure it's near the chest attachement before parenting
+		Teleport( &vAttachmentPos, &vec3_angle, &vec3_origin );
+		
+		SetParent( pPlayer );
+
+		float flRaise = RandomFloat( 15.0f, 18.0f );
+		float flForward = RandomFloat( -3.0f, 0.0f );
+		float flSide = RandomFloat( 1.75f, 3.0f ) * ( RandomInt( 0, 1 ) == 0 ? 1.0f : -1.0f );
+
+		if ( asw_debug_alien_damage.GetBool() )
+		{
+			Msg( "INFEST: flRaise = %f flForward = %f flSide = %f yaw = %f\n", flRaise, flForward, flSide, angle + asw_infest_angle.GetFloat() );
+		}
+		SetLocalOrigin( Vector( flForward, flSide, flRaise ) );
+		SetLocalAngles( QAngle( asw_infest_pitch.GetFloat(), angle + asw_infest_angle.GetFloat(), 0 ) );
+		// play our infesting anim
+		if ( asw_parasite_inside.GetBool() )
+		{
+			SetActivity(ACT_RANGE_ATTACK2);
+		}
+		else
+		{
+			int iInfestAttack = LookupSequence("Infest_attack");
+			if (GetSequence() != iInfestAttack)
+			{
+				ResetSequence(iInfestAttack);
+			}
+		}
+		
+		AddFlag( FL_NOTARGET );
+		SetThink( &CASW_Parasite::InfestThink );
+		SetTouch( NULL );
+		m_bInfesting = true;		
+	}
+	else
+	{
+		FinishedInfesting();
+	}		
+}
+
+void CASW_Parasite::InfestNPC(CAI_BaseNPC* pNPC)
+{
+	if (!pNPC)
+		return;
+
+	if (!IsOnFire())	// don't actually infest if we're on fire, since we'll die very shortly
+		pNPC->BecomeInfested( this );
+
+	// attach
+	int attachment = pNPC->LookupAttachment( "chest" );
+	//if (attachment == -1)
+	//	attachment = pNPC->LookupAttachment( "anim_attachment_head" );
+
+	if ( attachment )
+	{
+		//SetAbsAngles( GetOwnerEntity()->GetAbsAngles() );
+		//SetSolid( SOLID_NONE );
+		//SetOwnerEntity( pNPC );
+
+		SetMoveType( MOVETYPE_NONE );
+		QAngle current(0,0,0);
+
+		Vector diff = pNPC->GetAbsOrigin() - GetAbsOrigin();
+		float angle = UTIL_VecToYaw(diff);
+		angle -= pNPC->GetAbsAngles()[YAW];	// get the diff between our angle from the marine and the marine's facing;
+		
+		current = GetAbsAngles();
+		
+		SetParent( pNPC, attachment );
+				Vector vecPosition;
+		float fRaise = random->RandomFloat(0,20);
+		float fRaiseZ = fRaise;
+		if (attachment == -1)
+		{
+			// Do some manual raising due to the lack of attachment
+			fRaiseZ += 24.0f;
+		}
+		
+		SetLocalOrigin( Vector( -fRaise * 0.2f, 0, fRaiseZ ) );
+		SetLocalAngles( QAngle( 0, angle + asw_infest_angle.GetFloat(), 0 ) );
+		// play our infesting anim
+		if ( asw_parasite_inside.GetBool() )
+		{
+			SetActivity(ACT_RANGE_ATTACK2);
+		}
+		else
+		{
+			int iInfestAttack = LookupSequence("Infest_attack");
+			if (GetSequence() != iInfestAttack)
+			{
+				ResetSequence(iInfestAttack);
+			}
+		}
+		// don't do anymore thinking - need to think still to animate?
+		AddFlag( FL_NOTARGET );
+		SetThink( &CASW_Parasite::InfestThink );
+		SetTouch( NULL );
+		m_bInfesting = true;		
+	}
+	else
+	{
+		FinishedInfesting();
+	}		
+}
+#else
 void CASW_Parasite::InfestMarine(CASW_Marine* pMarine)
 {
 	if ( !pMarine )	
@@ -870,6 +1079,23 @@ void CASW_Parasite::FinishedInfesting()
 	SetTouch( NULL );
 }
 
+#ifdef SWARM17
+void CreateParasiteFromBody( CBaseEntity *pBody, Vector vecSpawnPos, QAngle angParasiteFacing, float fJumpDistance )
+{
+	CASW_Parasite *pParasite = dynamic_cast< CASW_Parasite* >( CBaseEntity::CreateNoSpawn( "asw_parasite",
+		vecSpawnPos, angParasiteFacing, pBody ));
+
+	if ( pParasite )
+	{
+		PhysDisableEntityCollisions( pParasite, pBody );
+		DispatchSpawn( pParasite );
+		pParasite->SetSleepState(AISS_WAITING_FOR_INPUT);
+		pParasite->SetJumpFromEgg(true, fJumpDistance);
+		pParasite->Wake();
+	}
+}
+#endif
+
 void CASW_Parasite::SetEgg(CASW_Egg* pEgg)
 {
 	m_hEgg = pEgg;
@@ -899,11 +1125,21 @@ void CASW_Parasite::LeapTouch( CBaseEntity *pOther )
 				TouchDamage( pOther );
 				//ClearSchedule( "About to gib self" );
 				// gib us
+#ifdef SWARM17
+				if (asw_parasite_defanged_die_on_touch.GetBool())
+				{
+					CTakeDamageInfo info(this, this, Vector(0,0,0), GetAbsOrigin(), GetHealth() * 2,
+							DMG_ACID);
+					TakeDamage(info);
+					SetSchedule( SCHED_DIE );
+					return;
+				}
+#else
 				CTakeDamageInfo info(NULL, NULL, Vector(0,0,0), GetAbsOrigin(), GetHealth() * 2,
 						DMG_ACID);
 				TakeDamage(info);
 				SetSchedule( SCHED_DIE );
-				return;
+#endif
 			}
 			else
 			{

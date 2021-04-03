@@ -700,6 +700,10 @@ protected:
 
 	bool				CheckPVSCondition();
 
+#ifdef SWARM17
+	void				ASWThinkEffects();
+#endif
+
 private:
 	bool				CanThinkRebalance();
 	void				RebalanceThinks();
