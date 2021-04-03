@@ -72,7 +72,7 @@ public:
 	virtual bool CanFlinch();
 	virtual int OnTakeDamage_Alive( const CTakeDamageInfo &info );
 	virtual bool BlockedDamage( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr );
-	virtual void TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr );
+	virtual void TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator = NULL );
 	virtual void Bleed( const CTakeDamageInfo &info, const Vector &vecPos, const Vector &vecDir, trace_t *ptr );
 	void CheckForShieldbugHint( const CTakeDamageInfo &info );
 

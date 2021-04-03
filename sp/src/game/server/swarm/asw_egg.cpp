@@ -638,7 +638,7 @@ CASW_Parasite* CASW_Egg::GetParasite()
 	return dynamic_cast<CASW_Parasite*>(m_hParasite.Get());
 }
 
-void CASW_Egg::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr )
+void CASW_Egg::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator )
 {
 	if ( m_takedamage == DAMAGE_NO )
 		return;

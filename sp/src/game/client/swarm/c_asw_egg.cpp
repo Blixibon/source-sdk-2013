@@ -169,7 +169,7 @@ void CASW_Egg_Proxy::OnBind( void *pC_BaseEntity )
 
 EXPOSE_INTERFACE( CASW_Egg_Proxy, IMaterialProxy, "EggAwakeSine" IMATERIAL_PROXY_INTERFACE_VERSION );
 
-void C_ASW_Egg::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr )
+void C_ASW_Egg::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator )
 {
 	CTakeDamageInfo subInfo = info;
 

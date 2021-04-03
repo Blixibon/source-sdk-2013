@@ -7,7 +7,9 @@
 #include "Sprite.h"
 #include "SpriteTrail.h"
 #include "te_effect_dispatch.h"
-#ifndef SWARM17
+#ifdef SWARM17
+#include "soundent.h"
+#else
 #include "asw_gamerules.h"
 #include "asw_marine.h"
 #include "asw_marine_resource.h"
@@ -206,6 +208,9 @@ void CASW_Boomer_Blob::CheckNearbyTargets( )
 			ResetSequence( LookupSequence( "MortarBugProjectile_Opening" ) );
 
 #ifdef SWARM17
+			// HL2 AI danger
+			CSoundEnt::InsertSound( SOUND_DANGER, GetAbsOrigin(), 300, 2.0, this );
+
 			DispatchParticleEffect( "boomer_grenade_open", PATTACH_ABSORIGIN_FOLLOW, this, -1, false );
 #else
 			CEffectData	data;

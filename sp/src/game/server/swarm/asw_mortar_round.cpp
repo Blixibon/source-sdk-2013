@@ -192,8 +192,8 @@ void CASW_Mortar_Round::CheckNearbyTargets( )
 			m_bModelOpening = true;
 			ResetSequence( LookupSequence( "MortarBugProjectile_Opening" ) );
 
-#ifdef SWARM17
-			DispatchParticleEffect( "mortar_grenade_open", PATTACH_ABSORIGIN_FOLLOW, this, -1, false );
+#ifdef SWARM17 // TODO: FIX PARTICLE
+			//DispatchParticleEffect( "mortar_grenade_open", PATTACH_ABSORIGIN_FOLLOW, this, -1, false );
 #else
 			CEffectData	data;
 			data.m_vOrigin = GetAbsOrigin();

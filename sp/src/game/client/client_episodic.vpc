@@ -148,7 +148,7 @@ $Project "Client (Episodic)"
 			$File	"swarm\c_asw_egg.h"
 			//$File	"swarm\c_asw_fx.cpp" // TODO: These FX will probably be needed at some point!!!
 			//$File	"swarm\c_asw_fx.h"
-			//$File	"swarm\c_asw_fx_proxy.cpp"
+			$File	"swarm\c_asw_fx_proxy.cpp"
 			$File	"swarm\c_asw_generic_emitter.cpp"
 			$File	"swarm\c_asw_generic_emitter.h"
 			$File	"swarm\c_asw_generic_emitter_entity.cpp"

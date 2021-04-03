@@ -75,10 +75,12 @@ void C_ASW_Buzzer::OnDataChanged( DataUpdateType_t type )
 		// We want to think every frame.
 		SetNextClientThink( CLIENT_THINK_ALWAYS );
 
+#ifndef SWARM17 // TODO: FIX PARTICLE
 		if ( !m_pTrailEffect )
 		{
 			m_pTrailEffect = this->ParticleProp()->Create( "buzzer_trail", PATTACH_ABSORIGIN_FOLLOW );
 		}
+#endif
 	}
 }
 

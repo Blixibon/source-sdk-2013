@@ -26,7 +26,7 @@ ConVar asw_drone_weak_from_behind( "asw_drone_weak_from_behind", "0", FCVAR_CHEA
 ConVar asw_alien_mining_laser_damage_scale( "asw_alien_mining_laser_damage_scale", "0.25f", FCVAR_CHEAT | FCVAR_REPLICATED );
 ConVar asw_alien_debug_death_style( "asw_alien_debug_death_style", "0", FCVAR_CHEAT | FCVAR_REPLICATED, "For debugging alien deaths" );
 
-void CASW_Alien::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr )
+void CASW_Alien::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator )
 {
 #ifdef GAME_DLL
 	m_fNoDamageDecal = false;

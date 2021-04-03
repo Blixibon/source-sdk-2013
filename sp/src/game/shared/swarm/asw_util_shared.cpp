@@ -25,7 +25,9 @@
 #endif
 	#include "fogcontroller.h"
 #else
-#ifndef SWARM17
+#ifdef SWARM17
+	#include "asw_fx_shared.h"
+#else
 	#include "asw_gamerules.h"
 	#include "c_asw_marine.h"
 	#include "c_asw_game_resource.h"
@@ -39,9 +41,9 @@
 	#include "c_asw_point_camera.h"
 	#include "asw_hud_floating_number.h"
 	#include "clientmode_asw.h"
+	#include "c_asw_fx.h"
 #endif
 	#include "c_asw_drone_advanced.h"
-	#include "c_asw_fx.h"
 	#include "c_point_camera.h"
 	#include "c_playerresource.h"
 	#include "vgui/cursor.h"
@@ -529,23 +531,17 @@ int UTIL_ASW_NumCommandedMarines( const CASW_Player *pPlayer )
 				vGibOrigin = pEnt->WorldSpaceCenter();
 			}
 
-#ifndef SWARM17 // TODO
 			FX_DroneGib( vGibOrigin, Vector(0,0,1), 0.5f, pAnimating->GetSkin(), pEnt->IsOnFire() );
-#endif
 			return true;
 		}
 		else if (!stricmp(STRING(pAnimating->GetModelName()), SWARM_HARVESTER_MODEL))
 		{
-#ifndef SWARM17 // TODO
 			FX_HarvesterGib( pEnt->WorldSpaceCenter(), Vector(0,0,1), 0.5f, pAnimating->GetSkin(), pEnt->IsOnFire() );
-#endif
 			return true;
 		}
 		else if (!stricmp(STRING(pAnimating->GetModelName()), SWARM_SHIELDBUG_MODEL))
 		{
-#ifndef SWARM17 // TODO
 			FX_HarvesterGib( pEnt->WorldSpaceCenter(), Vector(0,0,1), 0.5f, 1, pEnt->IsOnFire() );
-#endif
 			return true;
 		}
 		// todo: code to gib other types of things clientside?

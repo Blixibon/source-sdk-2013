@@ -71,7 +71,11 @@ enum ASW_Skill_Slot
 #define HIDEHUD_REMOTE_TURRET		( HIDEHUD_VEHICLE_CROSSHAIR )	// player is using a remote turret
 
 // Re-use base damage bits
+#ifdef SWARM17
+#define DMG_INFEST					(DMG_PARALYZE)		// damage from parasite infestation
+#else
 #define DMG_INFEST					(DMG_AIRBOAT)		// damage from parasite infestation
+#endif
 #define DMG_BLURPOISON				(DMG_POISON)		// damage from buzzers, blurs the player's view
 
 #define DMG_GIB_CORPSE				( DMG_CRUSH | DMG_FALL | DMG_BLAST | DMG_SONIC | DMG_CLUB | DMG_INFEST )
@@ -363,6 +367,9 @@ public:
 		m_flFuse = 0.0f;
 		m_flBounce = 0.0f;
 		m_bShootable = false;
+#ifdef SWARM17
+		m_iDamageType = DMG_NEVERGIB;
+#endif
 	}
 
 	CASW_AlienShot( const CASW_AlienShot &shot )
@@ -376,6 +383,9 @@ public:
 		m_flFuse				= shot.m_flFuse;
 		m_flBounce				= shot.m_flBounce;
 		m_bShootable			= shot.m_bShootable;
+#ifdef SWARM17
+		m_iDamageType			= shot.m_iDamageType;
+#endif
 		m_strModel				= shot.m_strModel;
 		m_strSound_spawn		= shot.m_strSound_spawn;
 		m_strSound_hitNPC		= shot.m_strSound_hitNPC;
@@ -394,6 +404,9 @@ public:
 	float		m_flFuse;
 	float		m_flBounce;
 	bool		m_bShootable;
+#ifdef SWARM17
+	int			m_iDamageType;
+#endif
 	CUtlString	m_strModel;
 	CUtlString	m_strSound_spawn;
 	CUtlString	m_strSound_hitNPC;
@@ -632,13 +645,13 @@ enum CASW_Flock_Leader_State
 // Swarm 17 stubs
 inline CGameRules *ASWGameRules() { return g_pGameRules; }
 
-// TODO
-#define ACT_PREP_TO_FIRE ACT_INVALID
-#define ACT_FIRE ACT_INVALID
-#define ACT_FIRE_RECOVER ACT_INVALID
-#define ACT_SPINAROUND ACT_INVALID
-
 #ifdef GAME_DLL
+// TODO: Make shared activities after all?
+extern Activity ACT_PREP_TO_FIRE;
+extern Activity ACT_FIRE;
+extern Activity ACT_FIRE_RECOVER;
+extern Activity ACT_SPINAROUND;
+
 #define HULL_MEDIUMBIG HULL_MEDIUM
 
 #define CASW_Door CBasePropDoor

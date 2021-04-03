@@ -461,6 +461,7 @@ C_BaseAnimating * C_ASW_Alien::BecomeRagdollOnClient( void )
 
 			if ( pPlayer )
 			{
+#ifndef SWARM17 // TODO: FIX PARTICLE
 				// if we're going to ragdoll, create a big blood spurt now so players get feedback about killing this alien
 				QAngle	vecAngles;
 				if ( m_vecForce == vec3_origin )
@@ -504,6 +505,7 @@ C_BaseAnimating * C_ASW_Alien::BecomeRagdollOnClient( void )
 				{
 					Warning( "Could not create effect for alien death: %s", pchEffectName );
 				}
+#endif
 			}
 
 			if ( IsHurler() )

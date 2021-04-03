@@ -300,7 +300,7 @@ void CASW_Buzzer::PrescheduleThink( void )
 	m_nLastWaterLevel = GetWaterLevel();
 }
 
-void CASW_Buzzer::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr )
+void CASW_Buzzer::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator )
 {
 	g_vecAttackDir = vecDir;
 
@@ -321,7 +321,7 @@ void CASW_Buzzer::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir
 	UTIL_ASW_DroneBleed( ptr->endpos + m_LagCompensation.GetLagCompensationOffset(), vecDir, 4 );
 #endif
 
-	//BaseClass::TraceAttack( info, vecDir, ptr );
+	//BaseClass::TraceAttack( info, vecDir, ptr, pAccumulator );
 
 	m_fNoDamageDecal = false;
 	if ( m_takedamage == DAMAGE_NO )

@@ -23,4 +23,30 @@ void UTIL_ASW_BuzzerDeath( const Vector &pos );
 void UTIL_ASW_GrenadeExplosion( const Vector &vecPos, float flRadius );
 void UTIL_ASW_EnvExplosionFX( const Vector &vecPos, float flRadius, bool bOnGround );
 
+#if SWARM17 && CLIENT_DLL
+class CDroneGibManager : public CAutoGameSystem
+{
+public:
+	// Methods of IGameSystem
+	virtual void Update( float frametime );
+	virtual void LevelInitPreEntity( void );
+
+	void	AddGib( C_BaseEntity *pEntity ); 
+	void	RemoveGib( C_BaseEntity *pEntity );
+
+private:
+	typedef CHandle<C_BaseEntity> CGibHandle;
+	CUtlLinkedList< CGibHandle > m_LRU; 
+};
+
+void FX_DroneBleed( const Vector &origin, const Vector &direction, float scale );
+void FX_GibMeshEmitter( const char *szModel, const char *szTemplate, const Vector &origin, const Vector &direction, int skinm, float fScale=1.0f, bool bFrozen = false );
+void FX_GrubGib( const Vector &origin, const Vector &direction, float scale, bool bOnFire );
+void FX_DroneGib( const Vector &origin, const Vector &direction, float scale, int skin, bool bOnFire );
+void FX_HarvesterGib( const Vector &origin, const Vector &direction, float scale, int skin, bool bOnFire );
+void FX_ParasiteGib( const Vector &origin, const Vector &direction, float scale, int skin, bool bUseGibImpactSounds, bool bOnFire );
+void FX_EggGibs( const Vector &origin, int flags, int iEntIndex );
+void FX_QueenSpitBurst( const Vector &origin, const Vector &direction, float scale, int skin );
+#endif
+
 #endif // _INCLUDE_ASW_FX_SHARED_H

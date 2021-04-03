@@ -44,6 +44,10 @@ public:
 private:
 	void			Touch( CBaseEntity *pOther );
 	void			MissileHit( CBaseEntity *pEnt, trace_t &tr );
+#ifdef SWARM17
+	void			DangerSoundThink();
+	float			m_fDangerRadius;
+#endif
 
 	CASW_AlienShot	m_ShotDef;
 	EHANDLE			m_hOwner;

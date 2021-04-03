@@ -90,7 +90,7 @@ bool CASW_Shieldbug::BlockedDamage( const CTakeDamageInfo &info, const Vector &v
 	return false;
 }
 
-void CASW_Shieldbug::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr )
+void CASW_Shieldbug::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator )
 {
 	//Msg( "Shieldbug hit on hitbox %d hitgroup %d\n", ptr->hitbox, ptr->hitgroup );
 
@@ -120,7 +120,7 @@ void CASW_Shieldbug::TraceAttack( const CTakeDamageInfo &info, const Vector &vec
 		return;
 	}
 
-	BaseClass::TraceAttack(info, vecDir, ptr);
+	BaseClass::TraceAttack(info, vecDir, ptr, pAccumulator);
 }
 
 

@@ -25,7 +25,7 @@ public:
 	virtual void PostDataUpdate( DataUpdateType_t updateType );
 
 	// death;
-	virtual void TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr );
+	virtual void TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator = NULL );
 	virtual void Bleed( const CTakeDamageInfo &info, const Vector &vecPos, const Vector &vecDir, trace_t *ptr );
 	virtual void DoBloodDecal( float flDamage, const Vector &vecPos, const Vector &vecDir, trace_t *ptr, int bitsDamageType );
 	virtual const char *GetDeathParticleEffectName( void ) { return "drone_death"; }

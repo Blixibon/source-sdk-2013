@@ -6,12 +6,14 @@
 //=============================================================================//
 #include "cbase.h"
 #include "c_asw_alien.h"
-#include "c_asw_physics_prop_statue.h"
-#include "c_asw_mesh_emitter_entity.h"
 #include "c_asw_egg.h"
 #include "c_asw_buzzer.h"
-#include "c_asw_marine.h"
 #include "c_asw_clientragdoll.h"
+#ifndef SWARM17
+#include "c_asw_marine.h"
+#include "c_asw_physics_prop_statue.h"
+#include "c_asw_mesh_emitter_entity.h"
+#endif
 
 #include "ProxyEntity.h"
 #include "materialsystem/IMaterial.h"
@@ -19,7 +21,9 @@
 #include "materialsystem/IMaterialSystem.h"
 #include <KeyValues.h>
 
+#ifndef SWARM17
 #include "imaterialproxydict.h"
+#endif
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -111,6 +115,7 @@ void CASW_Model_FX_Proxy::OnBind( C_BaseEntity *pEnt )
 	if ( !pEnt )
 		return;
 
+#ifndef SWARM17
 	C_ASW_Mesh_Emitter *pGib = dynamic_cast<C_ASW_Mesh_Emitter*>( pEnt );
 	if ( pGib && pGib->m_bFrozen )
 	{
@@ -136,6 +141,7 @@ void CASW_Model_FX_Proxy::OnBind( C_BaseEntity *pEnt )
 		TextureTransform( 0, 5.0f );
 		return;
 	}
+#endif
 
 	bool	bShockBig	= false;
 	bool	bOnFire		= false;
@@ -147,12 +153,15 @@ void CASW_Model_FX_Proxy::OnBind( C_BaseEntity *pEnt )
 	{
 		bShockBig	= pAlien->m_bElectroStunned;
 		bOnFire		= pAlien->m_bOnFire;
+#ifndef SWARM17
 		flFrozen	= pAlien->GetMoveType() == MOVETYPE_NONE ? 0.0f : pAlien->GetFrozenAmount();
+#endif
 		//Msg( " alien %d shock = %d fire = %d frozen = %f\n", pAlien->entindex(), bShockBig, bOnFire, flFrozen );
 		UpdateEffects( bShockBig, bOnFire, flFrozen );
 		return;
 	}
 
+#ifndef SWARM17
 	C_ASW_Marine *pMarine = C_ASW_Marine::AsMarine( pEnt );
 	if ( pMarine )
 	{
@@ -162,12 +171,15 @@ void CASW_Model_FX_Proxy::OnBind( C_BaseEntity *pEnt )
 		UpdateEffects( false, bOnFire, flFrozen );
 		return;
 	}
+#endif
 
 	C_ASW_Egg *pEgg = dynamic_cast<C_ASW_Egg*>( pEnt );
 	if ( pEgg )
 	{
 		bOnFire		= pEgg->m_bOnFire;
+#ifndef SWARM17
 		flFrozen	= pEgg->GetFrozenAmount();
+#endif
 		UpdateEffects( false, bOnFire, flFrozen );
 		return;
 	}
@@ -177,7 +189,9 @@ void CASW_Model_FX_Proxy::OnBind( C_BaseEntity *pEnt )
 	{
 		bShockBig	= pBuzzer->m_bElectroStunned;
 		bOnFire		= pBuzzer->m_bOnFire;
+#ifndef SWARM17
 		flFrozen	= pBuzzer->GetMoveType() == MOVETYPE_NONE ? 0.0f : pBuzzer->GetFrozenAmount();
+#endif
 		UpdateEffects( bShockBig, bOnFire, flFrozen );
 		return;
 	}
@@ -291,4 +305,8 @@ IMaterial *CASW_Model_FX_Proxy::GetMaterial()
 	return m_pDetailMaterial->GetOwningMaterial();
 }
 
-EXPOSE_MATERIAL_PROXY( CASW_Model_FX_Proxy, AlienSurfaceFX );
+#ifdef SWARM17
+EXPOSE_INTERFACE( CASW_Model_FX_Proxy, IMaterialProxy, "AlienSurfaceFX" IMATERIAL_PROXY_INTERFACE_VERSION );
+#else
+EXPOSE_MATERIAL_PROXY( CASW_Model_FX_Proxy, "AlienSurfaceFX" );
+#endif

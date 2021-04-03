@@ -16,7 +16,9 @@
 #include "SpriteTrail.h"
 #include "te_effect_dispatch.h"
 #include "utlvector.h"
-#ifndef SWARM17
+#ifdef SWARM17
+#include "soundent.h"
+#else
 #include "asw_marine.h"
 #include "asw_marine_resource.h"
 #include "asw_game_resource.h"
@@ -48,11 +50,18 @@ LINK_ENTITY_TO_CLASS( asw_missile_round, CASW_Missile_Round );
 PRECACHE_REGISTER( asw_missile_round );
 
 BEGIN_DATADESC( CASW_Missile_Round )	
+#ifdef SWARM17
+	DEFINE_FIELD( m_fDangerRadius, FIELD_FLOAT ),
+#endif
 END_DATADESC()
 
 CUtlVector<CASW_Missile_Round*> g_vecMissileRounds;
 extern ConVar sv_maxunlag;
 ConVar sv_unlag_alien_projectiles( "sv_unlag_alien_projectiles", "1", FCVAR_NONE, "If enabled, server will rewind time based on a player's ping when doing ranger projectile collision vs marines." );
+
+#ifdef SWARM17
+static const char *s_pDangerSoundContext = "DangerSoundThink";
+#endif
 
 CASW_Missile_Round::CASW_Missile_Round()
 {
@@ -60,6 +69,10 @@ CASW_Missile_Round::CASW_Missile_Round()
 	m_vEndPosition.Init();
 	m_bDetonated = false;
 	m_bMarineFriendly = false;
+
+#ifdef SWARM17
+	m_fDangerRadius = 100;
+#endif
 
 	g_vecMissileRounds.AddToTail( this );
 }
@@ -114,6 +127,10 @@ void CASW_Missile_Round::Spawn( void )
 
 	SetThink( &CBaseEntity::SUB_Remove );
 	SetNextThink( gpGlobals->curtime + m_ShotDef.m_flFuse );
+
+#ifdef SWARM17
+	SetContextThink( &CASW_Missile_Round::DangerSoundThink, gpGlobals->curtime + 0.05f, s_pDangerSoundContext );
+#endif
 
 	m_vecOldPosition = GetAbsOrigin();
 }
@@ -363,7 +380,11 @@ void CASW_Missile_Round::MissileHit( CBaseEntity *pEnt, trace_t &tr )
 		ClearMultiDamage();
 		VectorNormalize( vecNormalizedVel );
 
+#ifdef SWARM17
+		CTakeDamageInfo	dmgInfo( this, m_hOwner, m_ShotDef.m_flDamage_direct, m_ShotDef.m_iDamageType );
+#else
 		CTakeDamageInfo	dmgInfo( this, m_hOwner, m_ShotDef.m_flDamage_direct, DMG_GENERIC | DMG_NEVERGIB );
+#endif
 		CalculateMeleeDamageForce( &dmgInfo, vecNormalizedVel, tr.endpos, 0.7f );
 		dmgInfo.SetDamagePosition( tr.endpos );
 		trace_t *pTrace = &tr;
@@ -424,6 +445,25 @@ void CASW_Missile_Round::MissileHit( CBaseEntity *pEnt, trace_t &tr )
 	SetThink( &CBaseEntity::SUB_Remove );
 	SetNextThink( gpGlobals->curtime + 1.0f );
 }
+
+#ifdef SWARM17
+void CASW_Missile_Round::DangerSoundThink()
+{
+	// Copied from grenade_ar2
+
+	// The old way of making danger sounds would scare the crap out of EVERYONE between you and where the grenade
+	// was going to hit. The radius of the danger sound now 'blossoms' over the grenade's lifetime, making it seem
+	// dangerous to a larger area downrange than it does from where it was fired.
+	if( m_fDangerRadius <= 300 )
+	{
+		m_fDangerRadius += ( 300 * 0.05 );
+	}
+
+	CSoundEnt::InsertSound( SOUND_DANGER, GetAbsOrigin() + GetAbsVelocity() * 0.5, m_fDangerRadius, 0.2, this, SOUNDENT_CHANNEL_REPEATED_DANGER );
+
+	SetNextThink( gpGlobals->curtime + 0.05f, s_pDangerSoundContext );
+}
+#endif
 
 CASW_Missile_Round* CASW_Missile_Round::Missile_Round_Create( const CASW_AlienShot &shot, const Vector &position, const QAngle &angles, const Vector &velocity, CBaseEntity *pOwner )
 {

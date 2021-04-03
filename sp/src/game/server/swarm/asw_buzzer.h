@@ -52,7 +52,7 @@ public:
 	void			Event_Killed( const CTakeDamageInfo &info );
 	int				OnTakeDamage_Alive( const CTakeDamageInfo &info );
 	int				OnTakeDamage_Dying( const CTakeDamageInfo &info );
-	void			TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr);
+	void			TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator = NULL );
 	void			ASWTraceBleed( float flDamage, const Vector &vecDir, trace_t *ptr, int bitsDamageType );
 	void			TranslateNavGoal( CBaseEntity *pEnemy, Vector &chasePosition );
 	float			GetDefaultNavGoalTolerance();

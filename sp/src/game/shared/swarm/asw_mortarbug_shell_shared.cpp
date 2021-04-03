@@ -14,7 +14,9 @@
 #include "baseparticleentity.h"
 #define CASW_Marine C_ASW_Marine
 #else
-#ifndef SWARM17
+#ifdef SWARM17
+#include "soundent.h"
+#else
 #include "asw_marine.h"
 #endif
 #include "iasw_spawnable_npc.h"
@@ -154,7 +156,11 @@ void CASW_Mortarbug_Shell::ShellThink( )
 		CPASFilter filter( data.m_vOrigin );
 		filter.SetIgnorePredictionCull(true);
 #ifdef SWARM17
-		DispatchParticleEffect( "mortar_grenade_open", PATTACH_ABSORIGIN_FOLLOW, this, -1, false );
+		// HL2 AI danger
+		CSoundEnt::InsertSound( SOUND_DANGER, GetAbsOrigin(), 300, 1.5, this );
+
+		// TODO: FIX PARTICLE
+		//DispatchParticleEffect( "mortar_grenade_open", PATTACH_ABSORIGIN_FOLLOW, this, -1, false );
 #else
 		DispatchParticleEffect( "mortar_grenade_open", PATTACH_ABSORIGIN_FOLLOW, this, -1, false, -1, &filter );
 #endif
