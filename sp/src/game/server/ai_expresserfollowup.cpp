@@ -77,6 +77,7 @@ static void DispatchComeback( CAI_ExpresserWithFollowup *pExpress, CBaseEntity *
 #ifdef MAPBASE
 	// See DispatchFollowupThroughQueue()
 	criteria.AppendCriteria( "From_idx", CNumStr( pSpeaker->entindex() ) );
+	criteria.AppendCriteria( "From_class", pSpeaker->GetClassname() );
 #endif
 	// if a SUBJECT criteria is missing, put it back in.
 	if ( criteria.FindCriterionIndex( "Subject" ) == -1 )
@@ -224,7 +225,7 @@ static CResponseQueue::CFollowupTargetSpec_t ResolveFollowupTargetToEntity( AICo
 
 ConVar chet_debug_idle( "chet_debug_idle", "0", FCVAR_ARCHIVE, "If set one, many debug prints to help track down the TLK_IDLE issue. Set two for super verbose info" );
 // extern ConVar chet_debug_idle;
-bool CAI_ExpresserWithFollowup::Speak( AIConcept_t &concept, const char *modifiers /*= NULL*/, char *pszOutResponseChosen /* = NULL*/, size_t bufsize /* = 0 */, IRecipientFilter *filter /* = NULL */ )
+bool CAI_ExpresserWithFollowup::Speak( AIConcept_t concept, const char *modifiers /*= NULL*/, char *pszOutResponseChosen /* = NULL*/, size_t bufsize /* = 0 */, IRecipientFilter *filter /* = NULL */ )
 {
 	VPROF("CAI_Expresser::Speak");
 	if ( IsSpeechGloballySuppressed() )
@@ -260,7 +261,7 @@ bool CAI_ExpresserWithFollowup::Speak( AIConcept_t &concept, const char *modifie
 		}
 	}
 
-	SpeechMsg( GetOuter(), "%s (%x) spoke %s (%f)", STRING(GetOuter()->GetEntityName()), GetOuter(), (const char*)concept, gpGlobals->curtime );
+	SpeechMsg( GetOuter(), "%s (%p) spoke %s (%f)", STRING(GetOuter()->GetEntityName()), GetOuter(), (const char*)concept, gpGlobals->curtime );
 	// Msg( "%s:%s to %s:%s\n", GetOuter()->GetDebugName(), concept.GetStringConcept(), criteria.GetValue(criteria.FindCriterionIndex("Subject")), pTarget ? pTarget->GetDebugName() : "none" );
 
 	bool spoke = SpeakDispatchResponse( concept, &result, &criteria, filter );
@@ -296,7 +297,7 @@ static float GetSpeechDurationForResponse( const AI_Response * RESTRICT response
 // Purpose: Dispatches the result
 // Input  : *response - 
 //-----------------------------------------------------------------------------
-bool CAI_ExpresserWithFollowup::SpeakDispatchResponse( AIConcept_t &concept, AI_Response *response, AI_CriteriaSet *criteria, IRecipientFilter *filter )
+bool CAI_ExpresserWithFollowup::SpeakDispatchResponse( AIConcept_t concept, AI_Response *response, AI_CriteriaSet *criteria, IRecipientFilter *filter )
 {
 	// This gives the chance for the other bot to respond.
 	if ( !concept.GetSpeaker().IsValid() )
@@ -375,6 +376,7 @@ bool CAI_ExpresserWithFollowup::SpeakDispatchResponse( AIConcept_t &concept, AI_
 					ResolveFollowupTargetToEntity( concept, *criteria, response, followup ), 
 					-followup->followup_delay, GetOuter() );
 			}
+#ifndef MAPBASE // RESPONSE_PRINT now notes speaking time
 			else if ( response->GetType() == ResponseRules::RESPONSE_PRINT )
 			{	// zero-duration responses dispatch immediately via the queue (must be the queue bec.
 				// the m_pPostponedFollowup will never trigger)
@@ -382,6 +384,7 @@ bool CAI_ExpresserWithFollowup::SpeakDispatchResponse( AIConcept_t &concept, AI_
 					ResolveFollowupTargetToEntity( concept, *criteria, response, followup ), 
 					followup->followup_delay, GetOuter() );
 			}
+#endif
 			else
 			{
 				// this is kind of a quick patch to immediately deal with the issue of null criteria 
@@ -425,6 +428,9 @@ void CAI_ExpresserWithFollowup::DispatchFollowupThroughQueue( const AIConcept_t 
 	// changes internal operations of the "From" context to search for an entity index. This won't be 100% reliable if the source
 	// talker dies and another entity is created immediately afterwards, but it's a lot more reliable than a simple entity name search.
 	criteria.AppendCriteria( "From_idx", CNumStr( pOuter->entindex() ) );
+
+	// Generic NPCs should also be attributable by classname
+	criteria.AppendCriteria( "From_class", pOuter->GetClassname() );
 #endif
 
 	criteria.Merge( criteriaStr );

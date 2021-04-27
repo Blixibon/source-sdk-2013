@@ -2314,6 +2314,8 @@ BEGIN_ENT_SCRIPTDESC_ROOT( CBaseEntity, "Root class of all server-side entities"
 	DEFINE_SCRIPTFUNC_NAMED( ScriptGetModelKeyValues, "GetModelKeyValues", "Get a KeyValue class instance on this entity's model")
 
 #ifdef MAPBASE_VSCRIPT
+	DEFINE_SCRIPTFUNC( Activate, "" )
+
 	DEFINE_SCRIPTFUNC_NAMED( ScriptIsVisible, "IsVisible", "Check if the specified position can be visible to this entity." )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptIsEntVisible, "IsEntVisible", "Check if the specified entity can be visible to this entity." )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptIsVisibleWithMask, "IsVisibleWithMask", "Check if the specified position can be visible to this entity with a specific trace mask." )
@@ -2411,7 +2413,10 @@ BEGIN_ENT_SCRIPTDESC_ROOT( CBaseEntity, "Root class of all server-side entities"
 	DEFINE_SCRIPTFUNC( SetFriction, "" )
 	DEFINE_SCRIPTFUNC( GetMass, "" )
 	DEFINE_SCRIPTFUNC( SetMass, "" )
-	
+
+	DEFINE_SCRIPTFUNC_NAMED( ScriptGetSolid, "GetSolid", "" )
+	DEFINE_SCRIPTFUNC_NAMED( ScriptSetSolid, "SetSolid", "" )
+
 	DEFINE_SCRIPTFUNC( GetSolidFlags, "Get solid flags" )
 	DEFINE_SCRIPTFUNC( AddSolidFlags, "Add solid flags" )
 	DEFINE_SCRIPTFUNC( RemoveSolidFlags, "Remove solid flags" )
@@ -9518,6 +9523,7 @@ void CBaseEntity::RemoveRecipientsIfNotCloseCaptioning( CRecipientFilter& filter
 	}
 }
 
+#ifndef MAPBASE // Moved to SoundEmitterSystem.cpp
 //-----------------------------------------------------------------------------
 // Purpose: Wrapper to emit a sentence and also a close caption token for the sentence as appropriate.
 // Input  : filter - 
@@ -9540,6 +9546,7 @@ void CBaseEntity::EmitSentenceByIndex( IRecipientFilter& filter, int iEntIndex, 
 	enginesound->EmitSentenceByIndex( filter, iEntIndex, iChannel, iSentenceIndex, 
 		flVolume, iSoundlevel, iFlags, iPitch, 0, pOrigin, pDirection, &dummy, bUpdatePositions, soundtime );
 }
+#endif
 
 
 void CBaseEntity::SetRefEHandle( const CBaseHandle &handle )
