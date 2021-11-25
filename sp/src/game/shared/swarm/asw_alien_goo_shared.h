@@ -3,14 +3,18 @@
 #pragma once
 
 #ifdef CLIENT_DLL
+#ifndef SWARM_PORT
 #include "c_asw_weapon.h"
+#endif
 #include "iasw_client_aim_target.h"
 #define CASW_Weapon C_ASW_Weapon
 #define CASW_Weapon_Stim C_ASW_Weapon_Stim
 #define CASW_Marine C_ASW_Marine
 class CNewParticleEffect;
 #else
+#ifndef SWARM_PORT
 #include "asw_weapon.h"
+#endif
 #include "npc_combine.h"
 #endif
 
@@ -32,6 +36,7 @@ class CNewParticleEffect;
 //   Pulsating sac that hangs on walls.  Will burst open if shot or touched, spewing out grubs.
 
 #ifndef CLIENT_DLL
+class CASW_Alien_Goo;
 extern CUtlVector<CASW_Alien_Goo*>	g_AlienGoo;
 #endif
 
@@ -49,7 +54,11 @@ public:
 	DECLARE_DATADESC();
 	void Precache();
 	void Spawn();
+#ifdef SWARM_PORT
+	Class_T		Classify( void ) { return CLASS_NONE; } // TODO?
+#else
 	Class_T		Classify( void ) { return (Class_T) CLASS_ASW_ALIEN_GOO; }
+#endif
 	
 	virtual int OnTakeDamage( const CTakeDamageInfo &info );
 	virtual void Ignite( float flFlameLifetime, bool bNPCOnly = true, float flSize = 0.0f, bool bCalledByLevelDesigner = false );
@@ -112,7 +121,9 @@ public:
 
 #ifdef CLIENT_DLL
 	// aim target interface - so clients have autoaim vs this entity
+#ifndef SWARM_PORT
 	IMPLEMENT_AUTO_LIST_GET();
+#endif
 	virtual float GetRadius() { return 30; }
 	virtual bool IsAimTarget() { return true; }
 	virtual const Vector& GetAimTargetPos(const Vector &vecFiringSrc, bool bWeaponPrefersFlatAiming) { return WorldSpaceCenter(); }

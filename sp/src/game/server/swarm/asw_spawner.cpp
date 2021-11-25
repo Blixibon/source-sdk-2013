@@ -7,7 +7,7 @@
 #include "props.h"
 #include "asw_alien.h"
 #include "asw_buzzer.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_spawn_manager.h"
 #include "asw_director.h"
 #include "asw_fail_advice.h"
@@ -61,7 +61,7 @@ CASW_Spawner::~CASW_Spawner()
 
 void CASW_Spawner::InitAlienClassName()
 {
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( m_AlienClassNum < 0 || m_AlienClassNum >= ASWSpawnManager()->GetNumAlienClasses() )
 	{
 		m_AlienClassNum = 0;
@@ -118,7 +118,7 @@ IASW_Spawnable_NPC* CASW_Spawner::SpawnAlien( const char *szAlienClassName, cons
 				SpawnedAllAliens();
 			}
 		}
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		else
 		{
 			ASWFailAdvice()->OnAlienSpawnedInfinite();
@@ -227,7 +227,7 @@ void CASW_Spawner::SpawnerThink()
 	float fInterval = random->RandomFloat(1.0f - m_flSpawnIntervalJitter, 1.0f + m_flSpawnIntervalJitter) * m_flSpawnInterval;
 	SetNextThink( gpGlobals->curtime + fInterval );
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( ASWDirector() && ASWDirector()->CanSpawnAlien( this ) )
 #endif
 	{
@@ -248,7 +248,7 @@ void CASW_Spawner::InputSpawnAlien( inputdata_t &inputdata )
 {
 	if (m_SpawnerState == SST_WaitForInputs)
 	{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		if ( ASWDirector() && ASWDirector()->CanSpawnAlien( this ) )
 #endif
 		{
@@ -279,7 +279,7 @@ void CASW_Spawner::InputToggleSpawning( inputdata_t &inputdata )
 
 const Vector& CASW_Spawner::GetAlienMins()
 {
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 	return NAI_Hull::Mins( HULL_MEDIUMBIG );
 #else
 	return NAI_Hull::Mins( ASWSpawnManager()->GetAlienClass( m_AlienClassNum )->m_nHullType );
@@ -288,7 +288,7 @@ const Vector& CASW_Spawner::GetAlienMins()
 
 const Vector& CASW_Spawner::GetAlienMaxs()
 {
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 	return NAI_Hull::Maxs( HULL_MEDIUMBIG );
 #else
 	return NAI_Hull::Maxs( ASWSpawnManager()->GetAlienClass( m_AlienClassNum )->m_nHullType );
@@ -298,7 +298,7 @@ const Vector& CASW_Spawner::GetAlienMaxs()
 bool CASW_Spawner::ApplyCarnageMode( float fScaler, float fInvScaler )
 {
 	
-#ifndef SWARM17 // TODO
+#ifndef SWARM_PORT // TODO
 	if ( m_AlienClassNum == g_nDroneClassEntry ||  m_AlienClassNum == g_nDroneJumperClassEntry )
 #endif
 	{

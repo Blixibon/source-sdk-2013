@@ -21,7 +21,7 @@ public:
 	virtual ~CASW_Mortarbug( void );
 
 	void Spawn();
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	void OnRestore();
 #endif
 	void Precache();
@@ -29,7 +29,7 @@ public:
 	float GetIdealAccel( ) const;
 	float MaxYawSpeed( void );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	Class_T		Classify( void ) { return CLASS_ASW_MORTAR_BUG; }		// TODO: Different class from harvesters?
 #else
 	Class_T		Classify( void ) { return CLASS_VORTIGAUNT; }		// TODO: Different class from harvesters?

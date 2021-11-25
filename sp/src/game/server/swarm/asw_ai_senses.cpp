@@ -43,7 +43,7 @@ bool CASW_BaseAI_Senses::WaitingUntilSeen( CBaseEntity *pSightEnt )
 {
 	if ( GetOuter()->GetSpawnFlags() & SF_NPC_WAIT_TILL_SEEN )
 	{
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		// Wake up if a hostile player or NPC sees us
 		if ( pSightEnt && pSightEnt->IsCombatCharacter() && pSightEnt->MyCombatCharacterPointer()->IRelationType(GetOuter()) <= D_FR )
 #else
@@ -232,7 +232,7 @@ bool CASW_AI_Senses::SwarmSenseEntity( CBaseEntity *pSightEnt )
 
 CBaseEntity *CASW_AI_Senses::GetFirstSwarmSenseEntity( AISightIter_t *pIter, seentype_t iSeenType ) const
 { 
-#ifndef SWARM17 // TODO: Fix?
+#ifndef SWARM_PORT // TODO: Fix?
 	COMPILE_TIME_ASSERT( sizeof( AISightIter_t ) == sizeof( AISightIterVal_t ) );
 #endif
 	

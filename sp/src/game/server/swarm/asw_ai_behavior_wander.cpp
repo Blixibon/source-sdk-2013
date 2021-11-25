@@ -241,7 +241,7 @@ void CAI_ASW_WanderBehavior::StartTask( const Task_t *pTask )
 #ifdef DRAW_DEBUG
 					NDebugOverlay::Line( vCurrent, vDest, r, g, b, true, 4.0f );
 #endif // #ifdef DRAW_DEBUG
-#ifdef SWARM17
+#ifdef SWARM_PORT
 					UTIL_TraceLine( vCurrent, vDest, MASK_SOLID, NULL, COLLISION_GROUP_PROJECTILE, &tr );
 #else
 					UTIL_TraceLine( vCurrent, vDest, MASK_SOLID, NULL, ASW_COLLISION_GROUP_IGNORE_NPCS, &tr );

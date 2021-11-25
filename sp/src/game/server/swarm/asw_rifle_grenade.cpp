@@ -10,7 +10,7 @@
 #include "asw_util_shared.h"
 #include "asw_fx_shared.h"
 #include "particle_parse.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_gamerules.h"
 #include "asw_marine.h"
 #include "asw_marine_resource.h"
@@ -107,7 +107,7 @@ ConVar asw_grentrail_fade("asw_grentrail_fade", "100");
 
 void CASW_Rifle_Grenade::CreateEffects( void )
 {
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	DispatchParticleEffect( "rifle_grenade_fx", PATTACH_ABSORIGIN_FOLLOW, this, "fuse", false );
 #else
 	CEffectData	data;
@@ -268,7 +268,7 @@ void CASW_Rifle_Grenade::GrenadeTouch( CBaseEntity *pOther )
 			SetNextThink( gpGlobals->curtime + 2.0f );
 			
 			// Shoot some sparks
-#ifdef SWARM17
+#ifdef SWARM_PORT
 			if ( UTIL_PointContents( GetAbsOrigin() ) & ~CONTENTS_WATER)
 #else
 			if ( UTIL_PointContents( GetAbsOrigin(), CONTENTS_WATER ) != CONTENTS_WATER)
@@ -336,7 +336,7 @@ void CASW_Rifle_Grenade::Detonate()
 
 	EmitSound( "ASWGrenade.Explode" );
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	int iPreExplosionKills = 0;
 	CASW_Marine *pMarine = dynamic_cast<CASW_Marine*>(GetOwnerEntity());
 	if (pMarine && pMarine->GetMarineResource())
@@ -348,7 +348,7 @@ void CASW_Rifle_Grenade::Detonate()
 
 	ASWGameRules()->RadiusDamage ( info, GetAbsOrigin(), m_DmgRadius, CLASS_NONE, NULL );
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (pMarine && pMarine->GetMarineResource())
 	{
 		int iKilledByExplosion = pMarine->GetMarineResource()->m_iAliensKilled - iPreExplosionKills;

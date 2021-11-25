@@ -13,7 +13,7 @@
 #include "ai_navigator.h"
 #include "ai_memory.h"
 #include "asw_alien.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_marine.h"
 #include "asw_gamerules.h"
 #endif
@@ -344,7 +344,7 @@ bool CAI_ASW_JumpBehavior::ShouldJump( void )
 
 	// Try the jump
 	AIMoveTrace_t moveTrace;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	GetOuter()->GetMoveProbe()->MoveLimit( NAV_JUMP, GetAbsOrigin(), targetPos, MASK_NPCSOLID, GetOuter()->GetNavTargetEntity(), &moveTrace );
 #else
 	GetOuter()->GetMoveProbe()->MoveLimit( NAV_JUMP, GetAbsOrigin(), targetPos, GetOuter()->GetAITraceMask(), GetOuter()->GetNavTargetEntity(), &moveTrace );
@@ -398,7 +398,7 @@ bool CAI_ASW_JumpBehavior::CheckLanding( void )
 	} 
 
 	// Look below
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	AI_TraceHull( GetAbsOrigin(), testPos, NAI_Hull::Mins( GetHullType() ), NAI_Hull::Maxs( GetHullType() ), MASK_NPCSOLID, GetOuter(), COLLISION_GROUP_NONE, &tr );
 #else
 	AI_TraceHull( GetAbsOrigin(), testPos, NAI_Hull::Mins( GetHullType() ), NAI_Hull::Maxs( GetHullType() ), GetOuter()->GetAITraceMask(), GetOuter(), COLLISION_GROUP_NONE, &tr );

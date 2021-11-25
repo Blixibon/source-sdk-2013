@@ -4,7 +4,7 @@
 #include "c_asw_clientragdoll.h"
 #include "asw_fx_shared.h"
 #include "functionproxy.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "imaterialproxydict.h"
 #endif
 #include "particle_parse.h"
@@ -136,14 +136,18 @@ void C_ASW_Shaman::UpdateEffects()
 
 	Assert( m_pHealEffect );
 
-#ifndef SWARM17 // TODO
 	if ( m_pHealEffect->GetControlPointEntity( 1 ) == NULL )
 	{
 		C_BaseEntity *pTarget = m_hHealingTarget.Get();
 		Vector vOffset( 0.0f, 0.0f, pTarget->WorldSpaceCenter().z - pTarget->GetAbsOrigin().z );
 
 		ParticleProp()->AddControlPoint( m_pHealEffect, 1, pTarget, PATTACH_ABSORIGIN_FOLLOW, NULL, vOffset );
+#ifdef SWARM_PORT
+		Vector forward, right, up;
+		pTarget->GetVectors(&forward, &right, &up);
+		m_pHealEffect->SetControlPointOrientation( 0, forward, right, up );
+#else
 		m_pHealEffect->SetControlPointOrientation( 0, pTarget->Forward(), -pTarget->Left(), pTarget->Up() );
-	}
 #endif
+	}
 }

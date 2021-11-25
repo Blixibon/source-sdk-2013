@@ -6,7 +6,7 @@
 #include "iasw_client_aim_target.h"
 #include "asw_shareddefs.h"
 #include "glow_outline_effect.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "object_motion_blur_effect.h"
 #endif
 
@@ -62,7 +62,7 @@ public:
 	virtual void UpdateFireEmitters();
 	virtual void UpdateOnRemove();
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	// aim target interface
 	IMPLEMENT_AUTO_LIST_GET();
 #endif
@@ -96,7 +96,7 @@ public:
 
 	virtual float	GetInterpolationAmount( int flags );
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	// Glows are enabled when the sniper scope is used
 	CGlowObject m_GlowObject;
 	CMotionBlurObject m_MotionBlurObject;

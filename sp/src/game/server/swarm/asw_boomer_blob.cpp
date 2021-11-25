@@ -7,7 +7,7 @@
 #include "Sprite.h"
 #include "SpriteTrail.h"
 #include "te_effect_dispatch.h"
-#ifdef SWARM17
+#ifdef SWARM_PORT
 #include "soundent.h"
 #else
 #include "asw_gamerules.h"
@@ -77,7 +77,7 @@ void CASW_Boomer_Blob::Spawn( void )
 	SetGravity( asw_boomer_blob_gravity.GetFloat() );
 	SetFriction( asw_boomer_blob_friction.GetFloat() );
 	SetElasticity( asw_vindicator_grenade_elasticity.GetFloat() );
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	SetCollisionGroup( COLLISION_GROUP_PROJECTILE );
 #else
 	SetCollisionGroup( ASW_COLLISION_GROUP_PASSABLE );
@@ -207,7 +207,7 @@ void CASW_Boomer_Blob::CheckNearbyTargets( )
 			m_bModelOpening = true;
 			ResetSequence( LookupSequence( "MortarBugProjectile_Opening" ) );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 			// HL2 AI danger
 			CSoundEnt::InsertSound( SOUND_DANGER, GetAbsOrigin(), 300, 2.0, this );
 
@@ -363,7 +363,7 @@ void CASW_Boomer_Blob::SetClusters( int iClusters, bool bMaster )
 
 void CASW_Boomer_Blob::CreateEffects()
 {
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	DispatchParticleEffect( "boomer_projectile_main_trail", PATTACH_ABSORIGIN_FOLLOW, this, -1, false );
 #else
 	CEffectData	data;

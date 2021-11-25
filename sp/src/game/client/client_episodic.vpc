@@ -14,7 +14,7 @@ $Configuration
 {
 	$Compiler
 	{
-		$AdditionalIncludeDirectories	".\hl2;.\hl2\elements;.\swarm;$SRCDIR\game\shared\hl2;$SRCDIR\game\shared\episodic;$SRCDIR\game\shared\swarm;..\..\public;$BASE"
+		$AdditionalIncludeDirectories	".\hl2;.\hl2\elements;.\swarm;$SRCDIR\game\shared\hl2;$SRCDIR\game\shared\episodic;$SRCDIR\game\shared\swarm;$SRCDIR\game\shared\swarm17;..\..\public;$BASE"
 		$PreprocessorDefinitions		"$BASE;HL2_CLIENT_DLL;HL2_EPISODIC"
 	}
 }
@@ -128,7 +128,11 @@ $Project "Client (Episodic)"
 			$File	"episodic\c_npc_puppet.cpp"
 		}
 		
-		$Folder	"Swarm 17"
+		//$Folder	"Swarm 17"
+		//{
+		//}
+		
+		$Folder	"Swarm Port"
 		{
 			//$File	"swarm\asw_bone_merge.cpp"
 			//$File	"swarm\asw_bone_merge.h"
@@ -178,8 +182,8 @@ $Project "Client (Episodic)"
 			
 			$Folder "Shared"
 			{
-				//$File	"$SRCDIR\game\shared\swarm\asw_alien_goo_shared.cpp"
-				//$File	"$SRCDIR\game\shared\swarm\asw_alien_goo_shared.h"
+				$File	"$SRCDIR\game\shared\swarm\asw_alien_goo_shared.cpp"
+				$File	"$SRCDIR\game\shared\swarm\asw_alien_goo_shared.h"
 				$File	"$SRCDIR\game\shared\swarm\asw_alien_shared.cpp"
 				$File	"$SRCDIR\game\shared\swarm\asw_alien_shared.h"
 				$File	"$SRCDIR\game\shared\swarm\asw_alien_shared_classmembers.h"

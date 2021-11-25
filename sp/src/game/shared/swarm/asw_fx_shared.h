@@ -4,7 +4,7 @@
 #pragma once
 #endif
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #ifdef CLIENT_DLL
 #include "c_asw_marine.h"
 #else
@@ -14,7 +14,7 @@
 
 void UTIL_ASW_BloodImpact( const Vector &pos, const Vector &dir, int color, int amount );
 void UTIL_ASW_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount );
-#ifndef SWARM17
+#ifndef SWARM_PORT
 void UTIL_ASW_MarineTakeDamage( const Vector &origin, const Vector &direction, int color, int amount, CASW_Marine *pMarine, bool bFriendly = false );
 #endif
 void UTIL_ASW_DroneBleed( const Vector &pos, const Vector &dir, int amount );

@@ -8,7 +8,7 @@
 #define CBaseCombatCharacter C_BaseCombatCharacter
 #else
 #include "basecombatcharacter.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_lag_compensation.h"
 #endif
 #endif
@@ -37,14 +37,14 @@ public:
 
 	virtual void	DoLagCompensatedMarineCollision();
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	CASW_Lag_Compensation m_LagCompensation;
 #endif
 
 private:
 	void			Touch( CBaseEntity *pOther );
 	void			MissileHit( CBaseEntity *pEnt, trace_t &tr );
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	void			DangerSoundThink();
 	float			m_fDangerRadius;
 #endif

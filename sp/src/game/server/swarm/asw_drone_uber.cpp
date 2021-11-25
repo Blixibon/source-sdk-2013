@@ -1,7 +1,7 @@
 // A tougher version of the standard Swarm drone.  It's green, bigger and has more health.
 #include "cbase.h"
 #include "asw_drone_uber.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_gamerules.h"
 #include "asw_marine.h"
 #include "asw_weapon_assault_shotgun_shared.h"
@@ -85,7 +85,7 @@ int CASW_Drone_Uber::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	{
 		damage *= 0.5f;
 	}
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (info.GetDamageType() & DMG_BUCKSHOT)
 	{
 		// hack to reduce vindicator damage (not reducing normal shotty as much as it's not too strong)

@@ -5,7 +5,7 @@
 #include "Sprite.h"
 #include "asw_mortarbug_shell_shared.h"
 #ifdef CLIENT_DLL
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "c_asw_marine.h"
 #endif
 #include "particles_simple.h"
@@ -14,7 +14,7 @@
 #include "baseparticleentity.h"
 #define CASW_Marine C_ASW_Marine
 #else
-#ifdef SWARM17
+#ifdef SWARM_PORT
 #include "soundent.h"
 #else
 #include "asw_marine.h"
@@ -27,7 +27,7 @@
 #include "particle_parse.h"
 #include "asw_boomer_blob.h"
 #endif
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_gamerules.h"
 #endif
 #include "util_shared.h"
@@ -155,7 +155,7 @@ void CASW_Mortarbug_Shell::ShellThink( )
 		data.m_vOrigin = GetAbsOrigin();
 		CPASFilter filter( data.m_vOrigin );
 		filter.SetIgnorePredictionCull(true);
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		// HL2 AI danger
 		CSoundEnt::InsertSound( SOUND_DANGER, GetAbsOrigin(), 300, 1.5, this );
 
@@ -284,7 +284,7 @@ void CASW_Mortarbug_Shell::Detonate()
 	}
 
 	ScreenShake_t shake;
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	shake.direction = Vector( 0, 0, 1 );
 #endif
 	shake.amplitude = 40.0f;

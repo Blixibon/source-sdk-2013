@@ -1,14 +1,14 @@
 #include "cbase.h"
 #ifdef CLIENT_DLL
 #include "c_asw_alien.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "c_asw_player.h"
 #endif
 #include "igameevents.h"
 #include "asw_util_shared.h"
 #else
 #include "asw_alien.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_player.h"
 #endif
 #endif
@@ -53,7 +53,7 @@ void CASW_Alien::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir,
 		&& !( subInfo.GetDamageType() & DMG_BURN ) )
 	{
 #ifdef GAME_DLL
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		Bleed( subInfo, ptr->endpos, vecDir, ptr );
 #else
 		Bleed( subInfo, ptr->endpos + m_LagCompensation.GetLagCompensationOffset(), vecDir, ptr );
@@ -77,7 +77,7 @@ void CASW_Alien::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir,
 	AddMultiDamage( subInfo, this );
 #ifdef GAME_DLL
 #else
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	CASW_Marine *pMarine = dynamic_cast<CASW_Marine*>( subInfo.GetAttacker() );
 	CASW_Player *pPlayerAttacker = NULL;
 

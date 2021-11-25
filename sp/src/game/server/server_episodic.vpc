@@ -14,7 +14,7 @@ $Configuration
 {
 	$Compiler
 	{
-		$AdditionalIncludeDirectories	"$BASE;$SRCDIR\game\shared\hl2;$SRCDIR\game\shared\episodic;$SRCDIR\game\shared\swarm;.\hl2;.\episodic;.\swarm"
+		$AdditionalIncludeDirectories	"$BASE;$SRCDIR\game\shared\hl2;$SRCDIR\game\shared\episodic;$SRCDIR\game\shared\swarm;$SRCDIR\game\shared\swarm17;.\hl2;.\episodic;.\swarm;.\swarm17"
 		$PreprocessorDefinitions		"$BASE;HL2_DLL;HL2_EPISODIC;USES_SAVERESTORE"
 	}
 }
@@ -309,6 +309,12 @@ $Project "Server (Episodic)"
 			//$File	"swarm17\npc_swarm_shieldbug.cpp"
 			//$File	"swarm17\npc_swarm_shieldbug.h"
 			
+			//$File	"swarm17/npc_swarm17_characters.cpp"
+			//$File	"swarm17/npc_swarm17_characters.h"
+		}
+		$Folder	"Swarm Port"
+		{
+			
 			//$File	"swarm\npc_swarm_base.cpp"
 			
 			$File	"swarm\asw_ai_senses.cpp"
@@ -440,8 +446,8 @@ $Project "Server (Episodic)"
 			
 			$Folder "Shared"
 			{
-				//$File	"$SRCDIR\game\shared\swarm\asw_alien_goo_shared.cpp"
-				//$File	"$SRCDIR\game\shared\swarm\asw_alien_goo_shared.h"
+				$File	"$SRCDIR\game\shared\swarm\asw_alien_goo_shared.cpp"
+				$File	"$SRCDIR\game\shared\swarm\asw_alien_goo_shared.h"
 				$File	"$SRCDIR\game\shared\swarm\asw_alien_shared.cpp"
 				$File	"$SRCDIR\game\shared\swarm\asw_alien_shared.h"
 				$File	"$SRCDIR\game\shared\swarm\asw_alien_shared_classmembers.h"

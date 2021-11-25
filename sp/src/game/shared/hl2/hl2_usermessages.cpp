@@ -51,7 +51,7 @@ void RegisterUserMessages( void )
 	usermessages->Register( "AchievementEvent", -1 );
 	usermessages->Register( "UpdateJalopyRadar", -1 );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	// asw
 	usermessages->Register( "ASWBuzzerDeath", -1 );	
 	usermessages->Register( "ASWEggEffects", -1 );	

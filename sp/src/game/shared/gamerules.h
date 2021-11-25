@@ -426,7 +426,7 @@ public:
 
 	virtual bool IsHolidayActive( /*EHoliday*/ int eHoliday ) const { return false; }
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	// Stubs
 	virtual float ModifyAlienDamageBySkillLevel( float flBaseDamage ) { return flBaseDamage; }
 	virtual int ModifyAlienHealthBySkillLevel( int iBaseHealth ) { return iBaseHealth; }

@@ -17,7 +17,7 @@
 #include "asw_missile_round_shared.h"
 #include "movevars_shared.h"
 #include "te_effect_dispatch.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_player.h"
 #endif
 

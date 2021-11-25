@@ -1,6 +1,6 @@
 #include "cbase.h"
 #include "asw_shareddefs.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_medals_shared.h"
 #include "asw_achievements.h"
 #endif
@@ -14,7 +14,7 @@ bool IsAlienClass( Class_T npc_class )
 		npc_class == CLASS_ASW_BUZZER ||
 		npc_class == CLASS_ASW_HARVESTER ||
 		npc_class == CLASS_ASW_GRUB ||
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		npc_class == CLASS_ASW_QUEEN_DIVER ||
 		npc_class == CLASS_ASW_QUEEN_GRABBER ||
 		npc_class == CLASS_ASW_ALIEN_GOO ||
@@ -38,7 +38,7 @@ bool IsAlienClass( Class_T npc_class )
 
 bool IsDamagingWeaponClass( Class_T weapon_class )
 {
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 	return false;
 #else
 	return ( weapon_class == CLASS_ASW_RIFLE ||
@@ -80,7 +80,7 @@ bool IsDamagingWeaponClass( Class_T weapon_class )
 
 bool IsWeaponClass( Class_T entity_class )
 {
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 	return false;
 #else
 	return ( entity_class == CLASS_ASW_RIFLE ||
@@ -136,7 +136,7 @@ bool IsWeaponClass( Class_T entity_class )
 // used by powerups
 bool IsBulletBasedWeaponClass( Class_T weapon_class )
 {
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 	return false;
 #else
 	return ( weapon_class == CLASS_ASW_RIFLE ||
@@ -155,7 +155,7 @@ bool IsBulletBasedWeaponClass( Class_T weapon_class )
 
 bool IsSentryClass( Class_T entity_class )
 {
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 	return false;
 #else
 	return ( entity_class == CLASS_ASW_SENTRY_GUN ||
@@ -169,7 +169,7 @@ bool IsSentryClass( Class_T entity_class )
 
 ConVar asw_visrange_generic( "asw_visrange_generic", "400", FCVAR_CHEAT | FCVAR_REPLICATED, "Vismon range" );
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #ifdef CLIENT_DLL
 IMPLEMENT_AUTO_LIST( IHealthTrackedAutoList );
 #endif

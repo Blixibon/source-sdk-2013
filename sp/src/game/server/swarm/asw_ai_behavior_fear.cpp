@@ -298,7 +298,7 @@ bool CAI_ASW_FearBehavior::CanSelectSchedule()
 		return false;
 	}
 	
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	if ( !m_bForceFear && GetOuter()->IRelationType( pEnemy ) != D_FR )
 #else
 	if ( !m_bForceFear && GetOuter()->IRelationType( pEnemy ) != D_FEAR )

@@ -1,6 +1,6 @@
 #include "cbase.h"
 #include "asw_missile_round_shared.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_gamerules.h"
 #include "asw_melee_system.h"
 #include "asw_trace_filter_shot.h"
@@ -16,7 +16,7 @@
 #include "SpriteTrail.h"
 #include "te_effect_dispatch.h"
 #include "utlvector.h"
-#ifdef SWARM17
+#ifdef SWARM_PORT
 #include "soundent.h"
 #else
 #include "asw_marine.h"
@@ -50,7 +50,7 @@ LINK_ENTITY_TO_CLASS( asw_missile_round, CASW_Missile_Round );
 PRECACHE_REGISTER( asw_missile_round );
 
 BEGIN_DATADESC( CASW_Missile_Round )	
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	DEFINE_FIELD( m_fDangerRadius, FIELD_FLOAT ),
 #endif
 END_DATADESC()
@@ -59,7 +59,7 @@ CUtlVector<CASW_Missile_Round*> g_vecMissileRounds;
 extern ConVar sv_maxunlag;
 ConVar sv_unlag_alien_projectiles( "sv_unlag_alien_projectiles", "1", FCVAR_NONE, "If enabled, server will rewind time based on a player's ping when doing ranger projectile collision vs marines." );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 static const char *s_pDangerSoundContext = "DangerSoundThink";
 #endif
 
@@ -70,7 +70,7 @@ CASW_Missile_Round::CASW_Missile_Round()
 	m_bDetonated = false;
 	m_bMarineFriendly = false;
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	m_fDangerRadius = 100;
 #endif
 
@@ -94,7 +94,7 @@ void CASW_Missile_Round::Setup( const CASW_AlienShot &shot, const Vector &positi
 	QAngle vecAngVelocity( random->RandomFloat( -200, 200 ), random->RandomFloat( -200, 200 ), random->RandomFloat( -200, 200 ) );
 	SetLocalAngularVelocity( vecAngVelocity );	
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	m_LagCompensation.Init(this);
 #endif
 }
@@ -113,7 +113,7 @@ void CASW_Missile_Round::Spawn( void )
 	SetSize( -Vector(m_ShotDef.m_flSize,m_ShotDef.m_flSize,m_ShotDef.m_flSize), Vector(m_ShotDef.m_flSize,m_ShotDef.m_flSize,m_ShotDef.m_flSize) );
 	SetSolid( SOLID_NONE );
 	SetGravity( m_ShotDef.m_flGravity );
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	SetCollisionGroup( COLLISION_GROUP_PROJECTILE );
 #else
 	SetCollisionGroup( ASW_COLLISION_GROUP_ALIEN_MISSILE );
@@ -128,7 +128,7 @@ void CASW_Missile_Round::Spawn( void )
 	SetThink( &CBaseEntity::SUB_Remove );
 	SetNextThink( gpGlobals->curtime + m_ShotDef.m_flFuse );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	SetContextThink( &CASW_Missile_Round::DangerSoundThink, gpGlobals->curtime + 0.05f, s_pDangerSoundContext );
 #endif
 
@@ -152,7 +152,7 @@ void CASW_Missile_Round::PerformCustomPhysics( Vector *pNewPosition, Vector *pNe
 	Vector vNewPosition = GetAbsOrigin() + GetAbsVelocity() * gpGlobals->frametime;
 
 	trace_t tr;
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 	CTraceFilterSimple filter( this, GetCollisionGroup() );
 #else
 	CASWTraceFilterShot filter( this, NULL, GetCollisionGroup() );
@@ -172,7 +172,7 @@ void CASW_Missile_Round::PerformCustomPhysics( Vector *pNewPosition, Vector *pNe
 	UTIL_TraceHull( GetAbsOrigin(), vNewPosition, WorldAlignMins(), WorldAlignMaxs(), MASK_SHOT, &filter, &tr );
 	vNewPosition = tr.endpos;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( tr.DidHit() && tr.m_pEnt ) 
 	{
 		if ( tr.m_pEnt->Classify() == CLASS_ASW_MARINE )
@@ -234,7 +234,7 @@ void CASW_Missile_Round::Precache( )
 		PrecacheScriptSound( m_ShotDef.m_strSound_hitWorld );
 
 	if ( !m_ShotDef.m_strParticles_trail.IsEmpty() )
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	{
 		PrecacheParticleSystem( m_ShotDef.m_strParticles_trail );
 		m_nParticleTrail = GetParticleSystemIndex( m_ShotDef.m_strParticles_trail );
@@ -249,7 +249,7 @@ void CASW_Missile_Round::Precache( )
 
 void CASW_Missile_Round::DoLagCompensatedMarineCollision()
 {
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( !ASWGameResource() )
 		return;
 
@@ -354,7 +354,7 @@ void CASW_Missile_Round::Touch( CBaseEntity *pOther )
 
 void CASW_Missile_Round::MissileHit( CBaseEntity *pEnt, trace_t &tr )
 {
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	// don't collide with marines doing a roll
 	if ( pEnt->Classify() == CLASS_ASW_MARINE )
 	{
@@ -380,7 +380,7 @@ void CASW_Missile_Round::MissileHit( CBaseEntity *pEnt, trace_t &tr )
 		ClearMultiDamage();
 		VectorNormalize( vecNormalizedVel );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		CTakeDamageInfo	dmgInfo( this, m_hOwner, m_ShotDef.m_flDamage_direct, m_ShotDef.m_iDamageType );
 #else
 		CTakeDamageInfo	dmgInfo( this, m_hOwner, m_ShotDef.m_flDamage_direct, DMG_GENERIC | DMG_NEVERGIB );
@@ -424,7 +424,7 @@ void CASW_Missile_Round::MissileHit( CBaseEntity *pEnt, trace_t &tr )
 
 	DispatchParticleEffect( m_ShotDef.m_strParticles_hit, GetAbsOrigin(), QAngle( 0, 0, 0 ) );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	CBaseCombatCharacter *pMarine = pEnt->MyCombatCharacterPointer();
 	if ( pMarine )
 #else
@@ -446,7 +446,7 @@ void CASW_Missile_Round::MissileHit( CBaseEntity *pEnt, trace_t &tr )
 	SetNextThink( gpGlobals->curtime + 1.0f );
 }
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 void CASW_Missile_Round::DangerSoundThink()
 {
 	// Copied from grenade_ar2
@@ -508,7 +508,7 @@ void CASW_Missile_Round::PostDataUpdate( DataUpdateType_t updateType )
 	{
 		if ( m_nParticleTrail >= 0 )
 		{
-#ifndef SWARM17 // TODO
+#ifndef SWARM_PORT // TODO
 			m_pTrail = ParticleProp()->CreatePrecached( m_nParticleTrail, PATTACH_ABSORIGIN_FOLLOW );
 #endif
 			if (m_pTrail )

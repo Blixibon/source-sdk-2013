@@ -9,7 +9,7 @@
 #include "c_asw_egg.h"
 #include "c_asw_buzzer.h"
 #include "c_asw_clientragdoll.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "c_asw_marine.h"
 #include "c_asw_physics_prop_statue.h"
 #include "c_asw_mesh_emitter_entity.h"
@@ -21,7 +21,7 @@
 #include "materialsystem/IMaterialSystem.h"
 #include <KeyValues.h>
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "imaterialproxydict.h"
 #endif
 // memdbgon must be the last include file in a .cpp file!!!
@@ -115,7 +115,7 @@ void CASW_Model_FX_Proxy::OnBind( C_BaseEntity *pEnt )
 	if ( !pEnt )
 		return;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	C_ASW_Mesh_Emitter *pGib = dynamic_cast<C_ASW_Mesh_Emitter*>( pEnt );
 	if ( pGib && pGib->m_bFrozen )
 	{
@@ -153,7 +153,7 @@ void CASW_Model_FX_Proxy::OnBind( C_BaseEntity *pEnt )
 	{
 		bShockBig	= pAlien->m_bElectroStunned;
 		bOnFire		= pAlien->m_bOnFire;
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		flFrozen	= pAlien->GetMoveType() == MOVETYPE_NONE ? 0.0f : pAlien->GetFrozenAmount();
 #endif
 		//Msg( " alien %d shock = %d fire = %d frozen = %f\n", pAlien->entindex(), bShockBig, bOnFire, flFrozen );
@@ -161,7 +161,7 @@ void CASW_Model_FX_Proxy::OnBind( C_BaseEntity *pEnt )
 		return;
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	C_ASW_Marine *pMarine = C_ASW_Marine::AsMarine( pEnt );
 	if ( pMarine )
 	{
@@ -177,7 +177,7 @@ void CASW_Model_FX_Proxy::OnBind( C_BaseEntity *pEnt )
 	if ( pEgg )
 	{
 		bOnFire		= pEgg->m_bOnFire;
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		flFrozen	= pEgg->GetFrozenAmount();
 #endif
 		UpdateEffects( false, bOnFire, flFrozen );
@@ -189,7 +189,7 @@ void CASW_Model_FX_Proxy::OnBind( C_BaseEntity *pEnt )
 	{
 		bShockBig	= pBuzzer->m_bElectroStunned;
 		bOnFire		= pBuzzer->m_bOnFire;
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		flFrozen	= pBuzzer->GetMoveType() == MOVETYPE_NONE ? 0.0f : pBuzzer->GetFrozenAmount();
 #endif
 		UpdateEffects( bShockBig, bOnFire, flFrozen );
@@ -305,7 +305,7 @@ IMaterial *CASW_Model_FX_Proxy::GetMaterial()
 	return m_pDetailMaterial->GetOwningMaterial();
 }
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 EXPOSE_INTERFACE( CASW_Model_FX_Proxy, IMaterialProxy, "AlienSurfaceFX" IMATERIAL_PROXY_INTERFACE_VERSION );
 #else
 EXPOSE_MATERIAL_PROXY( CASW_Model_FX_Proxy, "AlienSurfaceFX" );

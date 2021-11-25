@@ -14,7 +14,7 @@
 #include "asw_alien.h"
 #include "ai_network.h"
 #include "ai_networkmanager.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_player.h"
 #include "asw_marine.h"
 #endif
@@ -74,7 +74,7 @@ bool CAI_ASW_PrepareToEngageBehavior::CanSelectSchedule()
 	if ( GetEnemy() == NULL )
 		return false;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( GetEnemy()->Classify() != CLASS_ASW_MARINE )
 		return false;
 #endif

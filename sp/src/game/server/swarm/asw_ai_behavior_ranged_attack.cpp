@@ -14,7 +14,7 @@
 #include "asw_alien.h"
 #include "asw_missile_round_shared.h"
 #include "movevars_shared.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_player.h"
 #endif
 
@@ -283,7 +283,7 @@ bool CAI_ASW_RangedAttackBehavior::ValidateMissileLocation( )
 		UTIL_AddDebugLine( vStart, vFinal, true, true );
 #endif	// #ifdef DRAW_DEBUG
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		UTIL_TraceHull( vStart, vFinal, -Vector(2,2,2), Vector(2,2,2), MASK_SOLID, GetOuter(), COLLISION_GROUP_NONE, &tr );
 #else
 		UTIL_TraceHull( vStart, vFinal, -Vector(2,2,2), Vector(2,2,2), MASK_SOLID, GetOuter(), ASW_COLLISION_GROUP_IGNORE_NPCS, &tr );
@@ -372,7 +372,7 @@ void CAI_ASW_RangedAttackBehavior::RunTask( const Task_t *pTask )
 
 		case TASK_RANGED_PREPARE_TO_FIRE:
 			{
-#ifdef SWARM17 // Enemies move more rapidly, so ranged fire should always face while preparing
+#ifdef SWARM_PORT // Enemies move more rapidly, so ranged fire should always face while preparing
 				UpdateTargetLocation();
 #else
 				if ( !GetOuter()->FInAimCone( m_vMissileLocation ) )

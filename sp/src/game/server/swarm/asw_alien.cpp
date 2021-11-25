@@ -14,7 +14,7 @@
 #include "asw_ai_behavior_flinch.h"
 #include "asw_missile_round_shared.h"
 #include "datacache/imdlcache.h"
-#ifdef SWARM17
+#ifdef SWARM_PORT
 #include "asw_trace_filter_melee.h"
 #include "asw_spawner.h"
 #include "props.h"
@@ -39,7 +39,7 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 ConVar asw_debug_alien_damage( "asw_debug_alien_damage", "0" );
 ConVar asw_stun_grenade_time( "asw_stun_grenade_time", "2.0" );
 ConVar asw_draw_awake_ai( "asw_draw_awake_ai", "0" );
@@ -106,7 +106,9 @@ int ACT_DIE_FANCY;
 int ACT_BURROW_IDLE;
 int ACT_BURROW_OUT;
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
+int ACT_BURROW_IN;
+
 Activity ACT_PREP_TO_FIRE;
 Activity ACT_FIRE;
 Activity ACT_FIRE_RECOVER;
@@ -116,7 +118,7 @@ Activity ACT_SPINAROUND;
 LINK_ENTITY_TO_CLASS( asw_alien, CASW_Alien );
 
 IMPLEMENT_SERVERCLASS_ST(CASW_Alien, DT_ASW_Alien)
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	SendPropExclude ( "DT_BaseEntity", "m_vecOrigin" ),
 	SendPropVectorXY( SENDINFO( m_vecOrigin ), 				 CELL_BASEENTITY_ORIGIN_CELL_BITS, SPROP_CELL_COORD_LOWPRECISION | SPROP_CHANGES_OFTEN, 0.0f, HIGH_DEFAULT, CBaseEntity::SendProxy_CellOriginXY, SENDPROP_NONLOCALPLAYER_ORIGINXY_PRIORITY ),
 	SendPropFloat   ( SENDINFO_VECTORELEM( m_vecOrigin, 2 ), CELL_BASEENTITY_ORIGIN_CELL_BITS, SPROP_CELL_COORD_LOWPRECISION | SPROP_CHANGES_OFTEN, 0.0f, HIGH_DEFAULT, CBaseEntity::SendProxy_CellOriginZ, SENDPROP_NONLOCALPLAYER_ORIGINZ_PRIORITY ),
@@ -145,6 +147,15 @@ BEGIN_DATADESC( CASW_Alien )
 	DEFINE_INPUTFUNC( FIELD_VOID,	"BreakWaitForScript", InputBreakWaitForScript ),
 	DEFINE_INPUTFUNC( FIELD_STRING, "SetMoveClone", InputSetMoveClone ),
 	DEFINE_FIELD( m_flBurrowTime, FIELD_TIME ),
+#ifdef SWARM_PORT
+	DEFINE_KEYFIELD( m_bWaitBurrowed, FIELD_BOOLEAN, "waitburrowed" ),
+	DEFINE_FIELD( m_vecUnburrowEndPoint, FIELD_VECTOR ),
+	DEFINE_KEYFIELD( m_iszUnburrowActivityName, FIELD_STRING, "UnburrowActivity" ),
+	DEFINE_KEYFIELD( m_iszUnburrowIdleActivityName, FIELD_STRING, "UnburrowIdleActivity" ),
+	DEFINE_INPUTFUNC( FIELD_VOID, "Unburrow", InputUnburrow ),
+	DEFINE_INPUTFUNC( FIELD_VOID, "Burrow", InputBurrow ),
+	DEFINE_INPUTFUNC( FIELD_VOID, "BurrowAway", InputBurrowAway ),
+#endif
 	DEFINE_FIELD(m_bIgnoreMarines, FIELD_BOOLEAN),
 	DEFINE_FIELD(m_bFailedMoveTo, FIELD_BOOLEAN),
 	DEFINE_FIELD(m_bElectroStunned, FIELD_BOOLEAN),
@@ -162,7 +173,7 @@ BEGIN_DATADESC( CASW_Alien )
 	DEFINE_FIELD( m_fLastSleepCheckTime, FIELD_FLOAT ),
 	DEFINE_FIELD( m_bOnFire, FIELD_BOOLEAN ),	
 	DEFINE_FIELD( m_iNumASWOrderRetries, FIELD_INTEGER ),
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	DEFINE_FIELD( m_flFreezeResistance, FIELD_FLOAT ),
 	DEFINE_FIELD( m_flFrozenTime, FIELD_TIME ),
 #endif
@@ -204,7 +215,7 @@ CASW_Alien::CASW_Alien( void ) :
 	m_bNeverRagdoll = false;
 	m_bNeverInstagib = false;
 	m_nDeathStyle = kDIE_RAGDOLLFADE;
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	m_flBaseThawRate = 0.5f;
 	m_flFrozenTime = 0.0f;
 #endif
@@ -234,7 +245,7 @@ CASW_Alien::CASW_Alien( void ) :
 
 CASW_Alien::~CASW_Alien()
 {
-#ifndef SWARM17 // TODO: Is this important?
+#ifndef SWARM_PORT // TODO: Is this important?
 	for( int i = 0; i < m_Behaviors.Count(); i++ )
 	{
 		if ( m_Behaviors[ i ]->IsAllocated() )
@@ -257,7 +268,7 @@ void CASW_Alien::Spawn()
 		m_debugOverlays |= OVERLAY_NPC_ROUTE_BIT | OVERLAY_BBOX_BIT | OVERLAY_PIVOT_BIT | OVERLAY_TASK_TEXT_BIT | OVERLAY_TEXT_BIT;
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	ChangeFaction( FACTION_ALIENS );
 #endif
 
@@ -298,7 +309,9 @@ void CASW_Alien::Spawn()
 	}
 	NPCInit();
 	m_flDistTooFar = 9999999.0f;
+#ifndef SWARM_PORT // Moved to Activate()
 	LookupBurrowActivities();
+#endif
 
 	//See if we're supposed to start burrowed
 	if ( m_bStartBurrowed )
@@ -337,7 +350,11 @@ void CASW_Alien::Spawn()
 
 		SetState( NPC_STATE_IDLE );
 		SetActivity( m_UnburrowIdleActivity );
+#ifdef SWARM_PORT
+		SetSchedule( m_bWaitBurrowed ? SCHED_WAIT_FOR_UNBORROW_TRIGGER : SCHED_BURROW_WAIT );
+#else
 		SetSchedule( SCHED_BURROW_WAIT ); // todo: a schedule where they don't crawl out right away?
+#endif
 	}
 
 	if ( m_iMoveCloneName != NULL_STRING )
@@ -360,7 +377,7 @@ void CASW_Alien::Precache()
 	if ( model )
 	{
 		KeyValues *modelKeyValues = new KeyValues( "" );
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		string_t modelName = GetModelName();
 		if ( modelName != NULL_STRING && modelKeyValues->LoadFromBuffer( modelName.ToCStr(), modelinfo->GetModelKeyValueText( model ) ) )
 #else
@@ -389,6 +406,18 @@ void CASW_Alien::Precache()
 	PrecacheParticleSystem( "drone_death" );	// death
 	PrecacheParticleSystem( "drone_shot" );		// shot
 	PrecacheParticleSystem( "freeze_statue_shatter" );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CASW_Alien::Activate()
+{
+	BaseClass::Activate();
+
+#ifdef SWARM_PORT
+	LookupBurrowActivities();
+#endif
 }
 
 // Updates our memory about the enemies we Swarm Sensed
@@ -478,7 +507,7 @@ bool CASW_Alien::QuerySeeEntity( CBaseEntity *pEntity, bool bOnlyHateOrFearIfNPC
 	if ( !BaseClass::QuerySeeEntity( pEntity, bOnlyHateOrFearIfNPC ) ) 
 		return false;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( pEntity && pEntity->Classify() == CLASS_ASW_BAIT )
 	{
 		return GetAbsOrigin().DistToSqr( pEntity->GetAbsOrigin() ) < 90000.0f;	// only see bait within 300 units
@@ -541,7 +570,7 @@ void CASW_Alien::UpdateSleepState(bool bInPVS)
 	{
 		if ( !m_bRegisteredAsAwake )
 		{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			ASWSpawnManager()->OnAlienWokeUp( this );
 #endif
 			m_bRegisteredAsAwake = true;
@@ -551,7 +580,7 @@ void CASW_Alien::UpdateSleepState(bool bInPVS)
 	{
 		if ( m_bRegisteredAsAwake )
 		{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			ASWSpawnManager()->OnAlienSleeping( this );
 #endif
 			m_bRegisteredAsAwake = false;
@@ -564,7 +593,7 @@ void CASW_Alien::UpdateOnRemove()
 	if ( m_bRegisteredAsAwake )
 	{
 		m_bRegisteredAsAwake = false;
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		ASWSpawnManager()->OnAlienSleeping( this );
 #endif
 	}
@@ -582,7 +611,7 @@ void CASW_Alien::NPCInit()
 {
 	BaseClass::NPCInit();
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	// set default alien swarm sight/sense distances
 	SetDistSwarmSense( asw_alien_sense_dist_swarm_sense.GetFloat() );
 	SetDistLook( asw_alien_sense_dist_look.GetFloat() );
@@ -611,7 +640,7 @@ void CASW_Alien::NPCInit()
 #endif
 	SetCollisionBounds( GetHullMins(), GetHullMaxs() );
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	CASW_GameStats.Event_AlienSpawned( this );
 	
 	m_LagCompensation.Init(this);
@@ -653,7 +682,7 @@ void CASW_Alien::NPCThink( void )
 		}
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (gpGlobals->maxClients > 1)
 		m_LagCompensation.StorePositionHistory();
 #endif
@@ -661,7 +690,7 @@ void CASW_Alien::NPCThink( void )
 	if ( m_nVolleyType >= 0 )
 		UpdateRangedAttack();
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	UpdateThawRate();
 #endif
 
@@ -670,7 +699,7 @@ void CASW_Alien::NPCThink( void )
 
 bool CASW_Alien::MarineNearby(float radius, bool bCheck3D)
 {
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	// unimplemented
 	return true;
 #else
@@ -733,7 +762,7 @@ void CASW_Alien::MeleeBleed(CTakeDamageInfo* info)
 	{
 		Vector vecDir = -info->GetDamageForce();
 		vecDir.NormalizeInPlace();
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		UTIL_ASW_DroneBleed( info->GetDamagePosition(), vecDir, 4 );
 #else
 		UTIL_ASW_DroneBleed( info->GetDamagePosition() + m_LagCompensation.GetLagCompensationOffset(), vecDir, 4 );
@@ -742,7 +771,7 @@ void CASW_Alien::MeleeBleed(CTakeDamageInfo* info)
 }
 
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 //-----------------------------------------------------------------------------
 // Freezes this NPC in place for a period of time.
 //-----------------------------------------------------------------------------
@@ -844,7 +873,7 @@ CBaseEntity *CASW_Alien::CheckTraceHullAttack( const Vector &vStart, const Vecto
 		Vector attackDir = pHitEntity->WorldSpaceCenter() - vecAttackerCenter;
 		VectorNormalize( attackDir );
 		CalculateMeleeDamageForce( &dmgInfo, attackDir, vecAttackerCenter, flForceScale );
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		// For shieldbugs, etc. properly having downwards force
 		ModTraceHullAttack( &dmgInfo, attackDir, vecAttackerCenter, flForceScale );
 #endif
@@ -993,7 +1022,7 @@ int CASW_Alien::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	int result = 0;	
 
 	// scale burning damage up
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	if (dynamic_cast<CEntityFlame*>(info.GetAttacker()))
 #else
 	//if (dynamic_cast<CEntityFlame*>(info.GetAttacker()))
@@ -1036,7 +1065,7 @@ int CASW_Alien::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 			m_fHurtSlowMoveTime = gpGlobals->curtime + 0.5f;
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	CASW_Marine* pMarine = NULL;
 	if ( info.GetAttacker() && info.GetAttacker()->Classify() == CLASS_ASW_MARINE )
 	{
@@ -1085,6 +1114,38 @@ void CASW_Alien::StartTask( const Task_t *pTask )
 	case TASK_UNBURROW:
 		Unburrow();
 		break;
+#ifdef SWARM_PORT
+	case TASK_BURROW:
+		Burrow();
+		TaskComplete();
+		break;
+
+	case TASK_BURROW_VANISH:
+		AddEffects( EF_NODRAW );
+		AddFlag( FL_NOTARGET );
+		m_spawnflags |= SF_NPC_GAG;
+		
+		// If the task parameter is non-zero, remove us when we vanish
+		if ( pTask->flTaskData )
+		{
+			CBaseEntity *pOwner = GetOwnerEntity();
+			
+			if( pOwner != NULL )
+			{
+				pOwner->DeathNotice( this );
+				SetOwnerEntity( NULL );
+			}
+
+			// NOTE: We can't UTIL_Remove here, because we're in the middle of running our AI, and
+			//		 we'll crash later in the bowels of the AI. Remove ourselves next frame.
+			SetThink( &CASW_Alien::SUB_Remove );
+			SetNextThink( gpGlobals->curtime + 0.1 );
+		}
+
+		TaskComplete();
+
+		break;
+#endif
 	case TASK_CHECK_FOR_UNBORROW:
 		//if ( ValidBurrowPoint( GetAbsOrigin() ) )
 		{
@@ -1100,7 +1161,7 @@ void CASW_Alien::StartTask( const Task_t *pTask )
 		break;
 	case TASK_ASW_WAIT_FOR_ORDER_MOVE:
 		{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			if ( IsMovementFrozen() )
 			{
 				TaskFail(FAIL_FROZEN);
@@ -1342,7 +1403,7 @@ void CASW_Alien::RunTask(const Task_t *pTask)
 		break;
 	case TASK_ASW_WAIT_FOR_ORDER_MOVE:
 		{			
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			if ( IsMovementFrozen() )
 			{
 				TaskFail(FAIL_FROZEN);
@@ -1434,7 +1495,7 @@ void CASW_Alien::RunTask(const Task_t *pTask)
 		}
 	case TASK_ASW_ALIEN_ZIGZAG:
 		{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			if ( IsMovementFrozen() )
 			{
 				TaskFail(FAIL_FROZEN);
@@ -1631,7 +1692,12 @@ void CASW_Alien::PerformPushaway()
 	if ( !tr.startsolid && (tr.fraction == 1.0) )
 	{
 		// all was clear, move into new position
+#ifdef SWARM_PORT
+		// Needed for parented aliens
+		SetAbsOrigin(dest);
+#else
 		UTIL_SetOrigin(this, dest);
+#endif
 	}
 #endif
 
@@ -1691,7 +1757,7 @@ void CASW_Alien::SetupPushawayVector()
 		vecPush /= over_length;
 
 	// push out of players with equal force to total push from other drones
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	for ( int i = 0; i < gpGlobals->maxClients; i++ )
 	{
 		CBasePlayer *pPlayer = UTIL_PlayerByIndex(i);
@@ -1784,6 +1850,9 @@ bool CASW_Alien::CanBePushedAway()
 {
 	// no pushing away while burrowed
 	if ( IsCurSchedule( SCHED_BURROW_WAIT, false ) || IsCurSchedule( SCHED_WAIT_FOR_CLEAR_UNBORROW, false )
+#ifdef SWARM_PORT
+		|| IsCurSchedule( SCHED_BURROW_IN, false ) || IsCurSchedule( SCHED_BURROW_AWAY, false ) || IsCurSchedule( SCHED_WAIT_FOR_UNBORROW_TRIGGER, false )
+#endif
 		|| IsCurSchedule( SCHED_BURROW_OUT, false ) )
 		return false;
 
@@ -1805,6 +1874,11 @@ AI_BEGIN_CUSTOM_NPC( asw_alien, CASW_Alien )
 	DECLARE_TASK( TASK_BURROW_WAIT )
 	DECLARE_TASK( TASK_SET_UNBURROW_IDLE_ACTIVITY )
 	DECLARE_TASK( TASK_ASW_WAIT_FOR_ORDER_MOVE )
+#ifdef SWARM_PORT
+	//DECLARE_TASK( TASK_WAIT_FOR_UNBURROW_TRIGGER )
+	DECLARE_TASK( TASK_BURROW_VANISH )
+	DECLARE_TASK( TASK_BURROW )
+#endif
 
 	DECLARE_ACTIVITY( ACT_MELEE_ATTACK1_HIT )
 	DECLARE_ACTIVITY( ACT_MELEE_ATTACK2_HIT )
@@ -1817,7 +1891,8 @@ AI_BEGIN_CUSTOM_NPC( asw_alien, CASW_Alien )
 	DECLARE_ACTIVITY( ACT_DIE_FANCY )
 	DECLARE_ACTIVITY( ACT_BURROW_OUT )
 	DECLARE_ACTIVITY( ACT_BURROW_IDLE )
-#ifdef SWARM17
+#ifdef SWARM_PORT
+	DECLARE_ACTIVITY( ACT_BURROW_IN )
 	DECLARE_ACTIVITY( ACT_PREP_TO_FIRE )
 	DECLARE_ACTIVITY( ACT_FIRE )
 	DECLARE_ACTIVITY( ACT_FIRE_RECOVER )
@@ -1994,6 +2069,52 @@ AI_BEGIN_CUSTOM_NPC( asw_alien, CASW_Alien )
 		"		COND_TASK_FAILED"
 	)
 
+#ifdef SWARM_PORT
+	DEFINE_SCHEDULE
+	(
+		SCHED_BURROW_IN,
+
+		"	Tasks"
+		"		TASK_SET_FAIL_SCHEDULE				SCHEDULE:SCHED_CHASE_ENEMY_FAILED"
+		"		TASK_BURROW					0"
+		"		TASK_PLAY_SEQUENCE					ACTIVITY:ACT_BURROW_IN"
+		"		TASK_BURROW_VANISH					0"
+		"		TASK_SET_SCHEDULE					SCHEDULE:SCHED_BURROW_WAIT"
+		""
+		"	Interrupts"
+		"		COND_TASK_FAILED"
+	)
+
+	DEFINE_SCHEDULE
+	(
+		SCHED_BURROW_AWAY,
+
+		"	Tasks"
+		"		TASK_STOP_MOVING		0"
+		"		TASK_BURROW		0"
+		"		TASK_PLAY_SEQUENCE		ACTIVITY:ACT_BURROW_IN"
+		"		TASK_BURROW_VANISH		1"
+
+		"	Interrupts"
+	)
+
+
+	//==================================================
+	// Wait for unborrow (triggered)
+	//==================================================
+
+	DEFINE_SCHEDULE
+	(
+		SCHED_WAIT_FOR_UNBORROW_TRIGGER,
+
+		"	Tasks"
+		"		TASK_WAIT_INDEFINITE	0"
+		""
+		"	Interrupts"
+		"		COND_TASK_FAILED"
+	)
+#endif
+
 AI_END_CUSTOM_NPC()
 
 
@@ -2027,7 +2148,7 @@ int CASW_Alien::SelectAlienOrdersSchedule()
 		break;
 	case AOT_MoveToNearestMarine:
 		{
-#ifdef SWARM17
+#ifdef SWARM_PORT
 			m_AlienOrderObject = UTIL_GetLocalPlayer();
 #else
 			float marine_distance;
@@ -2125,7 +2246,7 @@ Vector CASW_Alien::CalcDeathForceVector( const CTakeDamageInfo &info )
 			return forceVector * (flDesiredForceScale/4) * flMassScale;
 		}
 	}
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 	return vec3_origin;
 #else
 	return BaseClass::CalcDeathForceVector( info );
@@ -2199,7 +2320,12 @@ bool CASW_Alien::CanDoFancyDeath()
 	if ( GetNavType() != NAV_GROUND )
 		return false;
 
+#ifdef SWARM_PORT
+	if ( IsCurSchedule( SCHED_BURROW_WAIT, false ) || IsCurSchedule( SCHED_WAIT_FOR_CLEAR_UNBORROW, false ) || IsCurSchedule( SCHED_BURROW_OUT, false )
+		|| IsCurSchedule( SCHED_BURROW_IN, false ) || IsCurSchedule( SCHED_BURROW_AWAY, false ) || IsCurSchedule( SCHED_WAIT_FOR_UNBORROW_TRIGGER, false ) )
+#else
 	if ( IsCurSchedule( SCHED_BURROW_WAIT, false ) || IsCurSchedule( SCHED_WAIT_FOR_CLEAR_UNBORROW, false ) || IsCurSchedule( SCHED_BURROW_OUT, false ) )
+#endif
 		return false;
 
 	if ( m_hMoveClone.Get() )
@@ -2236,7 +2362,7 @@ void CASW_Alien::Event_Killed( const CTakeDamageInfo &info )
 {
 	if (asw_debug_alien_damage.GetBool())
 		Msg("%f alien killed\n", gpGlobals->curtime);
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (ASWGameRules())
 	{
 		ASWGameRules()->AlienKilled(this, info);
@@ -2259,7 +2385,7 @@ void CASW_Alien::Event_Killed( const CTakeDamageInfo &info )
 		SetBodygroup( 0, m_iDeadBodyGroup );
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( m_flFrozen >= 0.1f )
 	{
 		bool bShatter = ( RandomFloat() > 0.01f );
@@ -2270,11 +2396,28 @@ void CASW_Alien::Event_Killed( const CTakeDamageInfo &info )
 	}
 #endif
 
+#ifdef SWARM_PORT
+	if (info.GetDamageType() & DMG_NEVERGIB)
+		m_bNeverInstagib = true;
+#endif
+
 	// if we died from an explosion, instagib
 	if ( !m_bNeverInstagib && info.GetDamage() > 8.0f && (info.GetDamageType() & DMG_BLAST || info.GetDamageType() & DMG_SONIC) )
 	{
 		m_nDeathStyle = kDIE_INSTAGIB;
 	}
+#ifdef SWARM_PORT
+	else if ( info.GetDamageType() & DMG_DISSOLVE )
+	{
+		// Dissolve as a ragdoll
+		m_nDeathStyle = kDIE_RAGDOLLFADE;
+	}
+	else if ( info.GetInflictor() && info.GetInflictor()->ClassMatches("crossbow_bolt") )
+	{
+		// Be a regular ragdoll for pinning purposes
+		m_nDeathStyle = kDIE_RAGDOLLFADE;
+	}
+#endif
 	else if ( !m_bNeverInstagib && !m_bElectroStunned && info.GetDamage() > 20.0f && RandomFloat() > 0.05f ) // if the damage inflicted was a high amount of damage, instagib 95% of the time
 	{
 		m_nDeathStyle = kDIE_INSTAGIB;
@@ -2302,7 +2445,7 @@ void CASW_Alien::Event_Killed( const CTakeDamageInfo &info )
 	if (!ShouldGib(info))
 	{
 		const unsigned int nDamageTypesThatCauseHurling = DMG_BLAST | DMG_BLAST_SURFACE;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		SetCollisionGroup(COLLISION_GROUP_NONE);	// don't block marines by dead bodies
 #else
 		SetCollisionGroup(ASW_COLLISION_GROUP_PASSABLE);	// don't block marines by dead bodies
@@ -2314,7 +2457,7 @@ void CASW_Alien::Event_Killed( const CTakeDamageInfo &info )
 			m_nDeathStyle = kDIE_HURL;
 			sm_flLastHurlTime = gpGlobals->curtime;
 		}
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		if ( ( info.GetDamageType() & DMG_CLUB ) && info.GetAttacker() && info.GetAttacker()->Classify() == CLASS_ASW_MARINE )
 		{
 			CASW_Marine *pMarine = assert_cast<CASW_Marine*>( info.GetAttacker() );
@@ -2328,7 +2471,7 @@ void CASW_Alien::Event_Killed( const CTakeDamageInfo &info )
 	}
 	
 	DropMoney( info );
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( ASWGameRules() )
 		ASWGameRules()->DropPowerup( this, info, GetClassname() );
 #endif
@@ -2442,7 +2585,7 @@ bool CASW_Alien::ShouldClearOrdersOnMovementComplete()
 		//		this means the marine probably moved somewhere else and we need to chase after him again
 		if (m_AlienOrders == AOT_MoveToNearestMarine && !GetEnemy())
 		{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			float marine_distance;
 			CBaseEntity *pMarine = UTIL_ASW_NearestMarine(GetAbsOrigin(), marine_distance);
 			if (pMarine)
@@ -2519,23 +2662,23 @@ void CASW_Alien::ASW_Ignite( float flFlameLifetime, float flSize, CBaseEntity *p
 		if( IsOnFire() )
 			return;
 
-		AddFlag( FL_ONFIRE );
-		m_bOnFire = true;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		Ignite( flFlameLifetime, true );
 #else
+		AddFlag( FL_ONFIRE );
+		m_bOnFire = true;
 		if (ASWBurning())
 			ASWBurning()->BurnEntity(this, pAttacker, flFlameLifetime, 0.4f, 2.5f * 0.4f, pDamagingWeapon );	// 2.5 dps, applied every 0.4 seconds
-#endif
 
 		m_OnIgnite.FireOutput( this, this );
+#endif
 	}
 }
 
 void CASW_Alien::Extinguish()
 {
 	m_bOnFire = false;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	BaseClass::Extinguish();
 #else
 	if (ASWBurning())
@@ -2638,7 +2781,7 @@ void CASW_Alien::UpdateEfficiency( bool bInPVS )
 void CASW_Alien::OnRestore()
 {
 	BaseClass::OnRestore();
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	m_LagCompensation.Init(this);
 #endif
 }
@@ -2647,16 +2790,16 @@ void CASW_Alien::OnRestore()
 //  caches the results and won't recheck unless the specified interval has passed since the last check
 bool CASW_Alien::MarineCanSee(int padding, float interval)
 {
-#ifdef SWARM17 // TODO: Apply this to other marine-related stuff?
-	return ( UTIL_FindClientInPVS( edict() ) != NULL ) || (UTIL_ClientPVSIsExpanded() && UTIL_FindClientInVisibilityPVS( edict() ));
-#else
 	if (gpGlobals->curtime >= m_fLastMarineCanSeeTime + interval)
 	{
+#ifdef SWARM_PORT // TODO: Apply this to other marine-related stuff?
+		m_bLastMarineCanSee = ( UTIL_FindClientInPVS( edict() ) != NULL ) || (UTIL_ClientPVSIsExpanded() && UTIL_FindClientInVisibilityPVS( edict() ));
+#else
 		bool bCorpseCanSee = false;
 		m_bLastMarineCanSee = (UTIL_ASW_AnyMarineCanSee(GetAbsOrigin(), padding, bCorpseCanSee) != NULL) || bCorpseCanSee;
+#endif
 		m_fLastMarineCanSeeTime = gpGlobals->curtime;
 	}
-#endif
 	return m_bLastMarineCanSee;
 }
 
@@ -2665,12 +2808,16 @@ void CASW_Alien::SetHealthByDifficultyLevel()
 	// filled in by subclasses
 }
 
-#ifndef SWARM17
 void CASW_Alien::Ignite( float flFlameLifetime, bool bNPCOnly, float flSize, bool bCalledByLevelDesigner )
 {
+#ifdef SWARM_PORT
+	BaseClass::Ignite( flFlameLifetime, bNPCOnly, flSize, bCalledByLevelDesigner );
+
+	m_bOnFire = true;
+#else
 	return;	// use ASW_Ignite instead
-}
 #endif
+}
 
 bool CASW_Alien::ShouldMoveSlow() const
 {
@@ -2719,7 +2866,7 @@ float CASW_Alien::GetIdealSpeed() const
 
 void CASW_Alien::DropMoney( const CTakeDamageInfo &info )
 {
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( !asw_drop_money.GetBool() || !asw_money.GetBool() )
 		return;
 
@@ -2759,7 +2906,7 @@ void CASW_Alien::ElectroStun( float flStunTime )
 
 	m_bElectroStunned = true;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( ASWGameResource() )
 	{
 		ASWGameResource()->m_iElectroStunnedAliens++;
@@ -3069,22 +3216,26 @@ void CASW_Alien::SendBehaviorEvent( CBaseEntity *pInflictor, BehaviorEvent_t Eve
 }
 void CASW_Alien::BuildScheduleTestBits()
 {
-#ifndef SWARM17 // TODO
 	CAI_ASW_CombatStunBehavior *pBehavior = NULL;
 
 	// Check for combat stun behavior, or, if we're not using behaviors, we'll fall back to the combat stun schedule in CASW_Alien
+#ifdef SWARM_PORT // TODO: Figure out the differences between primary behavior and running behavior
+	if ( GetBehavior( &pBehavior ) && pBehavior != GetRunningBehavior() )
+#else
 	if ( GetBehavior( &pBehavior ) && pBehavior != m_pPrimaryBehavior )
+#endif
 	{
 		SetCustomInterruptCondition( COND_ASW_BEGIN_COMBAT_STUN );
 	}
 
+#ifndef SWARM_PORT // TODO?
 	SetCustomInterruptCondition( COND_BEHAVIOR_PARAMETERS_CHANGED );
+#endif
 
 	if ( m_pFlinchBehavior )
 	{
 		SetCustomInterruptCondition( COND_ASW_FLINCH );
 	}	
-#endif
 
 	BaseClass::BuildScheduleTestBits();
 }
@@ -3132,7 +3283,7 @@ int	CASW_Alien::DrawDebugTextOverlays()
 {
 	int text_offset = BaseClass::DrawDebugTextOverlays();
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (m_debugOverlays & OVERLAY_TEXT_BIT)
 	{
 		NDebugOverlay::EntityText( entindex(),text_offset,CFmtStr( "Freeze amt.: %f", m_flFrozen.Get() ),0 );
@@ -3258,6 +3409,19 @@ void CASW_Alien::Unburrow( void )
 	}*/
 }
 
+#ifdef SWARM_PORT
+void CASW_Alien::Burrow( void )
+{
+	//Stop us from taking damage and being solid
+	m_spawnflags |= SF_NPC_GAG;
+
+	// Reset burrow activities
+	SetUnburrowActivity( NULL_STRING );
+	SetUnburrowIdleActivity( NULL_STRING );
+	LookupBurrowActivities();
+}
+#endif
+
 void CASW_Alien::SetUnburrowActivity( string_t iszActivityName )
 {
 	m_iszUnburrowActivityName = iszActivityName;
@@ -3307,6 +3471,44 @@ void CASW_Alien::LookupBurrowActivities()
 	}
 }
 
+#ifdef SWARM_PORT
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : &inputdata - 
+//-----------------------------------------------------------------------------
+void CASW_Alien::InputUnburrow( inputdata_t &inputdata )
+{
+	if ( IsAlive() == false )
+		return;
+
+	SetSchedule( SCHED_BURROW_WAIT );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : &inputdata - 
+//-----------------------------------------------------------------------------
+void CASW_Alien::InputBurrow( inputdata_t &inputdata )
+{
+	if ( IsAlive() == false )
+		return;
+
+	SetSchedule( SCHED_BURROW_IN );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : &inputdata - 
+//-----------------------------------------------------------------------------
+void CASW_Alien::InputBurrowAway( inputdata_t &inputdata )
+{
+	if ( IsAlive() == false )
+		return;
+
+	SetSchedule( SCHED_BURROW_AWAY );
+}
+#endif
+
 class CASW_Trace_Filter_Disable_Collision_With_Traps : public CTraceFilterEntitiesOnly
 {
 public:
@@ -3331,7 +3533,7 @@ public:
 		if ( pEntPass == pEntity )
 			return false;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		Class_T entClass = pEntity->Classify();
 
 		if ( entClass == CLASS_ASW_SENTRY_BASE ||

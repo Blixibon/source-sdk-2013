@@ -13,7 +13,7 @@
 #include "asw_ai_behavior.h"
 #include "props_shared.h"
 #include "ammodef.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_gamerules.h"
 #include "asw_marine.h"
 #endif
@@ -31,7 +31,7 @@ DEFINE_EMBEDDEDBYREF( m_pExpresser ),
 END_DATADESC()
 
 ConVar asw_ranger_health( "asw_ranger_health", "101.5", FCVAR_CHEAT );
-#ifdef SWARM17
+#ifdef SWARM_PORT
 ConVar sk_asw_ranger_shot_damage( "sk_asw_ranger_shot_damage", "12", FCVAR_CHEAT );
 ConVar sk_asw_ranger_shot_speed( "sk_asw_ranger_shot_speed", "425", FCVAR_CHEAT );
 ConVar sk_asw_ranger_range_min( "sk_asw_ranger_range_min", "0", FCVAR_CHEAT );
@@ -58,7 +58,7 @@ CASW_Ranger::CASW_Ranger()
 void CASW_Ranger::SetupRangerShot( CASW_AlienShot &shot )
 {
 	shot.m_flSize = 4;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	shot.m_flDamage_direct = sk_asw_ranger_shot_damage.GetInt();
 	shot.m_iDamageType = DMG_NEVERGIB | DMG_ACID;
 #else
@@ -112,7 +112,7 @@ void CASW_Ranger::Spawn( void )
 	volley.m_rounds[0].m_flEndAngle			= 0;
 	volley.m_rounds[0].m_nNumShots			= 1;
 	volley.m_rounds[0].m_flShotDelay		= 0;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	volley.m_rounds[0].m_flSpeed			= sk_asw_ranger_shot_speed.GetFloat();
 #else
 	volley.m_rounds[0].m_flSpeed			= 425;
@@ -125,7 +125,7 @@ void CASW_Ranger::Spawn( void )
 	volley.m_rounds[1].m_flEndAngle			= 0;
 	volley.m_rounds[1].m_nNumShots			= 1;
 	volley.m_rounds[1].m_flShotDelay		= 0;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	volley.m_rounds[1].m_flSpeed			= sk_asw_ranger_shot_speed.GetFloat();
 #else
 	volley.m_rounds[1].m_flSpeed			= 425;
@@ -138,7 +138,7 @@ void CASW_Ranger::Spawn( void )
 	volley.m_rounds[2].m_flEndAngle			= 0;
 	volley.m_rounds[2].m_nNumShots			= 1;
 	volley.m_rounds[2].m_flShotDelay		= 0;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	volley.m_rounds[2].m_flSpeed			= sk_asw_ranger_shot_speed.GetFloat();
 #else
 	volley.m_rounds[2].m_flSpeed			= 425;
@@ -195,7 +195,7 @@ float CASW_Ranger::MaxYawSpeed( void )
 	return 32.0f;// * GetMovementSpeedModifier();
 }
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 extern int AE_DRONE_MELEE_HIT1;
 #endif
 
@@ -214,7 +214,7 @@ void CASW_Ranger::HandleAnimEvent( animevent_t *pEvent )
 		return;
 	}
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	if ( nEvent == AE_DRONE_MELEE_HIT1 )
 	{
 		float fDamage = MAX(3.0f, ASWGameRules()->ModifyAlienDamageBySkillLevel(sk_asw_ranger_melee_damage.GetFloat()));
@@ -351,7 +351,7 @@ bool CASW_Ranger::CreateBehaviors()
 	AddBehavior( &m_RetreatBehavior );
 	m_RetreatBehavior.Init();
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	m_RangedAttackBehavior.KeyValue( "minRange", sk_asw_ranger_range_min.GetString() );
 	m_RangedAttackBehavior.KeyValue( "maxRange", sk_asw_ranger_range_max.GetString() );
 #else
@@ -364,7 +364,7 @@ bool CASW_Ranger::CreateBehaviors()
 	AddBehavior( &m_RangedAttackBehavior );
 	m_RangedAttackBehavior.Init();
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	m_MeleeBehavior.KeyValue( "range", sk_asw_ranger_melee_range.GetString() );
 	m_MeleeBehavior.KeyValue( "min_damage", "4" );
 	m_MeleeBehavior.KeyValue( "max_damage", "6" );
@@ -408,7 +408,7 @@ void CASW_Ranger::Event_Killed( const CTakeDamageInfo &info )
 {
 	CTakeDamageInfo newInfo(info);
 
-#ifndef SWARM17 // TODO
+#ifndef SWARM_PORT // TODO
 	// scale up the force if we're shot by a marine, to make our ragdolling more interesting
 	if (newInfo.GetAttacker() && newInfo.GetAttacker()->Classify() == CLASS_ASW_MARINE)
 	{
@@ -452,7 +452,7 @@ bool CASW_Ranger::CorpseGib( const CTakeDamageInfo &info )
 {
 	CEffectData	data;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	m_LagCompensation.UndoLaggedPosition();
 #endif
 	

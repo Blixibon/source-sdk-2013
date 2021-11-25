@@ -12,7 +12,7 @@
 
 #ifdef CLIENT_DLL
 	#include "c_te_effect_dispatch.h"
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	#include "c_gib.h"
 	#include "c_asw_egg.h"
 	#include "c_user_message_register.h"
@@ -122,7 +122,7 @@ void UTIL_ASW_BloodDrips( const Vector &origin, const Vector &direction, int col
 	}
 }
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 void UTIL_ASW_MarineTakeDamage( const Vector &origin, const Vector &direction, int color, int amount, CASW_Marine *pMarine, bool bFriendly )
 {
 	if ( !UTIL_ShouldShowBlood( color ) )
@@ -197,7 +197,7 @@ void UTIL_ASW_EnvExplosionFX( const Vector &vecPos, float flRadius, bool bOnGrou
 #endif
 }
 
-#if SWARM17 && CLIENT_DLL
+#if SWARM_PORT && CLIENT_DLL // HACKHACK: Ports from c_asw_fx
 #define ASW_BLOOD_BRIGHTNESS 0.25f
 //#define ASW_DO_BLOOD_LIGHT_CALCS		// define to make blood particle systems scale color/alpha by light at that point
 
@@ -299,7 +299,7 @@ public:
 
 		// attach an emitter ot it
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		C_ASW_Emitter *pEmitter = new C_ASW_Emitter;
 		if (pEmitter)
 		{
@@ -435,7 +435,7 @@ DECLARE_CLIENT_EFFECT( "DroneBleed", DroneBleedCallback );
 
 void FX_GibMeshEmitter( const char *szModel, const char *szTemplate, const Vector &origin, const Vector &direction, int skin, float fScale, bool bFrozen )
 {
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	C_Gib *pGib = C_Gib::CreateClientsideGib( szModel, origin, direction, Vector( RandomFloat( 20.0f, 20.0f ), RandomFloat( 20.0f, 20.0f ), RandomFloat( 20.0f, 20.0f ) ) );
 	pGib->SetSkin( skin );
 #else
@@ -923,4 +923,43 @@ void __MsgFunc_ASWBuzzerDeath( bf_read &msg )
 	DispatchParticleEffect( "buzzer_death", vecPos, Vector( 0, 0, 0 ), QAngle( 0, 0, 0 ) );
 }
 USER_MESSAGE_REGISTER( ASWBuzzerDeath );
+
+void FX_ElectroStun(C_BaseAnimating *pAnimating)
+{	
+	matrix3x4_t	*hitboxbones[MAXSTUDIOBONES];
+	if ( pAnimating->HitboxToWorldTransforms( hitboxbones ) == false )
+		return;
+
+	studiohdr_t *pStudioHdr = modelinfo->GetStudiomodel( pAnimating->GetModel() );
+	if ( pStudioHdr == NULL )
+		return;
+
+	mstudiohitboxset_t *set = pStudioHdr->pHitboxSet( pAnimating->GetHitboxSet() );
+	if ( set == NULL )
+		return;
+
+	int nHitbox = random->RandomInt( 0, set->numhitboxes - 1 );
+	Vector vecAbsOrigin, xvec, yvec;
+	mstudiobbox_t *pBox = set->pHitbox(nHitbox);
+	if ( !pBox )
+		return;
+
+	Vector vecPosition;
+	QAngle vecAngles;
+	pAnimating->GetBonePosition( pBox->bone, vecPosition, vecAngles );
+
+	CUtlReference<CNewParticleEffect> pEffect;
+	pEffect = pAnimating->ParticleProp()->Create( "ElectroStun_arc_01_system", PATTACH_ABSORIGIN_FOLLOW, -1, vecPosition - pAnimating->GetAbsOrigin() );
+}
+
+void FX_ElectoStun(C_BaseAnimating *pAnimating);
+
+void ElectroStunCallback( const CEffectData &data )
+{
+	C_BaseAnimating *pAnimating = dynamic_cast<C_BaseAnimating*>(data.GetEntity());
+	if (pAnimating)
+		FX_ElectroStun( pAnimating );
+}
+
+DECLARE_CLIENT_EFFECT( "ElectroStun", ElectroStunCallback );
 #endif

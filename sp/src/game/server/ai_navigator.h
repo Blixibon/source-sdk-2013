@@ -101,7 +101,7 @@ enum AI_NavGoalFlags_t
 	// If navigating on a designer placed path, don't use pathfinder between waypoints, just do it
 	AIN_NO_PATHCORNER_PATHFINDING = 0x04,
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	// Succeed if we can arrive within tolerance
 	AIN_LOCAL_SUCCEEED_ON_WITHIN_TOLERANCE = 0x08,
 
@@ -561,14 +561,14 @@ private:
 protected:
 	virtual bool 		GetStoppingPath( CAI_WaypointList *pClippedWaypoints );
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 private:
 #endif
 	bool				FindPath( const AI_NavGoal_t &goal, unsigned flags );
 	bool				FindPath( bool fSignalTaskStatus = true, bool bDontIgnoreBadLinks = false );
 	bool				MarkCurWaypointFailedLink( void );			// Call when route fails
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 private:
 #endif
 

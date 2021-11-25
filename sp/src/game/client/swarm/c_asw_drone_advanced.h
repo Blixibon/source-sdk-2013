@@ -14,7 +14,7 @@ public:
 					C_ASW_Drone_Advanced();
 	virtual			~C_ASW_Drone_Advanced();
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	Class_T		Classify( void ) { return (Class_T) CLASS_ASW_DRONE; }
 #endif
 

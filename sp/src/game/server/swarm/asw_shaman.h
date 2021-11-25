@@ -43,6 +43,8 @@ public:
 
 	virtual bool		ShouldGib( const CTakeDamageInfo &info ) { return false; }
 
+	virtual void		Event_Killed( const CTakeDamageInfo &info );
+
 	// sounds
 	virtual void PainSound( const CTakeDamageInfo &info );
 	virtual void DeathSound( const CTakeDamageInfo &info );

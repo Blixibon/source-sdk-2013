@@ -13,7 +13,7 @@
 #include "ai_memory.h"
 #include "asw_alien.h"
 #include "particle_parse.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_marine.h"
 #include "asw_marine_skills.h"
 #endif
@@ -115,7 +115,7 @@ void CAI_ASW_CombatStunBehavior::GatherConditionsNotActive( )
 		return;
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	CASW_Alien *pAlien = static_cast<CASW_Alien*>( GetOuter() );
 
 	for ( int i = 0; i < pAlien->m_RecentDamage.Count(); i++ )
@@ -168,7 +168,7 @@ void CAI_ASW_CombatStunBehavior::StartTask( const Task_t *pTask )
 		case TASK_COMBAT_STUN:
 		{
 			m_flStunEndTime = gpGlobals->curtime + m_flStunDuration;
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			pAlien->m_RecentDamage.RemoveAll();
 #endif
 			DispatchParticleEffect( "melee_stun", PATTACH_POINT_FOLLOW, pAlien, "attach_top" );

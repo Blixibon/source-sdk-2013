@@ -12,7 +12,7 @@
 #include "ai_navigator.h"
 #include "ai_memory.h"
 #include "asw_alien.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_marine.h"
 #include "asw_gamerules.h"
 #endif
@@ -376,7 +376,7 @@ void CAI_ASW_PounceBehavior::StartTouch( CBaseEntity *pOther )
 			Vector vecForceDir = GetOuter()->GetAbsVelocity();
 			vecForceDir.NormalizeInPlace();
 			// TODO: Check they're not behind me
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
 			if ( pMarine )
 			{

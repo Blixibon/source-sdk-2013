@@ -11,7 +11,7 @@
 #include "asw_ai_behavior_fear.h"
 #include "gib.h"
 #include "te_effect_dispatch.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_gamerules.h"
 #include "asw_marine.h"
 #endif
@@ -35,6 +35,9 @@ int AE_SHAMAN_SPRAY_END;
 
 ConVar asw_shaman_health( "asw_shaman_health", "59.8", FCVAR_CHEAT );
 extern ConVar asw_debug_alien_damage;
+#ifdef SWARM_PORT
+ConVar asw_shaman_death_buzzerfx( "asw_shaman_death_buzzerfx", "1" );
+#endif
 
 //-----------------------------------------------------------------------------
 // Purpose:	
@@ -63,7 +66,7 @@ void CASW_Shaman::Spawn( void )
 	SetBloodColor( BLOOD_COLOR_GREEN );
 	CapabilitiesAdd( bits_CAP_MOVE_GROUND | bits_CAP_AUTO_DOORS );
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	AddFactionRelationship( FACTION_MARINES, D_FEAR, 10 );
 #endif
 
@@ -85,6 +88,11 @@ void CASW_Shaman::Precache( void )
 
 	PrecacheScriptSound( "Shaman.Pain" );
 	PrecacheScriptSound( "Shaman.Die" );
+
+#ifdef SWARM_PORT
+	PrecacheParticleSystem( "buzzer_death" );
+	PrecacheParticleSystem( "shaman_heal_attach" );
+#endif
 }
 
 
@@ -154,6 +162,17 @@ void CASW_Shaman::DeathSound( const CTakeDamageInfo &info )
 	// sounds for pain and death are defined in the npc_tier_tables excel sheet
 	// they are called from the asw_alien base class
 	BaseClass::DeathSound(info);
+}
+
+
+void CASW_Shaman::Event_Killed( const CTakeDamageInfo &info )
+{
+#ifdef SWARM_PORT
+	if (asw_shaman_death_buzzerfx.GetBool())
+		UTIL_ASW_BuzzerDeath( WorldSpaceCenter() );
+#endif
+
+	BaseClass::Event_Killed( info );
 }
 
 

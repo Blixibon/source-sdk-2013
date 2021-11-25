@@ -2,7 +2,7 @@
 #include "asw_trace_filter_melee.h"
 #ifdef CLIENT_DLL
 #include "c_asw_alien.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "c_asw_marine.h"
 #include "c_asw_weapon.h"
 #endif
@@ -15,7 +15,7 @@
 //#include "util.h"
 #endif
 #include "takedamageinfo.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_melee_system.h"
 #include "asw_marine.h"
 #include "asw_colonist.h"
@@ -27,7 +27,7 @@
 
 extern ConVar asw_marine_melee_kick_lift;
 #ifdef GAME_DLL
-#ifndef SWARM17
+#ifndef SWARM_PORT
 extern ConVar asw_debug_marine_damage;
 #endif
 extern ConVar ai_show_hull_attacks;
@@ -82,7 +82,7 @@ bool CASW_Trace_Filter_Melee::ShouldHitEntity( IHandleEntity *pHandleEntity, int
 
 		if ( m_nNumHits == ASW_MAX_HITS_PER_TRACE )
 		{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #ifdef GAME_DLL
 			if ( asw_debug_marine_damage.GetBool() )
 			{
@@ -100,7 +100,7 @@ bool CASW_Trace_Filter_Melee::ShouldHitEntity( IHandleEntity *pHandleEntity, int
 		// Only do these comparisons between NPCs
 		if ( pAttackerBCC && pVictimBCC )
 		{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			// stop aliens from meleeing each other, unless they're on different factions
 			if ( pAttackerBCC->GetFaction() == pVictimBCC->GetFaction() )
 				return false;
@@ -127,7 +127,7 @@ bool CASW_Trace_Filter_Melee::ShouldHitEntity( IHandleEntity *pHandleEntity, int
 
 		float flAttackDot = vecAttackerForward.Dot( vecAttackDir );
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		// check it's in front
 		CASW_Marine *pMarine = CASW_Marine::AsMarine( pAttackerBCC );
 		if ( pMarine )
@@ -157,7 +157,7 @@ bool CASW_Trace_Filter_Melee::ShouldHitEntity( IHandleEntity *pHandleEntity, int
 		
 		// check there's not actually an obstruction between us
 		trace_t tr;
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		if ( pMarine )
 		{
 			CASW_Trace_Filter_Skip_Marines skip_marines_filter( COLLISION_GROUP_NONE );
@@ -195,7 +195,7 @@ bool CASW_Trace_Filter_Melee::ShouldHitEntity( IHandleEntity *pHandleEntity, int
 		
 		trace_t *tr2 = &m_HitTraces[ m_nNumHits++ ];
 		// do one last trace to get the actual impact point
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		if ( pMarine )
 		{
 			CASW_Trace_Filter_Skip_Marines skip_marines_filter( COLLISION_GROUP_NONE );
@@ -254,7 +254,7 @@ CASW_Trace_Filter_Skip_Marines::CASW_Trace_Filter_Skip_Marines( int collisionGro
 //-----------------------------------------------------------------------------
 bool CASW_Trace_Filter_Skip_Marines::ShouldHitEntity( IHandleEntity *pHandleEntity, int contentsMask )
 {
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	CBaseEntity *pEntity = EntityFromEntityHandle( pHandleEntity );
 	if ( pEntity && CASW_Marine::AsMarine( pEntity ) != NULL )
 		return false;

@@ -14,7 +14,7 @@
 #include "ai_pathfinder.h"
 #include "ai_link.h"
 #include "asw_util_shared.h"
-#ifdef SWARM17
+#ifdef SWARM_PORT
 #include "ai_node.h"
 #else
 #include "asw_marine.h"
@@ -80,7 +80,7 @@ void CASW_Mortarbug::Spawn( void )
 	SetHullType(HULL_WIDE_SHORT);
 	UTIL_SetSize(this, Vector(-23,-23,0), Vector(23,23,69));
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	CollisionProp()->SetSurroundingBoundsType( USE_HITBOXES );
 #endif
 				
@@ -91,7 +91,7 @@ void CASW_Mortarbug::Spawn( void )
 	m_takedamage = DAMAGE_NO;	// alien is invulnerable until she finds her first enemy
 }
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 void CASW_Mortarbug::OnRestore( void )
 {
 	BaseClass::OnRestore();
@@ -458,7 +458,7 @@ void CASW_Mortarbug::StartTouch( CBaseEntity *pOther )
 {
 	BaseClass::StartTouch( pOther );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	CBasePlayer *pMarine = ToBasePlayer( pOther );
 #else
 	CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
@@ -622,7 +622,7 @@ bool CASW_Mortarbug::IsHeavyDamage( const CTakeDamageInfo &info )
 	if (( info.GetDamageType() & DMG_BLAST ) != 0 )
 		return true;
 	
-#ifndef SWARM17 // TODO
+#ifndef SWARM_PORT // TODO
 	CASW_Marine *pMarine = dynamic_cast<CASW_Marine*>(info.GetAttacker());	
 	if (pMarine && pMarine->GetActiveASWWeapon())
 	{		
@@ -642,7 +642,7 @@ void CASW_Mortarbug::Event_Killed( const CTakeDamageInfo &info )
 
 int CASW_Mortarbug::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 {
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	if ( info.GetInflictor() && info.GetInflictor()->ClassMatches("asw_mortarbug_shell") )
 #else
 	if ( info.GetInflictor() && info.GetInflictor()->Classify() == CLASS_ASW_MORTAR_SHELL )
@@ -657,7 +657,7 @@ int CASW_Mortarbug::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	{
 		damage *= 0.4f;
 	}
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (info.GetDamageType() & DMG_BUCKSHOT)
 	{
 		// hack to reduce vindicator damage (not reducing normal shotty as much as it's not too strong)

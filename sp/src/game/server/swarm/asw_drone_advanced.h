@@ -10,7 +10,7 @@
 
 //typedef CAI_BlendingHost< CAI_BehaviorHost<CASW_BlendedAlien> > CAI_DroneBase;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 class CASW_Door;
 #endif
 class CASW_Drone_Movement;
@@ -59,7 +59,7 @@ public:
 	virtual int OnTakeDamage_Dead( const CTakeDamageInfo &info );
 	virtual void Event_Killed( const CTakeDamageInfo &info );
 	virtual bool IsMeleeAttacking();
-#ifndef SWARM17 // This doesn't look good in HL2/Source 2013 for some reason
+#ifndef SWARM_PORT // This doesn't look good in HL2/Source 2013 for some reason
 	virtual bool ShouldStopBeforeMeleeAttack() { return !m_bHasAttacked; }
 #endif
 	bool m_bHasAttacked;
@@ -136,11 +136,14 @@ public:
 		COND_DRONE_LOS,		// drone has soft line of sight to his enemy
 		COND_DRONE_GAINED_LOS,		// drone didn't have soft los last think, but does now
 		COND_DRONE_LOST_LOS,	// drone had soft line of sight last think, but has lost it this think
+#ifdef SWARM_PORT
+		COND_DRONE_CLIMB_TOUCH,
+#endif
 		NEXT_CONDITION,
 	};
 
 private:
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	CHandle< CBasePropDoor > m_hBlockingDoor;
 #else
 	CHandle< CASW_Door > m_hBlockingDoor;

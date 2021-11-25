@@ -37,7 +37,7 @@ bool ASW_LineCircleIntersection(
 	float *fIntersection1,
 	float *fIntersection2);
 
-#ifndef SWARM17 // TODO
+#ifndef SWARM_PORT // TODO
 // is a marine nearby this spot?  i.e. can a player controlling this marine see this spot (bCorpseCanSee is set to true if a marine corpse can see this spot)
 CASW_Marine* UTIL_ASW_MarineCanSee(CASW_Marine_Resource* pMR, const Vector &pos, const int padding, bool &bCorpseCanSee, const int forward_limit = -1);
 CASW_Marine* UTIL_ASW_AnyMarineCanSee(const Vector &pos, const int padding, bool &bCorpseCanSee, const int forward_limit = -1);
@@ -67,7 +67,7 @@ char* ASW_AllocString( const char *szString );
 float UTIL_ASW_CalcFastDoorHackTime(int iNumRows, int iNumColumns, int iNumWires, int iHackLevel, float fSpeedScale);
 
 #ifdef GAME_DLL
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	inline void UTIL_ASW_ScreenShake( const Vector &center, float amplitude, float frequency, float duration, float radius, ShakeCommand_t eCommand, bool bAirShake=false ) {}
 	inline void UTIL_ASW_ScreenPunch( const Vector &center, const Vector &direction, float amplitude, float frequency, float duration, float radius ) {}
 	inline void UTIL_ASW_ScreenPunch( const Vector &center, float radius, const ScreenShake_t &shake ) {}
@@ -77,7 +77,7 @@ float UTIL_ASW_CalcFastDoorHackTime(int iNumRows, int iNumColumns, int iNumWires
 	void UTIL_ASW_ScreenPunch( const Vector &center, float radius, const ScreenShake_t &shake );
 #endif
 	void UTIL_ASW_PoisonBlur(CBaseEntity *pEntity, float duration);
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	CBasePlayer* UTIL_ASW_NearestMarine( const Vector &pos, float &marine_distance, ASW_Marine_Class marineClass = MARINE_CLASS_UNDEFINED, bool bAIOnly = false );	// returns the nearest marine to this point
 	CBasePlayer* UTIL_ASW_NearestMarine( const CASW_Marine *pMarine, float &marine_distance );	// returns the nearest marine to this marine
 #else

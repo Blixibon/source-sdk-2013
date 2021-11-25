@@ -7,7 +7,7 @@
 #include "Sprite.h"
 #include "SpriteTrail.h"
 #include "te_effect_dispatch.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_gamerules.h"
 #include "asw_marine.h"
 #include "asw_marine_resource.h"
@@ -64,7 +64,7 @@ void CASW_Mortar_Round::Spawn( void )
 	SetGravity( asw_mortar_round_gravity.GetFloat() );
 	SetFriction( asw_vindicator_grenade_friction.GetFloat() );
 	SetElasticity( asw_vindicator_grenade_elasticity.GetFloat() );
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	SetCollisionGroup( COLLISION_GROUP_PROJECTILE );
 #else
 	SetCollisionGroup( ASW_COLLISION_GROUP_PASSABLE );
@@ -192,7 +192,7 @@ void CASW_Mortar_Round::CheckNearbyTargets( )
 			m_bModelOpening = true;
 			ResetSequence( LookupSequence( "MortarBugProjectile_Opening" ) );
 
-#ifdef SWARM17 // TODO: FIX PARTICLE
+#ifdef SWARM_PORT // TODO: FIX PARTICLE
 			//DispatchParticleEffect( "mortar_grenade_open", PATTACH_ABSORIGIN_FOLLOW, this, -1, false );
 #else
 			CEffectData	data;
@@ -369,7 +369,7 @@ void CASW_Mortar_Round::CreateEffects()
 
 		default:
 			{
-#ifdef SWARM17
+#ifdef SWARM_PORT
 				DispatchParticleEffect( "mortar_grenade_main_trail", PATTACH_ABSORIGIN_FOLLOW, this, -1, false );
 #else
 				CEffectData	data;

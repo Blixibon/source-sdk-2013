@@ -13,7 +13,7 @@
 #include "ai_memory.h"
 #include "asw_alien.h"
 #include "movevars_shared.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_marine.h"
 #include "asw_player.h"
 #include "asw_director.h"

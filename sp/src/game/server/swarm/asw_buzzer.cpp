@@ -36,7 +36,7 @@
 #include "asw_ai_senses.h"
 #include "asw_util_shared.h"
 #include "EntityFlame.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_gamerules.h"
 #include "asw_burning.h"
 #include "asw_marine.h"
@@ -253,7 +253,7 @@ void CASW_Buzzer::Event_Dying(void)
 void CASW_Buzzer::OnRestore()
 {
 	BaseClass::OnRestore();
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	m_LagCompensation.Init(this);
 #endif
 }
@@ -315,7 +315,7 @@ void CASW_Buzzer::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir
 //		UTIL_Smoke(GetAbsOrigin(), random->RandomInt(10, 15), 10);
 		//g_pEffects->Sparks( ptr->endpos, 1, 1, &ptr->plane.normal );		
 	}
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	UTIL_ASW_DroneBleed( ptr->endpos, vecDir, 4 );
 #else
 	UTIL_ASW_DroneBleed( ptr->endpos + m_LagCompensation.GetLagCompensationOffset(), vecDir, 4 );
@@ -484,7 +484,7 @@ void CASW_Buzzer::ASWTraceBleed( float flDamage, const Vector &vecDir, trace_t *
 		vecTraceDir.z += random->RandomFloat( -flNoise, flNoise );
 
 		// Don't bleed on grates.
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		Vector vecEndPos = ptr->endpos;
 #else
 		Vector vecEndPos = ptr->endpos + m_LagCompensation.GetLagCompensationOffset();
@@ -526,7 +526,7 @@ bool CASW_Buzzer::ShouldGib( const CTakeDamageInfo &info )
 
 void CASW_Buzzer::Event_Killed( const CTakeDamageInfo &info )
 {
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (ASWGameRules())
 	{
 		ASWGameRules()->AlienKilled(this, info);
@@ -695,7 +695,85 @@ int	CASW_Buzzer::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	// Hafta make a copy of info cause we might need to scale damage.(sjb)
 	CTakeDamageInfo tdInfo = info;
 
-#ifndef SWARM17
+#ifdef SWARM_PORT
+	if (info.GetDamageType() & DMG_CLUB)
+	{
+		// Being hit by a club means a couple of things:
+		//
+		//		-I'm going to be knocked away from the person that clubbed me.
+		//		 if fudging this vector a little bit could help me slam into a physics object,
+		//		 then make that adjustment. This is a simple heuristic. The manhack will be
+		//		 directed towards the physics object that is closest to g_vecAttackDir
+		//
+
+		//		-Take 150% damage from club attacks. This makes crowbar duels take two hits.
+		
+		tdInfo.ScaleDamage( 1.50 );
+
+#define MANHACK_PHYS_SEARCH_SIZE		64
+#define	MANHACK_PHYSICS_SEARCH_RADIUS	128
+
+		CBaseEntity *pList[ MANHACK_PHYS_SEARCH_SIZE ];
+
+		Vector attackDir = info.GetDamageForce();
+		VectorNormalize( attackDir );
+
+		Vector testCenter = GetAbsOrigin() + ( attackDir * MANHACK_PHYSICS_SEARCH_RADIUS );
+		Vector vecDelta( MANHACK_PHYSICS_SEARCH_RADIUS, MANHACK_PHYSICS_SEARCH_RADIUS, MANHACK_PHYSICS_SEARCH_RADIUS );
+
+		int count = UTIL_EntitiesInBox( pList, MANHACK_PHYS_SEARCH_SIZE, testCenter - vecDelta, testCenter + vecDelta, 0 );
+
+		Vector			vecBestDir = g_vecAttackDir;
+		float			flBestDot = 0.90;
+		IPhysicsObject	*pPhysObj;
+
+		int i;
+		for( i = 0 ; i < count ; i++ )
+		{
+			pPhysObj = pList[ i ]->VPhysicsGetObject();
+
+			if( !pPhysObj || pPhysObj->GetMass() > 200 )
+			{
+				// Not physics.
+				continue;
+			}
+
+			Vector center = pList[ i ]->WorldSpaceCenter();
+
+			Vector vecDirToObject;
+			VectorSubtract( center, WorldSpaceCenter(), vecDirToObject );
+			VectorNormalize( vecDirToObject );
+
+			float flDot;
+
+			flDot = DotProduct( g_vecAttackDir, vecDirToObject );
+			
+
+			if( flDot > flBestDot )
+			{
+				flBestDot = flDot;
+				vecBestDir = vecDirToObject;
+			}
+		}
+
+		tdInfo.SetDamageForce( vecBestDir * info.GetDamage() * 200 );
+
+		// FIXME: shouldn't this happen in a base class?  Anyway to prevent it from happening twice?
+		VPhysicsTakeDamage( tdInfo );
+
+		// Force us away (no more residual speed hits!)
+		m_vForceVelocity = vecBestDir * info.GetDamage() * 0.5f;
+		//m_flBladeSpeed = 10.0;
+
+		//EmitSound( "NPC_Manhack.Bat" );
+		m_fNextPainSound = 0.0f; // Use pain sound immediately
+
+		// tdInfo.SetDamage( 1.0 );
+
+		m_flEngineStallTime = gpGlobals->curtime + 0.5f;
+		StopBurst( true );
+	}
+#else
 	// undo lag compensation if we're getting hurt			- TODO: this is incorrect if multiple rounds were meant to hit us within this player command - would happen with the shotguns if they were hitscan?
 	m_LagCompensation.UndoLaggedPosition();
 
@@ -756,7 +834,7 @@ int	CASW_Buzzer::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 		ElectroStun( asw_stun_grenade_time.GetFloat() );
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	CASW_Marine* pMarine = dynamic_cast<CASW_Marine*>(info.GetAttacker());
 	if (pMarine)
 		pMarine->HurtAlien(this, info);
@@ -770,7 +848,7 @@ bool CASW_Buzzer::CorpseGib( const CTakeDamageInfo &info )
 	Vector			vecGibVelocity;
 	AngularImpulse	vecGibAVelocity;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	m_LagCompensation.UndoLaggedPosition();
 #endif
 
@@ -1354,7 +1432,7 @@ void CASW_Buzzer::Slice( CBaseEntity *pHitEntity, float flInterval, trace_t &tr 
 	// Damage must be scaled by flInterval so framerate independent
 	float flDamage = ASWGameRules()->ModifyAlienDamageBySkillLevel(sk_asw_buzzer_melee_dmg.GetFloat()) * flInterval;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	// don't damage marines again so soon
 	if ( pHitEntity && pHitEntity->Classify() == CLASS_ASW_MARINE )
 	{
@@ -2169,7 +2247,7 @@ void CASW_Buzzer::Spawn(void)
 		SetNavType(NAV_GROUND);
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	ChangeFaction( FACTION_ALIENS );
 #endif
 		 
@@ -2261,7 +2339,7 @@ void CASW_Buzzer::NPCInit()
 		m_flDistTooFar = 2000.0f;
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	CASW_GameStats.Event_AlienSpawned( this );
 
 	m_LagCompensation.Init(this);
@@ -2277,7 +2355,7 @@ void CASW_Buzzer::NPCThink( void )
 	if (m_bElectroStunned && m_flElectroStunSlowMoveTime < gpGlobals->curtime)
 		m_bElectroStunned = false;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (gpGlobals->maxClients > 1)
 		m_LagCompensation.StorePositionHistory();
 #endif
@@ -2729,7 +2807,7 @@ float CASW_Buzzer::GetDefaultNavGoalTolerance()
 //-----------------------------------------------------------------------------
 void CASW_Buzzer::Freeze( float flFreezeAmount, CBaseEntity *pFreezer, Ray_t *pFreezeRay ) 
 {
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	BaseClass::Freeze( flFreezeAmount, pFreezer, pFreezeRay );
 	
 	if ( GetMoveType() != MOVETYPE_NONE && GetFrozenAmount() > 0.0f )
@@ -2773,7 +2851,7 @@ float CASW_Buzzer::GetMaxEnginePower()
 	if (m_bElectroStunned)
 		return 0.5f;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (ASWGameRules())
 	{
 		int nSkillLevel = ASWGameRules()->GetSkillLevel();
@@ -3157,7 +3235,7 @@ void CASW_Buzzer::ASW_Ignite( float flFlameLifetime, float flSize, CBaseEntity *
 
 		AddFlag( FL_ONFIRE );
 		m_bOnFire = true;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		Ignite( flFlameLifetime );
 #else
 		if (ASWBurning())
@@ -3187,7 +3265,7 @@ void CASW_Buzzer::Extinguish()
 		CSoundEnvelopeController::GetController().SoundChangePitch( m_pMoanSound, 100, 2.0 );		
 	}
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	BaseClass::Extinguish();
 #else
 	if (ASWBurning())
@@ -3236,7 +3314,7 @@ void CASW_Buzzer::MoanSound( envelopePoint_t *pEnvelope, int iEnvelopeSize )
 
 void CASW_Buzzer::SetHealthByDifficultyLevel()
 {	
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	SetHealth(sk_asw_buzzer_health.GetInt());
 #else
 	SetHealth(ASWGameRules()->ModifyAlienHealthBySkillLevel(sk_asw_buzzer_health.GetFloat()));		
@@ -3250,7 +3328,7 @@ void CASW_Buzzer::ElectroStun( float flStunTime )
 
 	m_bElectroStunned = true;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( ASWGameResource() )
 	{
 		ASWGameResource()->m_iElectroStunnedAliens++;

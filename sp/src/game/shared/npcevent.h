@@ -15,7 +15,7 @@ class CBaseAnimating;
 
 struct animevent_t
 {
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	int Event() const { return event; }
 #endif
 

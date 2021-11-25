@@ -12,7 +12,7 @@
 #include "ai_navigator.h"
 #include "ai_memory.h"
 #include "asw_alien.h"
-#ifdef SWARM17
+#ifdef SWARM_PORT
 #include "npcevent.h"
 #else
 #include "asw_marine.h"
@@ -332,7 +332,7 @@ bool CAI_ASW_MeleeBehavior::BehaviorHandleAnimEvent( animevent_t *pEvent )
 
 	if ( nEvent == AE_ALIEN_MELEE_HIT )
 	{
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		float flMinDamage = m_flMinDamage;
 		float flMaxDamage = m_flMaxDamage;
 #else
@@ -400,7 +400,7 @@ void CAI_ASW_MeleeBehavior::HullAttack( float flDistance, float flDamage, float 
 				SetActivity( (Activity) ACT_MELEE_ATTACK2_HIT );
 			}
 		}
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		if ( m_bKnockdown && pHurt->Classify() == CLASS_ASW_MARINE )
 		{
 			CASW_Marine *pMarine = static_cast<CASW_Marine*>( pHurt );

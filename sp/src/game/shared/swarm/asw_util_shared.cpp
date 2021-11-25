@@ -2,7 +2,7 @@
 #include "asw_shareddefs.h"
 #include "gamestringpool.h"
 #ifdef GAME_DLL
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	#include "asw_player.h"
 	#include "asw_marine.h"
 	#include "asw_marine_resource.h"
@@ -13,11 +13,11 @@
 	#include "vphysics_interface.h"
 	#include "physics.h"
 	#include "vphysics/friction.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	#include "asw_computer_area.h"
 #endif
 	#include "point_camera.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	#include "asw_remote_turret_shared.h"
 	#include "asw_computer_area.h"
 	#include "asw_button_area.h"
@@ -25,7 +25,7 @@
 #endif
 	#include "fogcontroller.h"
 #else
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	#include "asw_fx_shared.h"
 #else
 	#include "asw_gamerules.h"
@@ -208,7 +208,7 @@ bool ASW_LineCircleIntersection(
 	return true;
 }
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #ifdef GAME_DLL
 // a local helper to normalize some code below -- gets inlined
 static void ASW_WriteScreenShakeToMessage( CBasePlayer *pPlayer, ShakeCommand_t eCommand, float amplitude, float frequency, float duration, const Vector &direction )
@@ -285,7 +285,7 @@ void ASW_TransmitShakeEvent( CBasePlayer *pPlayer, const ScreenShake_t &shake )
 #endif
 
 #ifdef GAME_DLL
-#ifndef SWARM17
+#ifndef SWARM_PORT
 //-----------------------------------------------------------------------------
 // Compute shake amplitude
 //-----------------------------------------------------------------------------
@@ -428,7 +428,7 @@ void UTIL_ASW_ScreenPunch( const Vector &center, float radius, const ScreenShake
 #endif
 
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 // returns the nearest marine to this point
 CBasePlayer* UTIL_ASW_NearestMarine( const Vector &pos, float &marine_distance, ASW_Marine_Class marineClass, bool bAIOnly )
 {
@@ -573,7 +573,7 @@ void UTIL_ASW_PoisonBlur(CBaseEntity *pEntity, float duration)
 	MessageEnd();
 }
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 // tests if a particular entity is blocking any marines (used by phys props to see if they should leave pushaway mode)
 bool UTIL_ASW_BlockingMarine( CBaseEntity *pEntity )
 {
@@ -681,7 +681,7 @@ bool CTraceFilterAliensEggsGoo::ShouldHitEntity( IHandleEntity *pServerEntity, i
 	{		
 #ifndef CLIENT_DLL
 		CBaseEntity *pEntity = EntityFromEntityHandle( pServerEntity );
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		if ( pEntity->Classify() == CLASS_ASW_MARINE )		// we dont hit marines
 			return false; 
 #endif
@@ -739,7 +739,7 @@ bool CanFrustumSee(const Vector &vecCameraCenter, const QAngle &angCameraFacing,
 	return true;
 }
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 CASW_Marine* UTIL_ASW_MarineCanSee(CASW_Marine_Resource* pMarineResource, const Vector &pos, const int padding, bool &bCorpseCanSee, const int forward_limit)
 {
 	if (!pMarineResource)
@@ -1090,7 +1090,7 @@ void TryLocalize(const char *token, wchar_t *unicode, int unicodeBufferSizeInByt
 	g_pVGuiLocalize->ConvertANSIToUnicode( token, unicode, unicodeBufferSizeInBytes);
 }
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 ConVar asw_floating_number_type( "asw_floating_number_type", "0", FCVAR_NONE, "1 = vgui, 2 = particles" );
 
 void UTIL_ASW_ClientFloatingDamageNumber( const CTakeDamageInfo &info )
@@ -1262,7 +1262,7 @@ USER_MESSAGE_REGISTER( ASWDamageNumber );
 #endif
 
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 /// @desc This function can be used as a convenience for when you want to
 /// rapidly experiment with different screenshakes for a gameplay feature.
 /// You have a single "scratchpad" screen shake which you can fill out with 

@@ -5,7 +5,7 @@
 #include "entityoutput.h"
 #include "props.h"
 #include "asw_alien.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_marine.h"
 #include "asw_gamerules.h"
 #include "asw_marine_resource.h"
@@ -80,7 +80,7 @@ bool CASW_Base_Spawner::CanSpawn( const Vector &vecHullMins, const Vector &vecHu
 	// is a marine too near?
 	if ( !m_bSpawnIfMarinesAreNear && m_flNearDistance > 0 )
 	{		
-#ifndef SWARM17 // TODO
+#ifndef SWARM_PORT // TODO
 		CASW_Game_Resource* pGameResource = ASWGameResource();
 		float distance = 0.0f;
 		for ( int i = 0; i < ASW_MAX_MARINE_RESOURCES; i++ )

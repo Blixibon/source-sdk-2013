@@ -15,7 +15,7 @@
 #include "asw_boomer_blob.h"
 #include "particle_parse.h"
 #include "asw_boomer.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_gamerules.h"
 #endif
 
@@ -226,7 +226,7 @@ void CAI_ASW_ExplodeBehavior::StartTask( const Task_t *pTask )
 	{
 		case TASK_EXPLODE_PREPARE_BUILDUP:
 			{
-#ifndef SWARM17 // TODO
+#ifndef SWARM_PORT // TODO
 				GetOuter()->SetIdealActivity( ACT_PREP_EXPLODE );
 #endif
 				CASW_Boomer *pBoomer = assert_cast<CASW_Boomer*>( GetOuter() );
@@ -361,7 +361,7 @@ void CAI_ASW_ExplodeBehavior::DoExplosion( )
 		pnAvailList[ i ] = i + 1;
 	}
 
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 	int		nPrepSequence = GetOuter()->SelectWeightedSequence( ACT_INVALID );
 #else
 	int		nPrepSequence = GetOuter()->SelectWeightedSequence( ACT_PREP_EXPLODE );

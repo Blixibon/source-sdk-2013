@@ -11,7 +11,7 @@
 #include "ai_behavior_actbusy.h"
 #include "iasw_spawnable_npc.h"
 #include "asw_shareddefs.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_lag_compensation.h"
 #endif
 
@@ -75,9 +75,10 @@ public:
 	virtual void CallBehaviorThink();
 	virtual void StartTouch( CBaseEntity *pOther );
 	virtual void Spawn();
+	virtual void Activate();
 	float m_flLastThinkTime;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	IMPLEMENT_AUTO_LIST_GET();
 #endif
 
@@ -152,7 +153,7 @@ public:
 	void MeleeBleed(CTakeDamageInfo* info);
 	bool ShouldGib( const CTakeDamageInfo &info );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	// For shieldbugs, etc. properly having downwards force
 	virtual void ModTraceHullAttack( CTakeDamageInfo *info, const Vector &vecMeleeDir, const Vector &vecForceOrigin, float flScale ) {}
 #endif
@@ -182,7 +183,7 @@ public:
 	CNetworkVar(bool, m_bElectroStunned);
 	//CNetworkVar(bool, m_bGibber);
 	CNetworkVar( DeathStyle_t, m_nDeathStyle );
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	CUtlQueueFixed< CTakeDamageInfo, ASW_NUM_RECENT_DAMAGE >	m_RecentDamage;
 #endif
 	// act busy
@@ -225,9 +226,7 @@ public:
 	virtual void IgnoreMarines(bool bIgnoreMarines);
 	virtual void MoveAside();
 	virtual void ASW_Ignite( float flFlameLifetime, float flSize, CBaseEntity *pAttacker, CBaseEntity *pDamagingWeapon = NULL );
-#ifndef SWARM17
 	virtual void Ignite( float flFlameLifetime, bool bNPCOnly = true, float flSize = 0.0f, bool bCalledByLevelDesigner = false );
-#endif
 	virtual void Extinguish();
 	virtual void ElectroStun( float flStunTime );
 	bool IsElectroStunned() { return m_bElectroStunned.Get(); }
@@ -247,6 +246,13 @@ public:
 	void	CheckForBlockingTraps();
 	void	ClearBurrowPoint( const Vector &origin );
 	void	LookupBurrowActivities();
+#ifdef SWARM_PORT
+	void	Burrow( void );
+	bool		m_bWaitBurrowed;
+	void	InputUnburrow( inputdata_t &inputdata );
+	void	InputBurrow( inputdata_t &inputdata );
+	void	InputBurrowAway( inputdata_t &inputdata );
+#endif
 	float	m_flBurrowTime;
 	Activity	m_UnburrowActivity;
 	Activity	m_UnburrowIdleActivity;
@@ -272,7 +278,7 @@ public:
 	virtual void	SetHealth( int amt )	{ Assert( amt < ( pow( 2.0f, ASW_ALIEN_HEALTH_BITS ) ) ); m_iHealth = amt; }
 	virtual void SetHealthByDifficultyLevel();
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	// freezeing
 	virtual void Freeze( float flFreezeAmount, CBaseEntity *pFreezer, Ray_t *pFreezeRay );
 	virtual bool ShouldBecomeStatue( void );
@@ -319,8 +325,11 @@ public:
 	virtual void	OnChangeRunningBehavior( CAI_BehaviorBase *pOldBehavior, CAI_BehaviorBase *pNewBehavior );
 	void	SendBehaviorEvent( CBaseEntity *pInflictor, BehaviorEvent_t Event, int nParm, bool bToAllBehaviors );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	int		GetAITraceMask() { return MASK_NPCSOLID; }
+
+	// Indicates this is an Alien Swarm alien
+	virtual bool			IsSwarmAlien( void ) const { return true; }
 
 	// TODO
 	CAI_BehaviorBase	*GetPrimaryBehavior() { return m_pCurBehavior; }
@@ -383,6 +392,11 @@ enum
 	SCHED_WAIT_FOR_CLEAR_UNBORROW,
 	SCHED_BURROW_WAIT,
 	SCHED_BURROW_OUT,
+#ifdef SWARM_PORT
+	SCHED_BURROW_IN,
+	SCHED_BURROW_AWAY,
+	SCHED_WAIT_FOR_UNBORROW_TRIGGER,
+#endif
 	LAST_ASW_ALIEN_SHARED_SCHEDULE,
 };
 
@@ -399,6 +413,11 @@ enum
 	TASK_SET_UNBURROW_ACTIVITY,
 	TASK_SET_UNBURROW_IDLE_ACTIVITY,
 	TASK_ASW_WAIT_FOR_ORDER_MOVE,
+#ifdef SWARM_PORT
+	//TASK_WAIT_FOR_UNBURROW_TRIGGER,
+	TASK_BURROW_VANISH,
+	TASK_BURROW,
+#endif
 	LAST_ASW_ALIEN_SHARED_TASK,
 };
 

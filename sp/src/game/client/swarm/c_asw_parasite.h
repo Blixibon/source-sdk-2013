@@ -20,7 +20,7 @@ public:
 	void OnDataChanged( DataUpdateType_t updateType );
 	virtual const char *GetBigDeathParticleEffectName( void ) { return "drone_death_sml"; }
 	virtual float GetRadius() { return 12; }
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	Class_T		Classify( void ) { return (Class_T) CLASS_ASW_PARASITE; }	
 #endif
 	virtual bool IsAimTarget();

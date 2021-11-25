@@ -54,7 +54,7 @@
 	#include "portal_shareddefs.h"
 #endif
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 //#include "swarm/asw_parasite.h"
 #include "swarm/asw_shareddefs.h"
 #endif
@@ -123,7 +123,7 @@ BEGIN_DATADESC( CBaseCombatCharacter )
 #endif
 	DEFINE_FIELD( m_bPreventWeaponPickup, FIELD_BOOLEAN ),
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	DEFINE_FIELD( m_bInfested, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_fInfestedTime, FIELD_FLOAT ),
 	DEFINE_FIELD( m_fNextSlowHealTick, FIELD_TIME ),
@@ -423,7 +423,7 @@ void CBaseCombatCharacter::CorpseFade( void )
 	SUB_StartFadeOut();
 }
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 extern ConVar asw_infest_damage_player;
 extern ConVar asw_infest_damage_npc;
 
@@ -917,7 +917,7 @@ CBaseCombatCharacter::CBaseCombatCharacter( void )
 	m_bGlowEnabled.Set( false );
 #endif // GLOWS_ENABLE
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	m_fInfestedTime = 0;
 	m_iInfestCycle = 0;
 #endif
@@ -1775,8 +1775,10 @@ bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vec
 	return BecomeRagdollOnClient( forceVector );
 }
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 extern void CreateParasiteFromBody( CBaseEntity *pBody, Vector vecSpawnPos, QAngle angParasiteFacing, float fJumpDistance );
+extern ConVar asw_infest_spawn_min;
+extern ConVar asw_infest_spawn_max;
 #endif
 
 /*
@@ -1913,13 +1915,13 @@ void CBaseCombatCharacter::Event_Killed( const CTakeDamageInfo &info )
 	RemoveGlowEffect();
 #endif // GLOWS_ENABLE
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	// if we gibbed from infestation damage, spawn some parasites
-	if ( info.GetDamageType() & DMG_INFEST && Classify() != CLASS_ASW_PARASITE )
+	if ( IsInfested() && info.GetDamageType() & DMG_INFEST && Classify() != CLASS_ASW_PARASITE )
 	{
 		Msg("character infest gibbed at loc %f, %f, %f\n", GetAbsOrigin().x, GetAbsOrigin().y, GetAbsOrigin().z);
 
-		int iNumParasites = 3 + RandomInt(0,2);
+		int iNumParasites = RandomInt( asw_infest_spawn_min.GetInt(), asw_infest_spawn_max.GetInt() );
 		QAngle angParasiteFacing[5];
 		float fJumpDistance[5];
 		// for some reason if we calculate these inside the loop, the random numbers all come out the same.  Worrying.
@@ -1985,6 +1987,11 @@ void CBaseCombatCharacter::Event_Killed( const CTakeDamageInfo &info )
 			}
 			*/
 		}
+	}
+	else if (IsInfested())
+	{
+		// Remove infestation
+		m_fInfestedTime = 0;
 	}
 #endif
 }

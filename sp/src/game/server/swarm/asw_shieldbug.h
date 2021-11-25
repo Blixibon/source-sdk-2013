@@ -15,7 +15,7 @@ public:
 	DECLARE_SERVERCLASS();
 	DECLARE_DATADESC();
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	IMPLEMENT_AUTO_LIST_GET( );
 #endif
 
@@ -32,7 +32,7 @@ public:
 	int MeleeAttack1Conditions( float flDot, float flDist );
 	int MeleeAttack2Conditions ( float flDot, float flDist );
 	void MeleeAttack( float distance, float damage, QAngle &viewPunch, Vector &shove );
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	void ModTraceHullAttack( CTakeDamageInfo *info, const Vector &vecMeleeDir, const Vector &vecForceOrigin, float flScale );
 #endif
 	float MaxYawSpeed( void );

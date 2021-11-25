@@ -4,7 +4,7 @@
 	#define CASW_Shieldbug C_ASW_Shieldbug
 #else
 	#include "asw_shieldbug.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	#include "asw_fail_advice.h"
 #endif
 #endif
@@ -99,7 +99,7 @@ void CASW_Shieldbug::TraceAttack( const CTakeDamageInfo &info, const Vector &vec
 #ifdef GAME_DLL
 		m_fLastHurtTime = gpGlobals->curtime;
 		CheckForShieldbugHint(info);
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		ASWFailAdvice()->OnShiedbugBlocked();
 #endif
 #endif
@@ -116,6 +116,10 @@ void CASW_Shieldbug::TraceAttack( const CTakeDamageInfo &info, const Vector &vec
 		Vector vecSparkDir = -vecDir;
 		CPVSFilter filter( vecSparkPos );	
 		te->Sparks( filter, 0.0, &vecSparkPos, 1, 1, &vecSparkDir );
+
+#ifdef SWARM_PORT
+		EmitSound( "FX_RicochetSound.Ricochet" );
+#endif
 
 		return;
 	}

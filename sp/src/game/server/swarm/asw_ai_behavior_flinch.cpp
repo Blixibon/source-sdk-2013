@@ -16,7 +16,7 @@
 #include "ai_navigator.h"
 #include "ai_memory.h"
 #include "asw_alien.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_marine.h"
 #include "asw_marine_profile.h"
 #include "asw_weapon.h"
@@ -230,7 +230,7 @@ bool CAI_ASW_FlinchBehavior::ShouldStumble( const CTakeDamageInfo &info )
 	if ( ( info.GetDamageType() & DMG_DIRECT ) != 0 )
 		return false;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( info.GetAttacker() && info.GetAttacker()->Classify() == CLASS_ASW_MARINE )
 	{
 		CASW_Marine *pMarine = assert_cast<CASW_Marine*>( info.GetAttacker() );

@@ -15,7 +15,7 @@
 #include "asw_ai_behavior_ranged_attack.h"
 #include "asw_ai_behavior_chase_enemy.h"
 #include "asw_ai_behavior_idle.h"
-#ifdef SWARM17
+#ifdef SWARM_PORT
 #include "asw_ai_behavior_melee.h"
 #endif
 
@@ -61,7 +61,7 @@ private:
 	CAI_ASW_RangedAttackBehavior	m_RangedAttackBehavior;
 	CAI_ASW_ChaseEnemyBehavior		m_ChaseEnemyBehavior;
 	CAI_ASW_IdleBehavior			m_IdleBehavior;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	// Allow rangers to use melee attacks
 	CAI_ASW_MeleeBehavior			m_MeleeBehavior;
 #endif

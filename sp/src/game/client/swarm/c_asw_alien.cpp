@@ -4,7 +4,7 @@
 #include "decals.h"
 #include "SoundEmitterSystem/isoundemittersystembase.h"
 #include "c_asw_generic_emitter_entity.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "c_asw_marine_resource.h"
 #include "c_asw_marine.h"
 #include "c_asw_game_resource.h"
@@ -17,19 +17,19 @@
 #include "c_asw_clientragdoll.h"
 #include "asw_util_shared.h"
 #include "functionproxy.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "imaterialproxydict.h"
 #endif
 #include "proxyentity.h"
 #include "materialsystem/IMaterialVar.h"
 #include "materialsystem/itexture.h"
 //#include "c_asw_physics_prop_statue.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "c_asw_mesh_emitter_entity.h"
 #endif
 #include "c_asw_egg.h"
 #include "props_shared.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "c_asw_player.h"
 #endif
 
@@ -47,7 +47,7 @@ ConVar asw_directional_shadows("asw_directional_shadows", "1", 0, "Whether alien
 ConVar asw_alien_shadows("asw_alien_shadows", "0", 0, "If set to one, aliens will always have shadows (WARNING: Big fps cost when lots of aliens are active)");
 ConVar asw_alien_footstep_interval( "asw_alien_footstep_interval", "0.25", 0, "Minimum interval between alien footstep sounds. Used to keep them from piling up and preventing others from playing." );
 ConVar asw_breakable_aliens( "asw_breakable_aliens", "1", 0, "If set, aliens can break into ragdoll gibs" );
-#ifdef SWARM17
+#ifdef SWARM_PORT
 ConVar asw_override_footstep_volume( "asw_override_footstep_volume", "0" );
 #else
 extern ConVar asw_override_footstep_volume;
@@ -57,7 +57,7 @@ extern ConVar asw_alien_debug_death_style;
 IMPLEMENT_NETWORKCLASS_ALIASED( ASW_Alien, DT_ASW_Alien )
 
 BEGIN_NETWORK_TABLE( CASW_Alien, DT_ASW_Alien )
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	RecvPropVectorXY( RECVINFO_NAME( m_vecNetworkOrigin, m_vecOrigin ), 0, C_BaseEntity::RecvProxy_CellOriginXY ),
 	RecvPropFloat( RECVINFO_NAME( m_vecNetworkOrigin[2], m_vecOrigin[2] ), 0, C_BaseEntity::RecvProxy_CellOriginZ ),
 
@@ -74,7 +74,7 @@ BEGIN_NETWORK_TABLE( CASW_Alien, DT_ASW_Alien )
 	RecvPropInt			( RECVINFO( m_iHealth) ),
 END_RECV_TABLE()
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 PRECACHE_REGISTER_BEGIN( GLOBAL, ASW_Alien )
 PRECACHE( MATERIAL, "effects/TiledFire/fire_tiled_precache" )
 PRECACHE( MATERIAL, "effects/model_layer_shock_1_precache" )
@@ -88,7 +88,7 @@ IMPLEMENT_AUTO_LIST( IClientAimTargetsAutoList );
 float C_ASW_Alien::sm_flLastFootstepTime = 0.0f;
 
 C_ASW_Alien::C_ASW_Alien() : 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 C_AI_BaseNPC()
 #else
 m_GlowObject( this ),
@@ -105,7 +105,7 @@ m_MotionBlurObject( this, 0.0f )
 	m_vecLastRenderedPos = vec3_origin;
 	m_pBurningEffect = NULL;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	m_GlowObject.SetColor( Vector( 0.3f, 0.6f, 0.1f ) );
 	m_GlowObject.SetAlpha( 0.55f );
 	m_GlowObject.SetRenderFlags( false, false );
@@ -318,7 +318,7 @@ void C_ASW_Alien::PlayStepSound( Vector &vecOrigin, surfacedata_t *psurface, flo
 	if ( !psurface )
 		return;
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	unsigned short stepSoundName = m_bStepSideLeft ? psurface->sounds.stepleft : psurface->sounds.stepright;
 #else
 	unsigned short stepSoundName = m_bStepSideLeft ? psurface->sounds.runStepLeft : psurface->sounds.runStepRight;
@@ -392,7 +392,7 @@ C_BaseAnimating * C_ASW_Alien::BecomeRagdollOnClient( void )
 			Msg( "'%s' C_ASW_Alien::BecomeRagdollOnClient: m_nDeathStyle = %d\n", GetClassname(), m_nDeathStyle );
 		}
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
 #else
 		C_ASW_Player *pPlayer = C_ASW_Player::GetLocalASWPlayer();
@@ -461,7 +461,7 @@ C_BaseAnimating * C_ASW_Alien::BecomeRagdollOnClient( void )
 
 			if ( pPlayer )
 			{
-#ifndef SWARM17 // TODO: FIX PARTICLE
+#ifndef SWARM_PORT // TODO: FIX PARTICLE
 				// if we're going to ragdoll, create a big blood spurt now so players get feedback about killing this alien
 				QAngle	vecAngles;
 				if ( m_vecForce == vec3_origin )
@@ -510,7 +510,7 @@ C_BaseAnimating * C_ASW_Alien::BecomeRagdollOnClient( void )
 
 			if ( IsHurler() )
 			{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 				ASWHurlRagdollAtCamera( pRagdoll );
 #endif
 			}
@@ -573,7 +573,7 @@ void C_ASW_Alien::GetShadowFromFlashlight(Vector &vecDir, float &fContribution) 
 		return;
 	}
 	
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( ASWGameResource() )
 	{
 		// go through all marines
@@ -633,19 +633,17 @@ void C_ASW_Alien::ClientThink()
 	if ( GetHealth() > 0 && m_bElectroStunned && m_fNextElectroStunEffect <= gpGlobals->curtime)
 	{
 		// apply electro stun effect
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		HACK_GETLOCALPLAYER_GUARD( "C_ASW_Alien::ClientThink FX_ElectroStun" );
 #endif
-#ifndef SWARM17 // TODO
 		FX_ElectroStun(this);
-#endif
 		m_fNextElectroStunEffect = gpGlobals->curtime + RandomFloat( 0.3, 1.0 );
 		//Msg( "%f - ElectroStunEffect\n", gpGlobals->curtime );
 	}
 
 	UpdateFireEmitters();
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	C_ASW_Player* pPlayer = C_ASW_Player::GetLocalASWPlayer();
 	if ( pPlayer && pPlayer->IsSniperScopeActive() )
 	{
@@ -676,10 +674,8 @@ void C_ASW_Alien::ASWUpdateClientSideAnimation()
 
 		if ( (flNewCycle < 0.0f) || (flNewCycle >= 1.0f) ) 
 		{	
-#ifndef SWARM17
 			if (flNewCycle >= 1.0f)	// asw
 				ReachedEndOfSequence(); // asw
-#endif
 			if ( IsSequenceLooping( hdr, GetSequence() ) )
 			{
 				flNewCycle -= (int)(flNewCycle);

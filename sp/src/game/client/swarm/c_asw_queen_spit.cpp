@@ -44,7 +44,7 @@ void C_ASW_Queen_Spit::CreateEffects()
 	m_pGooEmitter = new C_ASW_Emitter;
 	if (m_pGooEmitter)
 	{
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 		if (m_pGooEmitter->InitializeAsClientEntity( NULL, RENDER_GROUP_OPAQUE_ENTITY_HUGE ))
 #else
 		if (m_pGooEmitter->InitializeAsClientEntity( NULL, false ))
@@ -60,7 +60,7 @@ void C_ASW_Queen_Spit::CreateEffects()
 		}
 		else
 		{
-#ifdef SWARM17
+#ifdef SWARM_PORT
 			m_pGooEmitter->Remove();
 #else
 			UTIL_Remove( m_pGooEmitter );

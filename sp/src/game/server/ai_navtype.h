@@ -23,7 +23,7 @@ enum Navigation_t
 	NAV_FLY,		// can fly, move all around
 	NAV_CLIMB,		// climb ladders
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	// This might remain a stub
 	NAV_CRAWL,
 #endif

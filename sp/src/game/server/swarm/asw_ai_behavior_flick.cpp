@@ -13,7 +13,7 @@
 #include "ai_memory.h"
 #include "asw_alien.h"
 #include "movevars_shared.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_marine.h"
 #include "asw_player.h"
 #include "asw_director.h"
@@ -40,7 +40,7 @@ typedef struct SFlickInfo
 	float		m_flMaxDot;
 } TFlickInfo;
 
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 #define ACT_FLICK_LEFT ACT_INVALID
 #define ACT_FLICK_LEFT_MIDDLE ACT_INVALID
 #define ACT_FLICK_RIGHT_MIDDLE ACT_INVALID
@@ -384,7 +384,7 @@ void CAI_ASW_FlickBehavior::TryFlicking( CBaseEntity *pEntity )
 	vDelta *= m_flPropelDistance / ( flTime * 2.0f );
 	vDelta.z = sv_gravity.GetFloat() * flTime;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	CASW_Player	*pPlayer = dynamic_cast< CASW_Player * >( pEntity );
 	if ( pPlayer )
 	{

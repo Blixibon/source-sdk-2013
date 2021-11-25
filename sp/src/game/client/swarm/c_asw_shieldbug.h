@@ -13,7 +13,7 @@ public:
 					C_ASW_Shieldbug();
 	virtual			~C_ASW_Shieldbug();
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	Class_T		Classify( void ) { return (Class_T) CLASS_ASW_SHIELDBUG; }	
 #endif
 

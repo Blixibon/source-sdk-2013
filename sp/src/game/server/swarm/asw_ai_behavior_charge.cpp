@@ -12,7 +12,7 @@
 #include "ai_navigator.h"
 #include "ai_memory.h"
 #include "asw_alien.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_marine.h"
 #include "asw_gamerules.h"
 #endif
@@ -656,7 +656,7 @@ bool CAI_ASW_ChargeBehavior::HandleChargeImpact( Vector vecImpact, CBaseEntity *
 		ChargeDamage( pEntity );
 
 		Vector vecImpulse = ( GetOuter()->BodyDirection2D() * 400 ) + Vector( 0, 0, 200 );
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		CASW_Marine *pMarine = CASW_Marine::AsMarine( pEntity );
 		if ( pMarine )
 		{

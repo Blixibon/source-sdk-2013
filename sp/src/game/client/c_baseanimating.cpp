@@ -4912,7 +4912,7 @@ C_BaseAnimating *C_BaseAnimating::CreateRagdollCopy()
 	//Adrian: We now create a separate entity that becomes this entity's ragdoll.
 	//That way the server side version of this entity can go away. 
 	//Plus we can hook save/restore code to these ragdolls so they don't fall on restore anymore.
-	C_ClientRagdoll *pRagdoll = CreateClientRagdoll( false );#else
+	C_ClientRagdoll *pRagdoll = CreateClientRagdoll( false );
 	if ( pRagdoll == NULL )
 		return NULL;
 

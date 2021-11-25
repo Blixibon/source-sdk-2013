@@ -41,7 +41,7 @@ public:
 
 	EHANDLE m_hCreatorWeapon;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	// Classification
 	virtual Class_T Classify( void ) { return (Class_T)CLASS_ASW_RIFLE_GRENADE; }
 #endif

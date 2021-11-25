@@ -1,5 +1,5 @@
 #include "cbase.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "c_asw_mesh_emitter_entity.h"
 #endif
 #include "c_asw_generic_emitter.h"

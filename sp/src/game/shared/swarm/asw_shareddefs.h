@@ -5,6 +5,9 @@
 #endif
 
 #include "const.h"
+#ifdef SWARM_PORT
+#include "hl2_shareddefs.h"
+#endif
 
 #define ASW_MAX_PLAYER_NAME_LENGTH 32
 #define ASW_MAX_PLAYER_NAME_LENGTH_3D 20
@@ -71,7 +74,7 @@ enum ASW_Skill_Slot
 #define HIDEHUD_REMOTE_TURRET		( HIDEHUD_VEHICLE_CROSSHAIR )	// player is using a remote turret
 
 // Re-use base damage bits
-#ifdef SWARM17
+#ifdef SWARM_PORT
 #define DMG_INFEST					(DMG_PARALYZE)		// damage from parasite infestation
 #else
 #define DMG_INFEST					(DMG_AIRBOAT)		// damage from parasite infestation
@@ -250,9 +253,9 @@ enum {
 
 #define ASW_NUM_FIRE_EMITTERS 4
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 #define ASW_COLLISION_GROUP_GRUBS COLLISION_GROUP_NPC
-#define ASW_COLLISION_GROUP_PARASITE COLLISION_GROUP_NPC
+#define ASW_COLLISION_GROUP_PARASITE HL2COLLISION_GROUP_HEADCRAB // Needed to prevent parasites from colliding with each other
 #define ASW_COLLISION_GROUP_ALIEN COLLISION_GROUP_NPC
 
 // HOUNDEYE = grubs
@@ -334,7 +337,7 @@ enum PowerUpTypes
 #define	ASW_MOVEMENT_WALK_SPEED 150
 #define	ASW_MOVEMENT_NORM_SPEED 190
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #define HL2COLLISION_GROUP_FIRST_NPC ASW_COLLISION_GROUP_GRUBS
 #define HL2COLLISION_GROUP_LAST_NPC ASW_COLLISION_GROUP_ALIEN
 #endif
@@ -367,7 +370,7 @@ public:
 		m_flFuse = 0.0f;
 		m_flBounce = 0.0f;
 		m_bShootable = false;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		m_iDamageType = DMG_NEVERGIB;
 #endif
 	}
@@ -383,7 +386,7 @@ public:
 		m_flFuse				= shot.m_flFuse;
 		m_flBounce				= shot.m_flBounce;
 		m_bShootable			= shot.m_bShootable;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		m_iDamageType			= shot.m_iDamageType;
 #endif
 		m_strModel				= shot.m_strModel;
@@ -404,7 +407,7 @@ public:
 	float		m_flFuse;
 	float		m_flBounce;
 	bool		m_bShootable;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	int			m_iDamageType;
 #endif
 	CUtlString	m_strModel;
@@ -471,7 +474,7 @@ public:
 	CUtlVector<CASW_AlienVolleyRound>	m_rounds;
 };
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 // For CLASSIFY
 enum
 {
@@ -641,7 +644,7 @@ enum CASW_Flock_Leader_State
 	NUM_FLOCK_LEADER_STATES,
 };
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 // Swarm 17 stubs
 inline CGameRules *ASWGameRules() { return g_pGameRules; }
 

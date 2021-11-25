@@ -89,7 +89,7 @@ public:
 
 	bool 			CanHearSound( CSound *pSound );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	// children of this class may need to overload this function to allow for more specialized checks such as angle of elevation, etc.
 	virtual bool	IsWithinSenseDistance( const Vector &source, const Vector &dest, float dist ) { return ( source.DistToSqr( dest ) < dist * dist ); }
 #endif
@@ -111,14 +111,14 @@ private:
 
 	bool			WaitingUntilSeen( CBaseEntity *pSightEnt );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 protected:
 #endif
 	void			BeginGather();
 	void 			NoteSeenEntity( CBaseEntity *pSightEnt );
 	void			EndGather( int nSeen, CUtlVector<EHANDLE> *pResult );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 private:
 #endif
 	

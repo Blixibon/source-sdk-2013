@@ -17,7 +17,7 @@
 #include "asw_mortar_round.h"
 #include "movevars_shared.h"
 #include "te_effect_dispatch.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_player.h"
 #endif
 
@@ -313,7 +313,7 @@ void CAI_ASW_MortarBehavior::ValidateMortarLocation( )
 #ifdef DRAW_DEBUG
 	UTIL_AddDebugLine( vStart, m_vMortarLocation + Vector( 0.0f, 0.0f, 15.0f ), true, true );
 #endif	// #ifdef DRAW_DEBUG
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	UTIL_TraceLine( vStart, m_vMortarLocation + Vector( 0.0f, 0.0f, 15.0f ), MASK_SOLID, GetOuter(), COLLISION_GROUP_PROJECTILE, &tr );
 #else
 	UTIL_TraceLine( vStart, m_vMortarLocation + Vector( 0.0f, 0.0f, 15.0f ), MASK_SOLID, GetOuter(), ASW_COLLISION_GROUP_IGNORE_NPCS, &tr );
@@ -350,7 +350,7 @@ void CAI_ASW_MortarBehavior::ValidateMortarLocation( )
 #ifdef DRAW_DEBUG
 			UTIL_AddDebugLine( vLast, vFinal, true, true );
 #endif	// #ifdef DRAW_DEBUG
-#ifdef SWARM17
+#ifdef SWARM_PORT
 			UTIL_TraceLine( vLast, vFinal, MASK_SOLID, GetOuter(), COLLISION_GROUP_PROJECTILE, &tr );
 #else
 			UTIL_TraceLine( vLast, vFinal, MASK_SOLID, GetOuter(), ASW_COLLISION_GROUP_IGNORE_NPCS, &tr );
@@ -387,7 +387,7 @@ void CAI_ASW_MortarBehavior::LaunchMortar( )
 	data.m_vOrigin = GetAbsOrigin();
 	CPASFilter filter( data.m_vOrigin );
 	filter.SetIgnorePredictionCull(true);
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	DispatchParticleEffect( "mortar_launch", PATTACH_POINT_FOLLOW, GetOuter(), "mouth", false );
 #else
 	DispatchParticleEffect( "mortar_launch", PATTACH_POINT_FOLLOW, GetOuter(), "mouth", false, -1, &filter );

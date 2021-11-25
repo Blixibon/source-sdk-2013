@@ -4,7 +4,7 @@
 #include "c_asw_clientragdoll.h"
 #include "asw_fx_shared.h"
 #include "functionproxy.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "imaterialproxydict.h"
 #endif
 

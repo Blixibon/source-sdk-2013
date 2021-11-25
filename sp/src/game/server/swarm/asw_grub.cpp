@@ -7,7 +7,7 @@
 #include "npc_bullseye.h"
 #include "npcevent.h"
 #include "soundenvelope.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_marine.h"
 #endif
 // memdbgon must be the last include file in a .cpp file!!!
@@ -71,10 +71,15 @@ extern int AE_HEADCRAB_JUMPATTACK;
 
 void CASW_Grub::Spawn( void )
 {
+#ifdef SWARM_PORT
+	m_pszAlienModelName = SWARM_GRUB_MODEL;
+	BaseClass::Spawn();
+#else
 	SetModel( SWARM_GRUB_MODEL );
 	Precache();
 	BaseClass::Spawn();
 	SetModel( SWARM_GRUB_MODEL );
+#endif
 
 	SetHullType(HULL_TINY);
 	SetHullSizeNormal();
@@ -129,6 +134,11 @@ void CASW_Grub::Precache( void )
 	PrecacheScriptSound("ASW_Parasite.Death");
 	PrecacheScriptSound("ASW_Parasite.Attack");
 	PrecacheScriptSound("ASW_Parasite.Idle");
+
+#ifdef SWARM_PORT
+	PrecacheParticleSystem( "grub_death_fire" );
+	PrecacheParticleSystem( "grub_death" );
+#endif
 
 	BaseClass::Precache();
 }
@@ -361,7 +371,7 @@ void CASW_Grub::LeapThink( void )
 
 void CASW_Grub::NormalTouch(CBaseEntity* pOther)
 {
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	if (!pOther || !pOther->CollisionProp() || !pOther->IsPlayer())	// only get squashed by players
 #else
 	if (!pOther || !pOther->CollisionProp() || pOther->Classify() != CLASS_ASW_MARINE)	// only get squashed by marines
@@ -469,7 +479,7 @@ void CASW_Grub::LeapTouch( CBaseEntity *pOther )
 		if (pOther->Classify() == CLASS_ASW_GRUB)
 			return;
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		// don't collide with players
 		if (pOther->Classify() == CLASS_PLAYER)
 			return;

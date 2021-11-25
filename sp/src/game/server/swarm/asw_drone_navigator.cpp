@@ -37,7 +37,7 @@ bool CASW_Drone_Navigator::ShouldMove( bool bHasAGoal )
 	if ( GetOuter()->TaskRanAutomovement() )
 		return false;
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	return true;
 #else
 	return BaseClass::ShouldMove(bHasAGoal);

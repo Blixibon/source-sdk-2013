@@ -24,7 +24,7 @@ public:
 	float m_fEarliestAOEDetonationTime;
 	Class_T m_CreatorWeaponClass;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	// Classification
 	virtual Class_T Classify( void ) { return (Class_T)CLASS_ASW_GRENADE_CLUSER; }
 #endif

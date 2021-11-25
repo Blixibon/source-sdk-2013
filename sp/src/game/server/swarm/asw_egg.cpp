@@ -7,7 +7,7 @@
 #include "asw_util_shared.h"
 #include "EntityFlame.h"
 #include "te_effect_dispatch.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_marine_speech.h"
 #include "asw_burning.h"
 #include "asw_game_resource.h"
@@ -159,7 +159,7 @@ void CASW_Egg::Spawn( void )
 	m_iMaxHealth = m_iHealth;
 	m_fNextMarineCheckTime = gpGlobals->curtime + random->RandomFloat(5.0f, 10.0f);
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( ASWGameResource() && ASWGameResource()->m_iStartingEggsInMap >= 0 )
 	{
 		ASWGameResource()->m_iStartingEggsInMap++;
@@ -260,7 +260,87 @@ void CASW_Egg::AnimThink( void )
 	// periodically find the nearest marine and check if we should burst open
 	if (!m_bOpen && gpGlobals->curtime >= m_fNextMarineCheckTime)
 	{
-#ifndef SWARM17 // TODO: egg
+#ifdef SWARM_PORT
+		Vector vSearchOrigin = GetAbsOrigin();
+		CBaseEntity *pNearest = NULL;
+		float flNearestSqr = Square( 500 );
+		int i;
+
+		// Players
+		for ( i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+
+			if ( pPlayer )
+			{
+				float flDistSqr = vSearchOrigin.DistToSqr( pPlayer->GetAbsOrigin() );
+				if (flDistSqr < flNearestSqr)
+				{
+					flNearestSqr = flDistSqr;
+					pNearest = pPlayer;
+				}
+			}
+		}
+	
+		// NPCs
+		CAI_BaseNPC **ppAIs = g_AI_Manager.AccessAIs();
+	
+		for ( i = 0; i < g_AI_Manager.NumAIs(); i++ )
+		{
+			if (ppAIs[i]->IsSwarmAlien())
+				continue;
+
+			float flDistSqr = vSearchOrigin.DistToSqr( ppAIs[i]->GetAbsOrigin() );
+			if ( flDistSqr < flNearestSqr )
+			{
+				flNearestSqr = flDistSqr;
+				pNearest = ppAIs[i];
+			}
+		}
+
+		float flOpenDistSqr = Square( ASW_EGG_BURST_DISTANCE );
+		if ( ASWGameRules() && ASWGameRules()->GetSkillLevel() == 1 )
+		{
+			flOpenDistSqr = Square( ASW_EGG_BURST_DISTANCE_EASY );
+		}
+
+		if ( pNearest )
+		{
+			//Msg( "Egg %d check.  Distance = %f\n", entindex(), marine_distance );
+			if ( flNearestSqr <= Square( ASW_EGG_ALWAYS_BURST_DISTANCE ) )
+			{
+				Open( pNearest );
+			}
+			else if ( flNearestSqr <= Square( ASW_EGG_BURST_DISTANCE ) && RandomFloat() < 0.1f )
+			{
+				Open( pNearest );
+			}
+		}
+		
+		if ( !m_bOpen )
+		{
+			// rethink interval based on how near the marines are
+			if (pNearest == NULL)
+			{
+				m_fNextMarineCheckTime = gpGlobals->curtime + 5.0f;
+			}
+			else
+			{
+				if (ASWGameRules() && ASWGameRules()->GetSkillLevel() >= 4 )
+				{
+					m_fNextMarineCheckTime = gpGlobals->curtime + 1.5f;
+				}
+				else if (ASWGameRules() && ASWGameRules()->GetSkillLevel() == 3 )
+				{
+					m_fNextMarineCheckTime = gpGlobals->curtime + 2.0f;
+				}
+				else
+				{
+					m_fNextMarineCheckTime = gpGlobals->curtime + 2.4f;
+				}
+			}
+		}
+#else
 		float marine_distance = -1;
 		CBaseEntity *pMarine = UTIL_ASW_NearestMarine(GetAbsOrigin(), marine_distance );
 		if (!m_bSkipEggChatter && pMarine && marine_distance < 500 && gpGlobals->curtime > s_fNextSpottedChatterTime)
@@ -366,6 +446,11 @@ void CASW_Egg::ResetEgg()
 			GetParasite()->SetEgg(this);
 			
 			GetParasite()->SetParent( this );
+
+#ifdef SWARM_PORT
+			// HACKHACK: There seems to be some SDK 2013 code somewhere that messes with spawning at the absolute origin and parenting right after
+			GetParasite()->SetLocalOrigin( vec3_origin );
+#endif
 		}
 	}
 
@@ -428,7 +513,7 @@ void  CASW_Egg::Hatch(CBaseEntity* pOther)
 					pBurner = this;
 				GetParasite()->ASW_Ignite( 30, 0, pBurner, m_hBurnerWeapon.Get() );
 			}
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			else
 			{
 				if ( ASWGameResource() )
@@ -452,15 +537,17 @@ void  CASW_Egg::Hatch(CBaseEntity* pOther)
 
 void CASW_Egg::EggTouch(CBaseEntity* pOther)
 {
-#ifndef SWARM17 // TODO: Egg
 	// egg will open if touched by a marine
+#ifdef SWARM_PORT
+	CBasePlayer *pMarine = ToBasePlayer( pOther );
+#else
 	CASW_Marine* pMarine = CASW_Marine::AsMarine( pOther );
+#endif
 	if (pMarine)
 	{
 		if (!m_bOpen)
 			Open(pOther);
 	}
-#endif
 }
 
 // inputs
@@ -515,7 +602,7 @@ int CASW_Egg::OnTakeDamage( const CTakeDamageInfo &info )
 
 	if (result > 0)
 	{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		CASW_Marine* pMarine = dynamic_cast<CASW_Marine*>(info.GetAttacker());
 		if (pMarine)
 			pMarine->HurtAlien(this, info);
@@ -557,7 +644,7 @@ void CASW_Egg::Event_Killed( const CTakeDamageInfo &info )
 		GetParasite()->TakeDamage(killsite);
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (ASWGameRules() && ASWGameRules()->GetMissionManager())
 		ASWGameRules()->GetMissionManager()->EggKilled(this);
 
@@ -615,7 +702,7 @@ void CASW_Egg::ASW_Ignite( float flFlameLifetime, float flSize, CBaseEntity *pAt
 
 	AddFlag( FL_ONFIRE );
 	m_bOnFire = true;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	Ignite( flFlameLifetime );
 #else
 	if (ASWBurning())
@@ -630,7 +717,13 @@ void CASW_Egg::ASW_Ignite( float flFlameLifetime, float flSize, CBaseEntity *pAt
 
 void CASW_Egg::Ignite( float flFlameLifetime, bool bNPCOnly, float flSize, bool bCalledByLevelDesigner )
 {
+#ifdef SWARM_PORT
+	BaseClass::Ignite( flFlameLifetime, bNPCOnly, flSize, bCalledByLevelDesigner );
+
+	m_bOnFire = true;
+#else
 	return;	// use ASW_Ignite instead
+#endif
 }
 
 CASW_Parasite* CASW_Egg::GetParasite()

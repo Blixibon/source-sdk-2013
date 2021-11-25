@@ -10,7 +10,7 @@
 #include "IEffects.h"
 #include "te.h"
 #include "props_shared.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_marine.h"
 #include "asw_game_resource.h"
 #include "asw_marine_resource.h"
@@ -59,7 +59,7 @@ int AE_SHIELDBUG_START_DEFEND;
 int AE_SHIELDBUG_LEAVE_DEFEND;
 
 ConVar sk_asw_shieldbug_damage( "sk_asw_shieldbug_damage", "25.0", FCVAR_CHEAT, "Damage per swipe from the shieldbug");
-#ifdef SWARM17
+#ifdef SWARM_PORT
 ConVar asw_shieldbug_health( "asw_shieldbug_health", "1000", FCVAR_CHEAT, "Shieldbug health (Swarm 17 cvar)" );
 #endif
 ConVar asw_shieldbug_speedboost( "asw_shieldbug_speedboost", "1.0",FCVAR_CHEAT , "boost speed for the shieldbug" );
@@ -67,7 +67,7 @@ ConVar asw_shieldbug_defending_speedboost( "asw_shieldbug_defending_speedboost",
 ConVar asw_debug_shieldbug("asw_debug_shieldbug", "0", FCVAR_CHEAT, "Display shieldbug debug messages");
 ConVar asw_shieldbug_screen_shake("asw_shieldbug_screen_shake", "1", FCVAR_CHEAT, "Should the shieldbug cause screen shake?");
 ConVar asw_shieldbug_melee_force("asw_shieldbug_melee_force", "2.0", FCVAR_CHEAT, "Melee force of the shieldbug");
-#ifdef SWARM17
+#ifdef SWARM_PORT
 ConVar asw_shieldbug_melee_force_down("asw_shieldbug_melee_force_down", "10000", FCVAR_CHEAT, "Downwards melee force of the shieldbug");
 #endif
 ConVar asw_sb_gallop_min_range("asw_sb_gallop_min_range", "50.0", FCVAR_CHEAT, "Min range to do ram attack");
@@ -114,7 +114,7 @@ END_DATADESC()
 
 void CASW_Shieldbug::Spawn( void )
 {
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	SetHullType( HULL_LARGE );
 #else
 	SetHullType(HULL_WIDE_SHORT);
@@ -124,7 +124,7 @@ void CASW_Shieldbug::Spawn( void )
 
 	m_bHasBeenHurt = false;
 	
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	SetHullType( HULL_LARGE );
 #else
 	SetHullType(HULL_WIDE_SHORT);
@@ -413,7 +413,7 @@ void CASW_Shieldbug::Event_Killed( const CTakeDamageInfo &info )
 {
 	BaseClass::Event_Killed( info );
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	ASWFailAdvice()->OnShiedbugKilled();
 #endif
 }
@@ -681,7 +681,7 @@ void CASW_Shieldbug::MeleeAttack( float distance, float damage, QAngle &viewPunc
 		return;
 	}
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	CheckTraceHullAttack( distance, -Vector( 16, 16, 32 ), Vector( 16, 16, 32 ), damage, DMG_SLASH, asw_shieldbug_melee_force.GetFloat() );
 #else
 	CBaseEntity *pHurt = CheckTraceHullAttack( distance, -Vector(16,16,32), Vector(16,16,32), damage, DMG_SLASH, asw_shieldbug_melee_force.GetFloat() );
@@ -702,7 +702,7 @@ void CASW_Shieldbug::MeleeAttack( float distance, float damage, QAngle &viewPunc
 }
 
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 void CASW_Shieldbug::ModTraceHullAttack( CTakeDamageInfo *info, const Vector &vecMeleeDir, const Vector &vecForceOrigin, float flScale )
 {
 	// Add a bunch of downwards force to our attacks
@@ -715,7 +715,7 @@ void CASW_Shieldbug::ModTraceHullAttack( CTakeDamageInfo *info, const Vector &ve
 
 void CASW_Shieldbug::CheckForShieldbugHint( const CTakeDamageInfo &info )
 {
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (info.GetAttacker() && info.GetAttacker()->Classify() == CLASS_ASW_MARINE)
 	{
 		// reduce our block counter by the number of seconds that have passed since a marine last shot us in the front
@@ -786,7 +786,7 @@ int CASW_Shieldbug::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	{
 		damage *= 0.4f;
 	}
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (info.GetDamageType() & DMG_BUCKSHOT)
 	{
 		// hack to reduce vindicator damage (not reducing normal shotty as much as it's not too strong)
@@ -947,7 +947,7 @@ bool CASW_Shieldbug::CanFlinch( void )
 
 void CASW_Shieldbug::SetHealthByDifficultyLevel()
 {		
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	SetHealth( ASWGameRules()->ModifyAlienHealthBySkillLevel( asw_shieldbug_health.GetInt() ) + m_nExtraHeath ); // was 500 - 2/19/10		
 #else
 	SetHealth( ASWGameRules()->ModifyAlienHealthBySkillLevel( 1000 ) + m_nExtraHeath ); // was 500 - 2/19/10		
@@ -962,7 +962,7 @@ void CASW_Shieldbug::ASW_Ignite( float flFlameLifetime, float flSize, CBaseEntit
 void CASW_Shieldbug::NPCThink()
 {
 	BaseClass::NPCThink();
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( GetEfficiency() < AIE_DORMANT && GetSleepState() == AISS_AWAKE 
 		&& gpGlobals->curtime > s_fNextSpottedChatterTime && GetEnemy())
 	{

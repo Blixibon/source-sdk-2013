@@ -6,7 +6,7 @@
 #include "asw_fx_shared.h"
 #include "particle_parse.h"
 #include "te_effect_dispatch.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_gamerules.h"
 #include "asw_marine.h"
 #include "asw_marine_resource.h"
@@ -19,7 +19,7 @@
 
 #define CLUSTER_GRENADE_MODEL "models/swarm/grenades/HandGrenadeProjectile.mdl"
 
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 ConVar sk_plr_dmg_asw_r_g( "sk_plr_dmg_asw_r_g", "0" );
 ConVar asw_grenade_vindicator_radius( "asw_grenade_vindicator_radius", "0" );
 #else
@@ -67,7 +67,7 @@ void CASW_Grenade_Cluster::Spawn( void )
 	SetGravity( asw_vindicator_grenade_gravity.GetFloat() );
 	SetFriction( asw_vindicator_grenade_friction.GetFloat() );
 	SetElasticity( asw_vindicator_grenade_elasticity.GetFloat() );
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	SetCollisionGroup( COLLISION_GROUP_PROJECTILE );
 #else
 	SetCollisionGroup( ASW_COLLISION_GROUP_GRENADES );
@@ -101,7 +101,7 @@ void CASW_Grenade_Cluster::Spawn( void )
 		SetThink( &CASW_Grenade_Cluster::CheckNearbyDrones );
 		SetNextThink( gpGlobals->curtime + asw_cluster_grenade_radius_check_interval.GetFloat() );
 	}
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	m_CreatorWeaponClass = (Class_T)CLASS_ASW_UNKNOWN;
 #endif
 }
@@ -224,7 +224,7 @@ void CASW_Grenade_Cluster::Detonate()
 {
 	m_takedamage	= DAMAGE_NO;	
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	int iPreExplosionKills = 0;
 	CASW_Marine *pMarine = dynamic_cast<CASW_Marine*>(m_hFirer.Get());
 	if (pMarine && pMarine->GetMarineResource())

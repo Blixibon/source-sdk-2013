@@ -8,7 +8,7 @@
 #include "asw_egg.h"
 
 class CSoundPatch;
-#ifndef SWARM17
+#ifndef SWARM_PORT
 class CASW_Marine;
 class CASW_Colonist;
 #endif
@@ -47,6 +47,9 @@ public:
 	virtual float InnateRange1MaxRange( void );
 	void LeapThink();
 	void InfestThink();
+#ifdef SWARM_PORT
+	void MoveWithPlayerThink(); // Hack for moving with player view
+#endif
 	virtual void NPCThink();
 	void NormalTouch(CBaseEntity* pOther);
 	void LeapTouch(CBaseEntity* pOther);
@@ -89,7 +92,7 @@ public:
 
 	// infesting
 	void FinishedInfesting();
-#ifdef SWARM17 // Infestation for HL2 NPCs
+#ifdef SWARM_PORT // Infestation for HL2 NPCs
 	void InfestPlayer(CBasePlayer *pPlayer);
 	void InfestNPC(CAI_BaseNPC *pNPC);
 #else
@@ -105,11 +108,18 @@ public:
 	CASW_Alien* GetMother();
 	float m_fSuicideTime;	// harvesites don't hang around for ever, but pop after a while if they're not in combat
 
+#ifdef SWARM_PORT
+	bool m_bDontSuicide; // Prevents harvestite suicide
+#endif
+
 	static float s_fNextSpottedChatterTime;
 	static float s_fLastHarvesiteAttackSound;
 
 	void StartInfestation();
 	bool CheckInfestTarget( CBaseEntity *pOther );
+#ifdef SWARM_PORT
+	bool CanHurtTarget( CBaseEntity *pOther );
+#endif
 	EHANDLE m_hPrepareToInfest;
 
 protected:

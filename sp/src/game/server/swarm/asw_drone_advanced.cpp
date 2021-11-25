@@ -21,7 +21,7 @@
 #include "decals.h"
 #include "asw_drone_advanced.h"
 #include "asw_fx_shared.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_player.h"
 #include "asw_door.h"
 #include "asw_door_padding.h"
@@ -29,7 +29,7 @@
 #include "asw_drone_navigator.h"
 #include "asw_drone_movement.h"
 #include "asw_util_shared.h"
-#ifdef SWARM17
+#ifdef SWARM_PORT
 #include "BasePropDoor.h"
 #include "igamemovement.h"
 #else
@@ -251,6 +251,9 @@ void CASW_Drone_Advanced::Precache( void )
 	PrecacheScriptSound( "ASW_Drone.Death" );
 	PrecacheScriptSound( "ASW_Drone.Attack" );
 	PrecacheScriptSound( "ASW_Drone.Swipe" );
+#ifdef SWARM_PORT
+	PrecacheScriptSound( "NPC_Antlion.MeleeAttack" );
+#endif
 
 	PrecacheScriptSound( "ASW_Drone.GibSplatHeavy" );
 	PrecacheScriptSound( "ASW_Drone.GibSplat" );
@@ -320,7 +323,7 @@ float CASW_Drone_Advanced::GetIdealSpeed() const
 		default: boost *= asw_alien_speed_scale_easy.GetFloat(); break;
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	float flFreezeSpeedScale = 1.0f - m_flFrozen;
 	flFreezeSpeedScale = clamp<float>( flFreezeSpeedScale, 0.0f, 1.0f );
 
@@ -384,7 +387,7 @@ float CASW_Drone_Advanced::GetSequenceGroundSpeed( int iSequence )
 
 bool CASW_Drone_Advanced::OverrideMove( float flInterval )
 {
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( IsMovementFrozen() )
 	{
 		// override to keep drone still
@@ -462,7 +465,7 @@ bool CASW_Drone_Advanced::MoveExecute_Alive(float flInterval)
 	Vector dir = GetEnemy()->GetAbsOrigin() - GetAbsOrigin();
 	VectorNormalize(dir);
 	float flTargetYaw = UTIL_VecToYaw(dir);
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (GetGroundEntity() && GetGroundEntity()->Classify() == CLASS_ASW_MARINE)	// if we're standing on a marine's head, just move forward
 		flTargetYaw = GetAbsAngles().y;
 #endif
@@ -886,7 +889,35 @@ void CASW_Drone_Advanced::StartTouch( CBaseEntity *pOther )
 {
 	BaseClass::StartTouch( pOther );
 
-#ifndef SWARM17
+#ifdef SWARM_PORT
+	if ( pOther && pOther->IsPlayer() )
+	{
+		// If I hit the player, shove him aside.
+		Vector vecDir = pOther->WorldSpaceCenter() - WorldSpaceCenter();
+		//vecDir.z = 0.0; // planar
+		VectorNormalize( vecDir );
+		vecDir *= 200.0f;
+
+		pOther->ApplyAbsVelocityImpulse( vecDir );
+
+		if (GetActivity() == ACT_CLIMB_UP || GetActivity() == ACT_CLIMB_DOWN)
+		{
+			if ( /*GetActivity() != ACT_CLIMB_DISMOUNT || */
+				 ( pOther->GetGroundEntity() != CBaseEntity::Instance( INDEXENT( 0 ) ) &&
+				   GetNavigator()->IsGoalActive() &&
+				   pOther->GetAbsOrigin().z - GetNavigator()->GetCurWaypointPos().z < -1.0 ) )
+			{
+				SetCondition( COND_DRONE_CLIMB_TOUCH );
+
+				// Kill the drone for now
+				CTakeDamageInfo dmgInfo( pOther, pOther, GetMaxHealth(), DMG_NEVERGIB );
+				TakeDamage( dmgInfo );
+			}
+		}
+
+		SetTouch( NULL );
+	}
+#else
 	CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
 	if (pMarine)
 	{
@@ -946,10 +977,10 @@ void CASW_Drone_Advanced::MeleeAttack( float distance, float damage, QAngle &vie
 	{
 		vecForceDir = ( pHurt->WorldSpaceCenter() - WorldSpaceCenter() );
 
-		// Play a random attack hit sound
-		EmitSound( "ASW_Drone.Attack" );
+#ifdef SWARM_PORT
+		// TEMPTEMP
+		EmitSound( "NPC_Antlion.MeleeAttack" );
 
-#ifdef SWARM17
 		CBasePlayer *pPlayer = ToBasePlayer( pHurt );
 		if ( pPlayer != NULL && !(pPlayer->GetFlags() & FL_GODMODE ) )
 		{
@@ -967,9 +998,12 @@ void CASW_Drone_Advanced::MeleeAttack( float distance, float damage, QAngle &vie
 
 			SpawnBlood( vecBloodPos, g_vecAttackDir, pHurt->BloodColor(), MIN( damage, 30.0f ) );
 		}
+#else
+		// Play a random attack hit sound
+		EmitSound( "ASW_Drone.Attack" );
 #endif
 	}
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	else
 	{
 		trace_t		tr;
@@ -1006,7 +1040,7 @@ bool CASW_Drone_Advanced::CorpseGib( const CTakeDamageInfo &info )
 {
 	CEffectData	data;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	m_LagCompensation.UndoLaggedPosition();
 #endif
 	
@@ -1046,6 +1080,18 @@ void CASW_Drone_Advanced::BuildScheduleTestBits( void )
 			SetCustomInterruptCondition( COND_HEAR_PHYSICS_DANGER );
 		}					
 	}
+
+#ifdef SWARM_PORT
+	// Any schedule that makes us climb should break if we touch player
+	if ( GetActivity() == ACT_CLIMB_UP || GetActivity() == ACT_CLIMB_DOWN || GetActivity() == ACT_CLIMB_DISMOUNT)
+	{
+		SetCustomInterruptCondition( COND_DRONE_CLIMB_TOUCH );
+	}
+	else
+	{
+		ClearCustomInterruptCondition( COND_DRONE_CLIMB_TOUCH );
+	}
+#endif
 
 	BaseClass::BuildScheduleTestBits();
 }
@@ -1197,7 +1243,7 @@ void CASW_Drone_Advanced::RunTask( const Task_t *pTask )
 		}
 	case TASK_DRONE_WAIT_FACE_ENEMY:
 		{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			if ( IsMovementFrozen() )
 			{
 				TaskFail(FAIL_FROZEN);
@@ -1235,7 +1281,7 @@ void CASW_Drone_Advanced::RunTask( const Task_t *pTask )
 		}
 	case TASK_DRONE_WAIT_FOR_OVERRIDE_MOVE:
 		{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			if ( IsMovementFrozen() )
 			{
 				TaskFail(FAIL_FROZEN);
@@ -1254,7 +1300,7 @@ void CASW_Drone_Advanced::RunTask( const Task_t *pTask )
 		}
 	case TASK_DRONE_DOOR_WAIT:
 		{
-#ifdef SWARM17
+#ifdef SWARM_PORT
 			TaskFail( "Not implemented" );
 #else
 			CASW_Door *pDoor = m_hBlockingDoor.Get();
@@ -1275,7 +1321,7 @@ void CASW_Drone_Advanced::RunTask( const Task_t *pTask )
 
 	case TASK_DRONE_ATTACK_DOOR:
 		{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			if ( IsMovementFrozen() )
 			{
 				TaskFail(FAIL_FROZEN);
@@ -1353,7 +1399,7 @@ void CASW_Drone_Advanced::Event_Killed( const CTakeDamageInfo &info )
 {
 	CTakeDamageInfo newInfo(info);
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	// scale up the force if we're shot by a marine, to make our ragdolling more interesting
 	if (newInfo.GetAttacker() && newInfo.GetAttacker()->Classify() == CLASS_ASW_MARINE)
 	{
@@ -1533,7 +1579,7 @@ void CASW_Drone_Advanced::GatherConditions( void )
 
 	if ( m_hBlockingDoor == NULL || 
 		 ( m_hBlockingDoor->IsDoorOpen() || 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		 m_hBlockingDoor->IsDoorOpening() )  )
 #else
 		   m_hBlockingDoor->IsDoorOpening() || m_hBlockingDoor->m_bDoorFallen )  )
@@ -1569,7 +1615,7 @@ int CASW_Drone_Advanced::SelectSchedule( void )
 		SetDistSwarmSense(1200.0f);
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	// check for jumping off marine heads
 	if (GetGroundEntity() && GetGroundEntity()->Classify() == CLASS_ASW_MARINE && DoJumpOffHead())
 		return SCHED_ASW_ALIEN_JUMP;
@@ -1622,7 +1668,7 @@ bool CASW_Drone_Advanced::ValidBlockingDoor()
 	if (m_hBlockingDoor->IsDoorOpen() || m_hBlockingDoor->IsDoorOpening())
 		return false;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (m_hBlockingDoor->m_bDoorFallen)
 		return false;
 #endif
@@ -1644,7 +1690,7 @@ void CASW_Drone_Advanced::StartTask( const Task_t *pTask )
 		break;
 	case TASK_MELEE_ATTACK1:
 		{
-#ifndef SWARM17
+#ifndef SWARM_PORT
 			// check for making a marine shout out in fear
 			if (!m_bDoneAlienCloseChatter && gpGlobals->curtime > s_fNextTooCloseChatterTime)
 			{
@@ -1890,7 +1936,7 @@ bool CASW_Drone_Advanced::OnObstructionPreSteer( AILocalMoveGoal_t *pMoveGoal,
 		//Msg("Drone blocked by %s\n", pMoveGoal->directTrace.pObstruction->GetClassname());		
 		// check if we collide with a door or door padding
 		CASW_Door *pDoor = dynamic_cast<CASW_Door *>( pMoveGoal->directTrace.pObstruction );
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		if (!pDoor)
 		{
 			CASW_Door_Padding *pPadding = dynamic_cast<CASW_Door_Padding *>( pMoveGoal->directTrace.pObstruction );
@@ -1984,7 +2030,7 @@ int CASW_Drone_Advanced::TranslateSchedule( int scheduleType )
 			i = SCHED_DRONE_CHASE_ENEMY;
 		}
 	}
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	if (i == SCHED_DRONE_DOOR_WAIT && m_hBlockingDoor.Get())
 #else
 	if (i == SCHED_DRONE_DOOR_WAIT && m_hBlockingDoor.Get() && !m_hBlockingDoor.Get()->m_bDoorFallen)
@@ -2165,7 +2211,7 @@ bool CASW_Drone_Advanced::IsHeavyDamage( const CTakeDamageInfo &info )
 	//{
 		//Msg("Drone attacked by %s\n", info.GetAttacker()->GetClassname());
 	//}
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	m_FlinchActivity = ACT_INVALID;
 #else
 	CASW_Marine *pMarine = dynamic_cast<CASW_Marine*>(info.GetAttacker());
@@ -2449,6 +2495,9 @@ AI_BEGIN_CUSTOM_NPC( asw_drone_advanced, CASW_Drone_Advanced )
 	DECLARE_CONDITION( COND_DRONE_LOS )
 	DECLARE_CONDITION( COND_DRONE_LOST_LOS )
 	DECLARE_CONDITION( COND_DRONE_GAINED_LOS )
+#ifdef SWARM_PORT
+	DECLARE_CONDITION( COND_DRONE_CLIMB_TOUCH )
+#endif
 	DECLARE_TASK( TASK_DRONE_YAW_TO_DOOR )
 	DECLARE_TASK( TASK_DRONE_ATTACK_DOOR )
 	DECLARE_TASK( TASK_DRONE_WAIT_FOR_OVERRIDE_MOVE )

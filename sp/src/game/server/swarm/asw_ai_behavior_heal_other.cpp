@@ -14,7 +14,7 @@
 #include "particle_parse.h"
 #include "particles/particles.h"
 #include "asw_shaman.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_director.h"
 #endif
 
@@ -168,9 +168,40 @@ void CAI_ASW_HealOtherBehavior::GatherCommonConditions( )
 	ClearCondition( COND_HEAL_OTHER_NOT_TARGET_IN_RANGE );
 
 	CBaseEntity					*pBestObject = NULL;
-#ifndef SWARM17 // TODO
 	int							nPotentialHealthBenefit = 0;
 
+#ifdef SWARM_PORT // TODO: Allow for non-NPC entities?
+	CAI_BaseNPC **ppAIs = g_AI_Manager.AccessAIs();
+	for ( int i = 0; i < g_AI_Manager.NumAIs(); i++ )
+	{
+		CAI_BaseNPC *pEntity = ppAIs[i];
+		if ( GetOuter()->IRelationType(pEntity) != D_LI || pEntity->GetHealth() <= 0 )
+			continue;
+		
+		Class_T entClass = pEntity->Classify();
+ 		if ( entClass == CLASS_ASW_SHAMAN || entClass == CLASS_ASW_BOOMER || entClass == CLASS_ASW_PARASITE
+			|| entClass == CLASS_ASW_BUZZER || entClass == CLASS_ASW_RUNNER )
+ 		{
+ 			continue;
+ 		}
+
+		if ( GetOuter() != pEntity )
+		{
+			Vector	vDiff = pEntity->GetAbsOrigin() - GetAbsOrigin();
+			float	flLengthSquared = vDiff.LengthSqr();
+
+			if ( flLengthSquared <= m_flHealConsiderationDistanceSquared )
+				//&& ( !asw_shaman_only_heal_hurt_pEntity->m_iHealth < pEntity->m_iMaxHealth )
+			{
+				if ( nPotentialHealthBenefit == 0 || ( pEntity->m_iMaxHealth - pEntity->m_iHealth ) > nPotentialHealthBenefit )
+				{
+					nPotentialHealthBenefit = ( pEntity->m_iMaxHealth - pEntity->m_iHealth );
+					pBestObject = pEntity;
+				}	
+			}
+		}
+	}
+#else
 	for( int i = 0; i < GetOuter()->GetNumFactions(); i++ )
 	{
 		if ( GetOuter()->GetFactionRelationshipDisposition( i ) == D_LIKE )

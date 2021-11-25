@@ -247,7 +247,7 @@ void CAI_ASW_SleepBehavior::ClearBurrowPoint( const Vector &origin )
 void CAI_ASW_SleepBehavior::Unburrow( void )
 {
 	CASW_Alien *pNPC = static_cast< CASW_Alien * >( GetOuter() );
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 	pNPC->SetIdealActivity( ACT_INVALID );
 #else
 	pNPC->SetIdealActivity( ACT_ALIEN_BURROW_OUT );

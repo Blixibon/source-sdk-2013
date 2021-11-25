@@ -10,18 +10,22 @@
 #else
 	#include "EntityFlame.h"
 	#include "asw_grub.h"
+	#include "te_effect_dispatch.h"
+	#include "asw_fx_shared.h"
+	#include "asw_util_shared.h"
+#ifdef SWARM_PORT
+	#include "asw_grub.h"
+#else
 	#include "asw_simple_grub.h"
 	#include "asw_marine.h"
 	#include "asw_player.h"
-	#include "asw_fx_shared.h"
-	#include "asw_util_shared.h"
 	#include "asw_gamerules.h"
 	#include "asw_mission_manager.h"
 	#include "asw_entity_dissolve.h"
 	#include "asw_marine_speech.h"
 	#include "asw_burning.h"
-	#include "te_effect_dispatch.h"
 	#include "cvisibilitymonitor.h"
+#endif
 #endif
 #include "asw_alien_goo_shared.h"
 
@@ -152,17 +156,21 @@ void CASW_Alien_Goo::Spawn()
 	SetThink( &CASW_Alien_Goo::InitThink );
 	SetNextThink( gpGlobals->curtime + random->RandomFloat(5.0f, 10.0f));
 
+#ifndef SWARM_PORT
 	if ( m_bRequiredByObjective )
 	{
 		VisibilityMonitor_AddEntity( this, asw_visrange_generic.GetFloat() * 0.9f, NULL, NULL );
 	}
+#endif
 }
 
 void CASW_Alien_Goo::InitThink()
 {
 	if (m_bHasAmbientSound && !m_bPlayingAmbientSound)
 	{
+#ifndef SWARM_PORT
 		if (!UTIL_ASW_MissionHasBriefing(STRING(gpGlobals->mapname)))
+#endif
 		{
 			StartGooSound();
 		}
@@ -187,11 +195,13 @@ void CASW_Alien_Goo::Event_Killed( const CTakeDamageInfo &info )
 {
 	m_OnGooDestroyed.FireOutput( this, this );
 
+#ifndef SWARM_PORT
 	if (!m_bHasGrubs)
 	{
 		if (ASWGameRules() && ASWGameRules()->GetMissionManager())
 			ASWGameRules()->GetMissionManager()->GooKilled(this);		
 	}
+#endif
 
 	StopGooSound();
 
@@ -219,21 +229,26 @@ void CASW_Alien_Goo::Precache()
 
 int CASW_Alien_Goo::OnTakeDamage( const CTakeDamageInfo &info )
 {
+#ifndef SWARM_PORT
 	CASW_Marine* pMarine = dynamic_cast<CASW_Marine*>(info.GetAttacker());
+#endif
 
 	// if has grubs
 	if ( m_bHasGrubs && HasSpawnFlags( ASW_SF_BURST_WHEN_DAMAGED ) )
 	{
 		SpawnGrubs();
 
+#ifndef SWARM_PORT
 		if ( pMarine) 
 			pMarine->HurtAlien(this, info);
+#endif
 	}
 
 	// goo is only damaged by fire!
 	if ( !( info.GetDamageType() & DMG_BURN ) && !( info.GetDamageType() & DMG_ENERGYBEAM ) )
 		return 0;
 
+#ifndef SWARM_PORT
 	// notify the marine that he's hurting this, so his accuracy doesn't drop
 	if (info.GetAttacker() && info.GetAttacker()->Classify() == CLASS_ASW_MARINE)
 	{
@@ -242,6 +257,7 @@ int CASW_Alien_Goo::OnTakeDamage( const CTakeDamageInfo &info )
 			pMarine->HurtJunkItem( this, info );
 		}
 	}
+#endif
 
 	// if this damage would make us close to dying, then make us dissolve instead
 	if ( m_iHealth - info.GetDamage() < 10.0f )
@@ -267,6 +283,7 @@ int CASW_Alien_Goo::OnTakeDamage( const CTakeDamageInfo &info )
 		{
 			Ignite( 30.0f );
 
+#ifndef SWARM_PORT
 			CASW_Player *pPlayerAttacer = NULL;
 			if ( pMarine )
 			{
@@ -280,6 +297,7 @@ int CASW_Alien_Goo::OnTakeDamage( const CTakeDamageInfo &info )
 				event->SetInt( "entindex", entindex() );
 				gameeventmanager->FireEventClientSide( event );
 			}
+#endif
 		}
 	}
 	return result;
@@ -295,10 +313,14 @@ void CASW_Alien_Goo::Ignite( float flFlameLifetime, bool bNPCOnly, float flSize,
 	AddFlag( FL_ONFIRE );
 	m_bOnFire = true;
 
+#ifdef SWARM_PORT
+	BaseClass::Ignite( flFlameLifetime, false, flSize, bCalledByLevelDesigner );
+#else
 	if ( ASWBurning() )
 	{
 		ASWBurning()->BurnEntity(this, NULL, flFlameLifetime, 0.4f, 5.0f * 0.4f);	// 5 dps, applied every 0.4 seconds
 	}
+#endif
 
 	m_OnIgnite.FireOutput( this, this );
 
@@ -313,8 +335,12 @@ void CASW_Alien_Goo::Ignite( float flFlameLifetime, bool bNPCOnly, float flSize,
 void CASW_Alien_Goo::Extinguish()
 {
 	m_bOnFire = false;
+#ifdef SWARM_PORT
+	BaseClass::Extinguish();
+#else
 	if (ASWBurning())
 		ASWBurning()->Extinguish(this);
+#endif
 	RemoveFlag( FL_ONFIRE );
 }
 
@@ -323,7 +349,9 @@ void CASW_Alien_Goo::GrubSacThink()
 {
 	if (m_bHasAmbientSound && !m_bPlayingAmbientSound)
 	{
+#ifndef SWARM_PORT
 		if (UTIL_ASW_MissionHasBriefing(STRING(gpGlobals->mapname)) && ASWGameRules() && ASWGameRules()->GetGameState() == ASW_GS_INGAME)
+#endif
 			StartGooSound();
 	}
 	if (m_bHasGrubs)
@@ -397,8 +425,12 @@ void CASW_Alien_Goo::BurningLinkThink()
 
 void CASW_Alien_Goo::GooAcidTouch(CBaseEntity* pOther)
 {
+#ifdef SWARM_PORT
+	if (pOther && (pOther->IsPlayer() || (pOther->IsNPC() && !pOther->MyNPCPointer()->IsSwarmAlien()) ))
+#else
 	// if touched by a marine, acid burn him!
 	if (pOther && pOther->Classify() == CLASS_ASW_MARINE)
+#endif
 	{
 		if (m_fNextAcidBurnTime == 0 || gpGlobals->curtime > m_fNextAcidBurnTime)
 		{
@@ -417,7 +449,9 @@ void CASW_Alien_Goo::GooAcidTouch(CBaseEntity* pOther)
 
 			CEffectData	data;			
 			data.m_vOrigin = vecDamagePos;
+#ifndef SWARM_PORT
 			data.m_nOtherEntIndex = pOther->entindex();
+#endif
 			DispatchEffect( "ASWAcidBurn", data );		
 		}
 	}
@@ -426,7 +460,11 @@ void CASW_Alien_Goo::GooAcidTouch(CBaseEntity* pOther)
 void CASW_Alien_Goo::GooTouch(CBaseEntity* pOther)
 {
 	// egg will open if touched by a marine
+#ifdef SWARM_PORT
+	CBasePlayer *pMarine = ToBasePlayer(pOther);
+#else
 	CASW_Marine* pMarine = CASW_Marine::AsMarine( pOther );
+#endif
 	if (pMarine && m_bHasGrubs && HasSpawnFlags(ASW_SF_BURST_WHEN_TOUCHED))
 	{
 		SetTouch( NULL );
@@ -491,6 +529,17 @@ void CASW_Alien_Goo::SpawnGrubs()
 			continue;
 		UTIL_ASW_DroneBleed( vecSpawnPos[i], Vector(0,0,1), 4 );
 
+#ifdef SWARM_PORT
+		CASW_Grub* pGrub = dynamic_cast<CASW_Grub*>(CreateNoSpawn( "asw_grub_advanced", vecSpawnPos[i], angGrubFacing[i], this ));
+		if (pGrub)
+		{
+			pGrub->AddSpawnFlags(SF_NPC_FALL_TO_GROUND);	// stop it teleporting to the ground			
+			pGrub->Spawn();
+			pGrub->SetJumpFromGoo( true, angGrubFacing[i].y, 100.0f );
+			//pGrub->m_fFallSpeed = 250;
+			//pGrub->PlayFallingAnimation();
+		}
+#else
 		CASW_Simple_Grub* pGrub = dynamic_cast<CASW_Simple_Grub*>(CreateNoSpawn("asw_grub", vecSpawnPos[i], angGrubFacing[i], this));
 		if (pGrub)
 		{
@@ -500,6 +549,7 @@ void CASW_Alien_Goo::SpawnGrubs()
 			pGrub->m_fFallSpeed = 250;
 			pGrub->PlayFallingAnimation();
 		}
+#endif
 	}
 
 	EmitSound("ASW_Parasite.EggBurst");
@@ -529,7 +579,11 @@ void CASW_Alien_Goo::SpawnGrubs()
 
 		if ( Bloodtr.fraction != 1.0 )
 		{
+#ifdef SWARM_PORT
+			UTIL_BloodDecalTrace( &Bloodtr, BLOOD_COLOR_GREEN ); // TODO: BLOOD_COLOR_BRIGHTGREEN
+#else
 			UTIL_BloodDecalTrace( &Bloodtr, BLOOD_COLOR_BRIGHTGREEN );
+#endif
 		}
 	}
 
@@ -578,6 +632,9 @@ void CASW_Alien_Goo::StopGooSound()
 
 bool CASW_Alien_Goo::Dissolve( const char *pMaterialName, float flStartTime, bool bNPCOnly, int nDissolveType )
 {
+#ifdef SWARM_PORT
+	return BaseClass::Dissolve( pMaterialName, flStartTime, bNPCOnly, nDissolveType );
+#else
 	// Right now this prevents stuff we don't want to catch on fire from catching on fire.
 	if( bNPCOnly && !(GetFlags() & FL_NPC) )
 		return false;
@@ -599,6 +656,7 @@ bool CASW_Alien_Goo::Dissolve( const char *pMaterialName, float flStartTime, boo
 	}
 
 	return bRagdollCreated;
+#endif
 }
 
 #else

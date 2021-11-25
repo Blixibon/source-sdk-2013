@@ -62,7 +62,7 @@ public:
 	bool m_bInflating;
 	CNetworkVar( bool, m_bInflated );
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	CUtlVector<EHANDLE> m_hMarineAttackers;
 #endif
 

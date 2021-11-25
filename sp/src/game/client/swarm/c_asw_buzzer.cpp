@@ -6,7 +6,7 @@
 #include "c_asw_buzzer.h"
 #include "c_asw_generic_emitter_entity.h"
 #include "c_asw_fx.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "c_asw_player.h"
 #endif
 #include "baseparticleentity.h"
@@ -36,7 +36,7 @@ C_ASW_Buzzer::C_ASW_Buzzer()
 	m_GlowObject.SetColor( Vector( 0.3f, 0.6f, 0.1f ) );
 	m_GlowObject.SetAlpha( 0.55f );
 	m_GlowObject.SetRenderFlags( false, false );
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	m_GlowObject.SetFullBloomRender( true );
 #endif
 }
@@ -75,7 +75,7 @@ void C_ASW_Buzzer::OnDataChanged( DataUpdateType_t type )
 		// We want to think every frame.
 		SetNextClientThink( CLIENT_THINK_ALWAYS );
 
-#ifndef SWARM17 // TODO: FIX PARTICLE
+#ifndef SWARM_PORT // TODO: FIX PARTICLE
 		if ( !m_pTrailEffect )
 		{
 			m_pTrailEffect = this->ParticleProp()->Create( "buzzer_trail", PATTACH_ABSORIGIN_FOLLOW );
@@ -103,7 +103,7 @@ void C_ASW_Buzzer::UpdateOnRemove( void )
 
 	if ( m_pTrailEffect )
 	{
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		ParticleProp()->StopEmission( m_pTrailEffect, false, true );
 #else
 		ParticleProp()->StopEmission( m_pTrailEffect, false, true, false );
@@ -178,13 +178,11 @@ void C_ASW_Buzzer::ClientThink()
 	if (m_bElectroStunned && m_fNextElectroStunEffect <= gpGlobals->curtime)
 	{
 		// apply electro stun effect
-#ifndef SWARM17 // TODO
 		FX_ElectroStun(this);
-#endif
 		m_fNextElectroStunEffect = gpGlobals->curtime + RandomFloat( 0.2, 0.7 );
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	C_ASW_Player *pPlayer = C_ASW_Player::GetLocalASWPlayer();
 	if ( pPlayer && pPlayer->IsSniperScopeActive() )
 	{
@@ -197,7 +195,7 @@ void C_ASW_Buzzer::ClientThink()
 #endif
 }
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 int C_ASW_Buzzer::DrawModel( int flags )
 {
 	m_vecLastRenderedPos = WorldSpaceCenter();

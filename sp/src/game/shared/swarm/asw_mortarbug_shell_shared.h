@@ -51,7 +51,7 @@ private:
 	virtual void	PostDataUpdate( DataUpdateType_t updateType );
 #endif
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	Class_T		Classify( void ) { return (Class_T) CLASS_ASW_MORTAR_SHELL; }	
 #endif
 

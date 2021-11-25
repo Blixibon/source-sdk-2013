@@ -10,7 +10,7 @@
 #include "player_pickup.h"
 #include "iasw_spawnable_npc.h"
 #include "asw_shareddefs.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_lag_compensation.h"
 #endif
 
@@ -186,7 +186,7 @@ public:
 	void MoanSound( envelopePoint_t *pEnvelope, int iEnvelopeSize );
 
 	virtual void NPCThink();
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	CASW_Lag_Compensation m_LagCompensation;
 #endif
 

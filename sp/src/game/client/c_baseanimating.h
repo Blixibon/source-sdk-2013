@@ -739,7 +739,7 @@ public:
 	bool m_bImportant;
 	float m_flEffectTime;
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	bool IsFadingOut() const { return m_bFadingOut; }
 #endif
 
@@ -751,7 +751,7 @@ private:
 	float m_flFrictionTime;
 
 	int  m_iFrictionAnimState;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 protected:
 #endif
 	bool m_bReleaseRagdoll;

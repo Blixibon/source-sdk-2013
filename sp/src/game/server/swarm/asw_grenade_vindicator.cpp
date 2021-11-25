@@ -7,7 +7,7 @@
 #include "te_effect_dispatch.h"
 #include "particle_parse.h"
 #include "asw_boomer_blob.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_gamerules.h"
 #include "asw_marine.h"
 #include "asw_marine_resource.h"
@@ -76,7 +76,7 @@ void CASW_Grenade_Vindicator::Spawn( void )
 	SetGravity( asw_vindicator_grenade_gravity.GetFloat() );
 	SetFriction( asw_vindicator_grenade_friction.GetFloat() );
 	SetElasticity( asw_vindicator_grenade_elasticity.GetFloat() );
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	SetCollisionGroup( COLLISION_GROUP_PROJECTILE );
 #else
 	SetCollisionGroup( ASW_COLLISION_GROUP_GRENADES );
@@ -139,7 +139,7 @@ void CASW_Grenade_Vindicator::VGrenadeTouch( CBaseEntity *pOther )
 	if ( gpGlobals->curtime < m_fEarliestTouchDetonationTime )
 		return;
 
-#ifndef SWARM17 // TODO
+#ifndef SWARM_PORT // TODO
 	if ( pOther->m_takedamage != DAMAGE_NO )
 	{
 		if (pOther->IsNPC() && pOther->Classify() != CLASS_ASW_MARINE)
@@ -216,7 +216,7 @@ void CASW_Grenade_Vindicator::Detonate()
 		UTIL_ASW_ScreenShake( GetAbsOrigin(), 10.0, 150.0, 1.0, 750, SHAKE_START );
 	}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	int iPreExplosionKills = 0;
 	CASW_Marine *pMarine = dynamic_cast<CASW_Marine*>(m_hFirer.Get());
 	if (pMarine && pMarine->GetMarineResource())
@@ -334,7 +334,7 @@ void CASW_Grenade_Vindicator::CreateEffects()
 	//data.m_flScale = (float)amount;
 	CPASFilter filter( data.m_vOrigin );
 	filter.SetIgnorePredictionCull(true);
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	DispatchParticleEffect( "rocket_trail_small", PATTACH_ABSORIGIN_FOLLOW, this, "fuse", false );
 #else
 	DispatchParticleEffect( "rocket_trail_small", PATTACH_ABSORIGIN_FOLLOW, this, "fuse", false, -1, &filter );
@@ -382,7 +382,7 @@ float CASW_Grenade_Vindicator::GetEarliestTouchDetonationTime()
 
 void CASW_Grenade_Vindicator::BurntAlien(CBaseEntity *pAlien)
 {
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	//Msg("grenade is burning %s %d\n", pAlien->GetClassname(), pAlien->entindex());
 	if (m_bKicked && pAlien && pAlien->IsNPC())
 	{

@@ -3,7 +3,7 @@
 #include "c_asw_clientragdoll.h"
 #include "asw_util_shared.h"
 #include "c_asw_fx.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "c_asw_player.h"
 #include "asw_input.h"
 #endif
@@ -68,13 +68,13 @@ Vector ComputeParabolicTrajectoryToApex( const Vector &vOrigin, const Vector &vD
 	return Vector( flX, flY, flZ );
 }
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 ConVar cl_ragdoll_gravity( "cl_ragdoll_gravity", "600" );
 #else
 extern ConVar cl_ragdoll_gravity;
 #endif
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 void ASWHurlRagdollAtCamera( C_ASW_ClientRagdoll * RESTRICT pEntity, const Vector &vCameraPosition, const QAngle &vCameraAngles )
 {
 	Assert( pEntity );
@@ -174,7 +174,7 @@ void C_ASW_ClientRagdoll::BreakRagdoll()
 	params.impactEnergyScale = 1.25f;
 	params.defBurstScale = 125.0f;
 	params.defCollisionGroup = COLLISION_GROUP_DEBRIS;
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	params.useThisRawVelocity = true;
 #endif
 	PropBreakableCreateAll( GetModelIndex(), pPhysics, params, this, -1, true, true ); 
@@ -214,7 +214,7 @@ void C_ASW_ClientRagdoll::ClientThink( void )
 	if ( m_nDeathStyle == kDIE_HURL && !m_bHurled && ( ( SpawnTime() + 0.05f ) < gpGlobals->curtime ) )
 	{
 		// SetMoveType( MOVETYPE_VPHYSICS );
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		ASWHurlRagdollAtCamera( this );
 #endif
 		m_bHurled = true;
@@ -230,7 +230,7 @@ void C_ASW_ClientRagdoll::ClientThink( void )
 		if ( asw_alien_debug_death_style.GetBool() )
 			Msg( "C_ASW_ClientRagdoll::ClientThink: m_nDeathStyle = %d\n",  m_nDeathStyle );
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 		if ( (m_nDeathStyle == kDIE_BREAKABLE || m_nDeathStyle == kDIE_INSTAGIB || m_nDeathStyle == kDIE_TUMBLEGIB) && asw_breakable_aliens.GetBool() )
 		//if ( m_nDeathStyle == kDIE_BREAKABLE && asw_breakable_aliens.GetBool() )
 #else
@@ -252,7 +252,7 @@ void C_ASW_ClientRagdoll::ClientThink( void )
 			return;
 		}
 
-#ifndef SWARM17 // Don't fade instantly in HL2
+#ifndef SWARM_PORT // Don't fade instantly in HL2
 		// if we're set to fade, MAKE IT SO
 		if ( m_nDeathStyle == kDIE_RAGDOLLFADE )
 		{

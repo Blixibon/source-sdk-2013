@@ -42,7 +42,11 @@ $Configuration "Debug"
 		$PreprocessorDefinitions		"$BASE;MAPBASE"		[$MAPBASE]
 		
 		// Swarm 17
-		$PreprocessorDefinitions		"$BASE;SWARM17"
+		// 
+		// SWARM_PORT - Stuff for the overall Alien Swarm port instead of only the Swarm 17 mod (e.g. ported NPCs)
+		// SWARM17 - Stuff for the Swarm 17 mod itself and not the actual port of Alien Swarm stuff
+		// 
+		$PreprocessorDefinitions		"$BASE;SWARM_PORT;SWARM17"
 	}
 }
 
@@ -63,6 +67,6 @@ $Configuration "Release"
 		$PreprocessorDefinitions		"$BASE;MAPBASE"		[$MAPBASE]
 		
 		// Swarm 17
-		$PreprocessorDefinitions		"$BASE;SWARM17"
+		$PreprocessorDefinitions		"$BASE;SWARM_PORT;SWARM17"
 	}
 }

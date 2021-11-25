@@ -280,7 +280,7 @@ bool CASW_Queen_Divers::PassesDamageFilter( const CTakeDamageInfo &info )
 
 int CASW_Queen_Divers::BloodColor()
 {
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 	return BLOOD_COLOR_GREEN;
 #else
 	return BLOOD_COLOR_BRIGHTGREEN; 

@@ -856,7 +856,7 @@ bool CASW_Queen_Grabber::PassesDamageFilter( const CTakeDamageInfo &info )
 
 int CASW_Queen_Grabber::BloodColor()
 {
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	return BLOOD_COLOR_GREEN;
 #else
 	return BLOOD_COLOR_BRIGHTGREEN; 

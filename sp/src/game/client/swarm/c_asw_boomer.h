@@ -12,7 +12,7 @@ public:
 					C_ASW_Boomer();
 	virtual			~C_ASW_Boomer();
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	virtual Class_T	Classify() { return (Class_T) CLASS_ASW_BOOMER; }
 #endif
 		

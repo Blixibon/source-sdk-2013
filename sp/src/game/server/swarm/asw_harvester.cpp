@@ -8,7 +8,7 @@
 //#include "npc_antlion.h"
 #include "ai_memory.h"
 #include "asw_shareddefs.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_gamerules.h"
 #include "asw_weapon.h"
 #include "asw_weapon_assault_shotgun_shared.h"
@@ -32,6 +32,9 @@ BEGIN_DATADESC( CASW_Harvester )
 	DEFINE_FIELD( m_flIdleDelay,			FIELD_TIME ),
 END_DATADESC()
 
+#ifdef SWARM_PORT
+ConVar asw_harvester_health( "asw_harvester_health", "200", FCVAR_CHEAT, "Harvester health (Swarm 17 cvar)" );
+#endif
 ConVar asw_harvester_speedboost( "asw_harvester_speedboost", "1.0",FCVAR_CHEAT , "boost speed for the harvesters" );
 ConVar asw_harvester_max_critters( "asw_harvester_max_critters", "5",FCVAR_CHEAT , "maximum critters the harvester can spawn" );
 ConVar asw_harvester_touch_damage( "asw_harvester_touch_damage", "5",FCVAR_CHEAT , "Damage caused by harvesters on touch" );
@@ -72,7 +75,11 @@ void CASW_Harvester::Spawn( void )
 	SetHullType(HULL_WIDE_SHORT);
 	UTIL_SetSize(this, Vector(-23,-23,0), Vector(23,23,69));
 				
+#ifdef SWARM_PORT
+	m_iHealth = ASWGameRules()->ModifyAlienHealthBySkillLevel( asw_harvester_health.GetInt() );
+#else
 	m_iHealth = ASWGameRules()->ModifyAlienHealthBySkillLevel(200);
+#endif
 
 	CapabilitiesAdd( bits_CAP_MOVE_GROUND | bits_CAP_INNATE_RANGE_ATTACK1 );
 
@@ -465,7 +472,7 @@ void CASW_Harvester::StartTouch( CBaseEntity *pOther )
 {
 	BaseClass::StartTouch( pOther );
 
-#ifndef SWARM17 // TODO
+#ifndef SWARM_PORT // TODO
 	CASW_Marine *pMarine = CASW_Marine::AsMarine( pOther );
 	if (pMarine)
 	{
@@ -580,7 +587,7 @@ bool CASW_Harvester::IsHeavyDamage( const CTakeDamageInfo &info )
 	if (( info.GetDamageType() & DMG_BLAST ) != 0 )
 		return true;
 	
-#ifndef SWARM17 // TODO
+#ifndef SWARM_PORT // TODO
 	CASW_Marine *pMarine = dynamic_cast<CASW_Marine*>(info.GetAttacker());	
 	if (pMarine && pMarine->GetActiveASWWeapon())
 	{		
@@ -664,6 +671,23 @@ void CASW_Harvester::Event_Killed( const CTakeDamageInfo &info )
 			{
 				pParasite->ASW_Ignite( 30.0f, 0, info.GetAttacker(), info.GetWeapon() );
 			}
+
+#ifdef SWARM_PORT
+			if ( info.GetDamageType() & DMG_DISSOLVE )
+			{
+				// 75% chance of dissolving
+				if (RandomInt( 1, 4 ) != 1)
+				{
+					Vector vecForce;
+					AngleVectors( angParasiteFacing[i], &vecForce );
+					vecForce *= fJumpDistance[i];
+
+					CTakeDamageInfo dmgInfo( this, this, vecForce, info.GetDamagePosition(), 9999.0f, info.GetDamageType() );
+
+					pParasite->TakeDamage( dmgInfo );
+				}
+			}
+#endif
 		}
 	}
 
@@ -680,7 +704,7 @@ int CASW_Harvester::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	{
 		damage *= 0.4f;
 	}
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if (info.GetDamageType() & DMG_BUCKSHOT)
 	{
 		// hack to reduce vindicator damage (not reducing normal shotty as much as it's not too strong)

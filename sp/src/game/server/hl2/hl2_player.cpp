@@ -60,7 +60,7 @@
 #include "mapbase/variant_tools.h"
 #endif
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 #include "swarm/asw_shareddefs.h"
 #endif
 
@@ -1154,7 +1154,7 @@ void CHL2_Player::PreThink(void)
 	}
 }
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 extern ConVar asw_infest_damage_player;
 #endif
 
@@ -1176,7 +1176,7 @@ void CHL2_Player::PostThink( void )
 	}
 #endif
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	if (IsInfested() && GetHealth() > 0)
 	{
 		while (gpGlobals->curtime >= m_fNextSlowHealTick)
@@ -1191,7 +1191,11 @@ void CHL2_Player::PostThink( void )
 					float DamagePerTick = asw_infest_damage_player.GetFloat();
 					CTakeDamageInfo info(this, this, Vector(0,0,0), GetAbsOrigin(), DamagePerTick,
 						DMG_INFEST);
-					TakeDamage(info);
+					TakeDamage( info );
+
+					// Do a fade effect
+					color32 red = { 128, 0, 0, 128 };
+					UTIL_ScreenFade( this, red, 1.0f, 0.1f, FFADE_IN );
 
 					//EmitSound("MaleMarine.Pain");
 					m_iInfestCycle = 0;

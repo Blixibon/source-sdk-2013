@@ -6,7 +6,7 @@
 #include "functionproxy.h"
 #include "asw_fx_shared.h"
 #include "takedamageinfo.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "c_asw_player.h"
 #endif
 
@@ -29,7 +29,7 @@ C_ASW_Egg::C_ASW_Egg()
 	m_GlowObject.SetColor( Vector( 0.3f, 0.6f, 0.1f ) );
 	m_GlowObject.SetAlpha( 0.55f );
 	m_GlowObject.SetRenderFlags( false, false );
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	m_GlowObject.SetFullBloomRender( true );
 #endif
 }
@@ -91,7 +91,7 @@ void C_ASW_Egg::ClientThink()
 {
 	BaseClass::ClientThink();
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	C_ASW_Player* pPlayer = C_ASW_Player::GetLocalASWPlayer();
 	if ( pPlayer && pPlayer->IsSniperScopeActive() )
 	{
@@ -187,7 +187,7 @@ void C_ASW_Egg::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, 
 	}
 
 	AddMultiDamage( subInfo, this );
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	UTIL_ASW_ClientFloatingDamageNumber( subInfo );
 #endif
 }

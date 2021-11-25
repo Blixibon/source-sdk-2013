@@ -262,7 +262,7 @@ protected:
 	DECLARE_DATADESC();
 };
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 // Stubs
 #define LINK_BEHAVIOR_TO_CLASS( localName, className )
 #define LINK_BEHAVIOR_TO_CLASSNAME( className )
@@ -554,7 +554,7 @@ private:
 	bool			 BackBridge_CanTranslateCrouchActivity( void );
 #endif
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	// For Alien Swarm NPCs
 	public:
 #endif

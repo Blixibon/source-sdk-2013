@@ -49,7 +49,7 @@ public:
 	CHandle<CSprite>		m_pMainGlow;
 	CHandle<CSpriteTrail>	m_pGlowTrail;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	// Classification
 	virtual Class_T Classify( void ) { return (Class_T)CLASS_ASW_GRENADE_VINDICATOR; }
 #endif

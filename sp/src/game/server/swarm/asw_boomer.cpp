@@ -12,7 +12,7 @@
 #include "te_effect_dispatch.h"
 #include "asw_ai_behavior.h"
 #include "props_shared.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_gamerules.h"
 #include "asw_marine.h"
 #include "asw_player.h"
@@ -155,7 +155,7 @@ int CASW_Boomer::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 {
 	CTakeDamageInfo infoNew( info );
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	if ( infoNew.GetAttacker() && info.GetAttacker()->Classify() == CLASS_ASW_MARINE )
 	{
 		EHANDLE hAttacker = infoNew.GetAttacker();
@@ -200,7 +200,7 @@ void CASW_Boomer::Event_Killed( const CTakeDamageInfo &info )
 			m_nDeathStyle = kDIE_BREAKABLE;
 		}
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 		for ( int i = 0; i < m_hMarineAttackers.Count(); i++ )
 		{
 			CASW_Marine *pMarine = dynamic_cast<CASW_Marine*>( m_hMarineAttackers[i].Get() );
@@ -237,7 +237,7 @@ bool CASW_Boomer::CorpseGib( const CTakeDamageInfo &info )
 {
 	CEffectData	data;
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	m_LagCompensation.UndoLaggedPosition();
 #endif
 

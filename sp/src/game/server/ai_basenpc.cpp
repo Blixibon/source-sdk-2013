@@ -104,7 +104,7 @@
 #include "mapbase/vscript_funcs_shared.h"
 #endif
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 #include "swarm/asw_shareddefs.h"
 #endif
 
@@ -700,6 +700,12 @@ bool CAI_BaseNPC::FriendlyFireEnabled()
 
 	if (HL2GameRules()->GlobalFriendlyFire() != TRS_NONE)
 		return HL2GameRules()->GlobalFriendlyFire() == TRS_TRUE;
+
+#ifdef SWARM_PORT
+	// Allow friendly fire when infested with parasite
+	if (IsInfested() && !IsInAScript() && Classify() != CLASS_PLAYER_ALLY_VITAL)
+		return true;
+#endif
 
 	return !(CapabilitiesGet() & bits_CAP_FRIENDLY_DMG_IMMUNE);
 }
@@ -4318,7 +4324,7 @@ bool CAI_BaseNPC::CheckPVSCondition()
 }
 
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 extern ConVar asw_infest_damage_npc;
 
 void CAI_BaseNPC::ASWThinkEffects()
@@ -4338,9 +4344,11 @@ void CAI_BaseNPC::ASWThinkEffects()
 					//float DamagePerTick = ASWGameRules()->TotalInfestDamage() / 20.0f;
 					float DamagePerTick = asw_infest_damage_npc.GetFloat();
 					CTakeDamageInfo info(this, this, Vector(0,0,0), GetAbsOrigin(), DamagePerTick,
-						DMG_INFEST);
+						DMG_INFEST | DMG_ALWAYSGIB);
 					TakeDamage(info);
-					SetSchedule(SCHED_BIG_FLINCH);
+
+					//PlayFlinchGesture();
+					//SetSchedule(SCHED_BIG_FLINCH);
 
 					//EmitSound("MaleMarine.Pain");
 					m_iInfestCycle = 0;
@@ -4383,7 +4391,7 @@ void CAI_BaseNPC::ASWThinkEffects()
 
 void CAI_BaseNPC::NPCThink( void )
 {
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	ASWThinkEffects();
 #endif
 
@@ -6717,6 +6725,19 @@ Activity CAI_BaseNPC::NPC_TranslateActivity( Activity eNewActivity )
 	{
 		// Schedules which break into idle activities should try to maintain the climbing animation.
 		return ACT_CLIMB_IDLE;
+	}
+#endif
+
+#ifdef SWARM_PORT
+	if (IsInfested() && !IsInAScript() && Classify() != CLASS_PLAYER_ALLY_VITAL)
+	{
+		switch (eNewActivity)
+		{
+		case ACT_IDLE_ANGRY:
+		case ACT_IDLE:			eNewActivity = ACT_IDLE_ON_FIRE; break;
+		case ACT_WALK:			eNewActivity = ACT_WALK_ON_FIRE; break;
+		case ACT_RUN:			eNewActivity = ACT_RUN_ON_FIRE; break;
+		}
 	}
 #endif
 

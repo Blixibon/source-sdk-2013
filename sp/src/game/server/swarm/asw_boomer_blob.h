@@ -21,7 +21,7 @@ public:
 	static CASW_Boomer_Blob *Boomer_Blob_Create( float flDamage, float fRadius, int iClusters, const Vector &position, const QAngle &angles, const Vector &velocity, 
 												 const AngularImpulse &angVelocity, CBaseEntity *pOwner );	
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	IMPLEMENT_AUTO_LIST_GET();
 #endif
 

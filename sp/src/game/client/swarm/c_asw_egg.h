@@ -16,7 +16,7 @@ public:
 					C_ASW_Egg();
 	virtual			~C_ASW_Egg();
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	// aim target interface
 	IMPLEMENT_AUTO_LIST_GET();
 #endif
@@ -28,7 +28,7 @@ public:
 	virtual void TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator = NULL );
 	virtual void Bleed( const CTakeDamageInfo &info, const Vector &vecPos, const Vector &vecDir, trace_t *ptr );
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	Class_T		Classify( void ) { return (Class_T) CLASS_ASW_EGG; }
 #endif
 	virtual void OnDataChanged( DataUpdateType_t type );

@@ -23,7 +23,7 @@ public:
 	virtual void UpdateOnRemove( void );
 	virtual void OnRestore();
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 	Class_T		Classify( void ) { return (Class_T) CLASS_ASW_BUZZER; }
 
 	IMPLEMENT_AUTO_LIST_GET();
@@ -43,7 +43,7 @@ public:
 	virtual void ClientThink();
 
 	// storing our location for autoaim
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	virtual int DrawModel( int flags );
 #else
 	virtual int DrawModel( int flags, const RenderableInstance_t &instance );

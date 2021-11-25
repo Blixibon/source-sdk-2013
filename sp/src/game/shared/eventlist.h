@@ -90,7 +90,7 @@ typedef enum
 	AE_NPC_RESPONSE_FORCED,		// Always play a response system concept
 #endif
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	// Alien Swarm Infested shared events
 	AE_ASW_FOOTSTEP,		// asw, played as each foot steps down
 	AE_MARINE_FOOTSTEP,

@@ -604,6 +604,11 @@ public:
 
 	virtual bool			IsNPC( void ) const { return true; }
 
+#ifdef SWARM_PORT
+	// Indicates this is an Alien Swarm alien
+	virtual bool			IsSwarmAlien( void ) const { return false; }
+#endif
+
 	//---------------------------------
 
 	void TestPlayerPushing( CBaseEntity *pPlayer );
@@ -696,7 +701,7 @@ protected:
 
 	bool				CheckPVSCondition();
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	void				ASWThinkEffects();
 #endif
 
@@ -832,7 +837,7 @@ private:
 	bool				m_bUsingStandardThinkTime;
 	float				m_flLastRealThinkTime;
 	int					m_iFrameBlocked;
-#ifdef SWARM17
+#ifdef SWARM_PORT
 protected:
 #endif
 	bool				m_bInChoreo;
@@ -926,7 +931,7 @@ public:
 	void				InputClearCondition( inputdata_t &inputdata );
 #endif
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 	bool				IsForceGatherConditionsSet() const { return m_bForceConditionsGather; }
 #endif
 
@@ -2187,7 +2192,7 @@ private:
 	bool				m_fIsUsingSmallHull;
 	bool				m_bCheckContacts;
 
-#ifdef SWARM17
+#ifdef SWARM_PORT
 public:
 #else
 private:

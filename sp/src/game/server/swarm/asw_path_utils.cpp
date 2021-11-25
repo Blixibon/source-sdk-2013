@@ -3,7 +3,7 @@
 #include "ai_pathfinder.h"
 #include "ai_waypoint.h"
 #include "asw_shareddefs.h"
-#ifndef SWARM17
+#ifndef SWARM_PORT
 #include "asw_player.h"
 #include "asw_marine.h"
 #include "asw_trace_filter_doors.h"
@@ -68,7 +68,7 @@ AI_Waypoint_t *CASW_Path_Utils::BuildRoute( const Vector &vStart, const Vector &
 	if ( !GetPathfinderNPC() )
 		return NULL;
 
-#ifdef SWARM17 // TODO
+#ifdef SWARM_PORT // TODO
 	m_pLastRoute = GetPathfinderNPC()->GetPathfinder()->BuildRoute( vStart, vEnd, pTarget, goalTolerance, curNavType, nBuildFlags != 0 );
 #else
 	m_pLastRoute = GetPathfinderNPC()->GetPathfinder()->BuildRoute( vStart, vEnd, pTarget, goalTolerance, curNavType, nBuildFlags );
@@ -89,7 +89,7 @@ void CASW_Path_Utils::DeleteRoute( AI_Waypoint_t *pWaypointList )
 	}
 }
 
-#ifndef SWARM17
+#ifndef SWARM_PORT
 void asw_path_start_f()
 {
 	CASW_Player *pPlayer = ToASW_Player(UTIL_GetCommandClient());
