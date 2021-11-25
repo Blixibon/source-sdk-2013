@@ -2393,7 +2393,66 @@ void CBaseEntity::ModifyEmitSoundParams( EmitSound_t &params )
 		params.m_pSoundName = GameRules()->TranslateEffectForVisionFilter( "sounds", params.m_pSoundName );
 	}
 #endif
+
+#ifdef MAPBASE_VSCRIPT
+	if (m_ScriptScope.IsInitialized() && g_Hook_ModifyEmitSoundParams.CanRunInScope( m_ScriptScope ))
+	{
+		HSCRIPT hParams = g_pScriptVM->RegisterInstance( reinterpret_cast<ScriptEmitSound_t*>(&params) );
+
+		// params
+		ScriptVariant_t functionReturn;
+		ScriptVariant_t args[] = { ScriptVariant_t( hParams ) };
+		g_Hook_ModifyEmitSoundParams.Call( m_ScriptScope, &functionReturn, args );
+
+		g_pScriptVM->RemoveInstance( hParams );
+	}
+#endif
 }
+
+#if defined(MAPBASE) && defined(GAME_DLL)
+void CBaseEntity::ModifySentenceParams( int &iSentenceIndex, int &iChannel, float &flVolume, soundlevel_t &iSoundlevel, int &iFlags, int &iPitch,
+	const Vector **pOrigin, const Vector **pDirection, bool &bUpdatePositions, float &soundtime, int &iSpecialDSP, int &iSpeakerIndex )
+{
+#ifdef MAPBASE_VSCRIPT
+	if (m_ScriptScope.IsInitialized() && g_Hook_ModifySentenceParams.CanRunInScope( m_ScriptScope ))
+	{
+		// This is a bit of a hack, but for consistency with ModifyEmitSoundParams, put them into an EmitSound_t params
+		ScriptEmitSound_t params;
+		params.m_pSoundName = engine->SentenceNameFromIndex( iSentenceIndex );
+		params.m_nChannel = iChannel;
+		params.m_flVolume = flVolume;
+		params.m_SoundLevel = iSoundlevel;
+		params.m_nFlags = iFlags;
+		params.m_nPitch = iPitch;
+		params.m_pOrigin = *pOrigin;
+		params.m_flSoundTime = soundtime;
+		params.m_nSpecialDSP = iSpecialDSP;
+		params.m_nSpeakerEntity = iSpeakerIndex;
+
+		HSCRIPT hParams = g_pScriptVM->RegisterInstance( &params );
+
+		// params
+		ScriptVariant_t functionReturn;
+		ScriptVariant_t args[] = { ScriptVariant_t( hParams ) };
+		if (g_Hook_ModifySentenceParams.Call( m_ScriptScope, &functionReturn, args ))
+		{
+			iSentenceIndex = engine->SentenceIndexFromName( params.m_pSoundName );
+			iChannel = params.m_nChannel;
+			flVolume = params.m_flVolume;
+			iSoundlevel = params.m_SoundLevel;
+			iFlags = params.m_nFlags;
+			iPitch = params.m_nPitch;
+			*pOrigin = params.m_pOrigin;
+			soundtime = params.m_flSoundTime;
+			iSpecialDSP = params.m_nSpecialDSP;
+			iSpeakerIndex = params.m_nSpeakerEntity;
+		}
+
+		g_pScriptVM->RemoveInstance( hParams );
+	}
+#endif
+}
+#endif
 
 //-----------------------------------------------------------------------------
 // These methods encapsulate MOVETYPE_FOLLOW, which became obsolete
@@ -2737,6 +2796,8 @@ void CBaseEntity::ScriptContextThink()
 	float flNextThink = FLT_MAX;
 	float flScheduled = 0.0f;
 
+	ScriptVariant_t arg = m_hScriptInstance;
+
 	for ( int i = 0; i < m_ScriptThinkFuncs.Count(); ++i )
 	{
 		scriptthinkfunc_t *cur = m_ScriptThinkFuncs[i];
@@ -2766,21 +2827,12 @@ void CBaseEntity::ScriptContextThink()
 		if ( !cur->m_bNoParam )
 		{
 #endif
-			ScriptVariant_t arg = m_hScriptInstance;
-			if ( g_pScriptVM->ExecuteFunction( cur->m_hfnThink, &arg, 1, &varReturn, NULL, true ) == SCRIPT_ERROR )
-			{
-				cur->m_flNextThink = SCRIPT_NEVER_THINK;
-				continue;
-			}
+			g_pScriptVM->ExecuteFunction( cur->m_hfnThink, &arg, 1, &varReturn, NULL, true );
 #ifndef CLIENT_DLL
 		}
 		else
 		{
-			if ( g_pScriptVM->ExecuteFunction( cur->m_hfnThink, NULL, 0, &varReturn, NULL, true ) == SCRIPT_ERROR )
-			{
-				cur->m_flNextThink = SCRIPT_NEVER_THINK;
-				continue;
-			}
+			g_pScriptVM->ExecuteFunction( cur->m_hfnThink, NULL, 0, &varReturn, NULL, true );
 		}
 #endif
 
@@ -2793,6 +2845,7 @@ void CBaseEntity::ScriptContextThink()
 		float flReturn;
 		if ( !varReturn.AssignTo( &flReturn ) )
 		{
+			varReturn.Free();
 			cur->m_flNextThink = SCRIPT_NEVER_THINK;
 			continue;
 		}
@@ -2808,7 +2861,7 @@ void CBaseEntity::ScriptContextThink()
 			flNextThink = flReturn;
 		}
 
-		cur->m_flNextThink = gpGlobals->curtime + flReturn - 0.001;
+		cur->m_flNextThink = gpGlobals->curtime + flReturn - 0.001f;
 	}
 
 	// deferred safe removal

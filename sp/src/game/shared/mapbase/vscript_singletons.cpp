@@ -42,7 +42,6 @@
 #include "tier0/memdbgon.h"
 
 extern IScriptManager *scriptmanager;
-CNetMsgScriptHelper *g_ScriptNetMsg = new CNetMsgScriptHelper();
 
 //=============================================================================
 // Net Prop Manager
@@ -367,6 +366,11 @@ END_SCRIPTDESC();
 //=============================================================================
 // Game Event Listener
 // Based on Source 2 API
+//
+// NOTE: In Source 2 vscript (Lua) event listener contexts are tables that are
+// passed to the callback function as the call environment.
+// In mapbase implementation these are string identifiers because unlike Lua,
+// Squirrel has closure methods such as 'bindenv' which can bind functions to specified environments.
 //=============================================================================
 
 // Define to use the older code that loads all events manually independent from the game event manager.
@@ -376,7 +380,13 @@ END_SCRIPTDESC();
 class CScriptGameEventListener : public IGameEventListener2, public CAutoGameSystem
 {
 public:
-	CScriptGameEventListener() : m_bActive(false) /*, m_nEventTick(0)*/ {}
+	CScriptGameEventListener() : m_bActive(false)
+	{
+#ifdef _DEBUG
+		m_nEventTick = 0;
+#endif
+	}
+
 	~CScriptGameEventListener()
 	{
 		StopListeningForEvent();
@@ -398,10 +408,12 @@ private:
 	HSCRIPT m_hCallback;
 	unsigned int m_iContextHash;
 	bool m_bActive;
-	//int m_nEventTick;
+#ifdef _DEBUG
+	int m_nEventTick;
+#endif
 
 	static StringHashFunctor Hash;
-	static inline unsigned int HashContext( const char* c ) { return (c && *c) ? Hash(c) : 0; }
+	static inline unsigned int HashContext( const char* c ) { return c ? Hash(c) : 0; }
 
 	inline int GetIndex()
 	{
@@ -574,11 +586,10 @@ void CScriptGameEventListener::LoadEventsFromFile( const char *filename, const c
 void CScriptGameEventListener::DumpEventListeners()
 {
 	CGMsg( 0, CON_GROUP_VSCRIPT, "--- Script game event listener dump start\n" );
-	CGMsg( 0, CON_GROUP_VSCRIPT, "#    ADDRESS      ID         CONTEXT\n" );
+	CGMsg( 0, CON_GROUP_VSCRIPT, "#    ID         CONTEXT\n" );
 	FOR_EACH_VEC( s_Listeners, i )
 	{
-		CGMsg( 0, CON_GROUP_VSCRIPT, " %d   (0x%p) %d : %u\n", i,
-										(void*)s_Listeners[i],
+		CGMsg( 0, CON_GROUP_VSCRIPT, " %d : %d : %u\n", i,
 										s_Listeners[i]->GetIndex(),
 										s_Listeners[i]->m_iContextHash );
 	}
@@ -594,7 +605,9 @@ void CScriptGameEventListener::LevelShutdownPreEntity()
 
 void CScriptGameEventListener::FireGameEvent( IGameEvent *event )
 {
-	//m_nEventTick = gpGlobals->tickcount;
+#ifdef _DEBUG
+	m_nEventTick = gpGlobals->tickcount;
+#endif
 	ScriptVariant_t hTable;
 	g_pScriptVM->CreateTable( hTable );
 	WriteEventData( event, hTable );
@@ -724,13 +737,15 @@ void CScriptGameEventListener::StopListeningForEvent()
 	if ( gameeventmanager )
 		gameeventmanager->RemoveListener( this );
 
+#ifdef _DEBUG
 	// Event listeners are iterated forwards in the game event manager,
 	// removing while iterating will cause it to skip one listener.
 	// This could be prevented by writing a custom game event manager.
-	//if ( m_nEventTick == gpGlobals->tickcount )
-	//{
-	//	Warning("CScriptGameEventListener stopped in the same frame it was fired. This will break other event listeners!\n");
-	//}
+	if ( m_nEventTick == gpGlobals->tickcount )
+	{
+		Warning("CScriptGameEventListener stopped in the same frame it was fired. This will break other event listeners!\n");
+	}
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -755,14 +770,12 @@ bool CScriptGameEventListener::StopListeningToGameEvent( int listener )
 void CScriptGameEventListener::StopListeningToAllGameEvents( const char* szContext )
 {
 	unsigned int hash = HashContext( szContext );
-
-	// Iterate from the end so they can be safely removed as they are deleted
 	for ( int i = s_Listeners.Count(); i--; )
 	{
 		CScriptGameEventListener *pCur = s_Listeners[i];
 		if ( pCur->m_iContextHash == hash )
 		{
-			s_Listeners.Remove(i); // keep list order
+			s_Listeners.FastRemove(i);
 			delete pCur;
 		}
 	}
@@ -839,6 +852,9 @@ static void FireGameEventLocal( const char* szEvent, HSCRIPT hTable )
 }
 #endif // !CLIENT_DLL
 
+static ScriptHook_t g_Hook_OnSave;
+static ScriptHook_t g_Hook_OnRestore;
+
 //=============================================================================
 // Save/Restore Utility
 // Based on L4D2 API
@@ -856,6 +872,9 @@ public: // IGameSystem
 	{
 		if ( g_pScriptVM )
 		{
+			g_Hook_OnSave.Call( NULL, NULL, NULL );
+
+			// Legacy hook
 			HSCRIPT hFunc = g_pScriptVM->LookupFunction( "OnSave" );
 			if ( hFunc )
 			{
@@ -874,6 +893,9 @@ public: // IGameSystem
 	{
 		if ( g_pScriptVM )
 		{
+			g_Hook_OnRestore.Call( NULL, NULL, NULL );
+
+			// Legacy hook
 			HSCRIPT hFunc = g_pScriptVM->LookupFunction( "OnRestore" );
 			if ( hFunc )
 			{
@@ -1001,6 +1023,7 @@ class CScriptReadWriteFile : public CAutoGameSystem
 public:
 	static bool FileWrite( const char *szFile, const char *szInput );
 	static const char *FileRead( const char *szFile );
+	static bool FileExists( const char *szFile );
 
 	// NOTE: These two functions are new with Mapbase and have no Valve equivalent
 	static bool KeyValuesWrite( const char *szFile, HSCRIPT hInput );
@@ -1107,6 +1130,23 @@ const char *CScriptReadWriteFile::FileRead( const char *szFile )
 }
 
 //-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+bool CScriptReadWriteFile::FileExists( const char *szFile )
+{
+	char pszFullName[MAX_PATH];
+	V_snprintf( pszFullName, sizeof(pszFullName), SCRIPT_RW_FULL_PATH_FMT, szFile );
+
+	if ( !V_RemoveDotSlashes( pszFullName, CORRECT_PATH_SEPARATOR, true ) )
+	{
+		DevWarning( 2, "Invalid file location : %s\n", szFile );
+		return NULL;
+	}
+
+	return g_pFullFileSystem->FileExists( pszFullName, SCRIPT_RW_PATH_ID );
+}
+
+//-----------------------------------------------------------------------------
 // Get the checksum of any file. Can be used to check the existence or validity of a file.
 // Returns unsigned int as hex string.
 //-----------------------------------------------------------------------------
@@ -1202,10 +1242,7 @@ HSCRIPT CScriptReadWriteFile::KeyValuesRead( const char *szFile )
 
 	return hScript;
 }
-#undef SCRIPT_MAX_FILE_READ_SIZE
-#undef SCRIPT_MAX_FILE_WRITE_SIZE
-#undef SCRIPT_RW_PATH_ID
-#undef SCRIPT_RW_FULL_PATH_FMT
+
 
 //=============================================================================
 // Network message helper
@@ -1215,6 +1252,8 @@ HSCRIPT CScriptReadWriteFile::KeyValuesRead( const char *szFile )
 // The custom message name is hashed and sent as word with the message.
 //=============================================================================
 
+static CNetMsgScriptHelper scriptnetmsg;
+CNetMsgScriptHelper *g_ScriptNetMsg = &scriptnetmsg;
 
 #ifdef GAME_DLL
 #define m_MsgIn_() m_MsgIn->
@@ -2181,23 +2220,23 @@ END_SCRIPTDESC();
 //=============================================================================
 // ConVars
 //=============================================================================
-class CScriptConCommand : public ICommandCallback, public ICommandCompletionCallback
+class CScriptConCommand : public ConCommand, public ICommandCallback, public ICommandCompletionCallback
 {
+	typedef ConCommand BaseClass;
+
 public:
 	~CScriptConCommand()
 	{
 		Unregister();
-		delete m_pBase;
 	}
 
 	CScriptConCommand( const char *name, HSCRIPT fn, const char *helpString, int flags, ConCommand *pLinked = NULL )
+		: BaseClass( name, this, helpString, flags, 0 ),
+		m_pLinked(pLinked),
+		m_hCallback(fn),
+		m_hCompletionCallback(NULL)
 	{
-		m_pBase = new ConCommand( name, this, helpString, flags, 0 );
-		m_pLinked = pLinked;
-		m_hCallback = fn;
-		m_hCompletionCallback = NULL;
 		m_nCmdNameLen = V_strlen(name) + 1;
-
 		Assert( m_nCmdNameLen - 1 <= 128 );
 	}
 
@@ -2272,17 +2311,17 @@ public:
 
 		if (fn)
 		{
-			if ( !m_pBase->IsRegistered() )
+			if ( !BaseClass::IsRegistered() )
 				return;
 
-			m_pBase->m_pCommandCompletionCallback = this;
-			m_pBase->m_bHasCompletionCallback = true;
+			BaseClass::m_pCommandCompletionCallback = this;
+			BaseClass::m_bHasCompletionCallback = true;
 			m_hCompletionCallback = fn;
 		}
 		else
 		{
-			m_pBase->m_pCommandCompletionCallback = NULL;
-			m_pBase->m_bHasCompletionCallback = false;
+			BaseClass::m_pCommandCompletionCallback = NULL;
+			BaseClass::m_bHasCompletionCallback = false;
 			m_hCompletionCallback = NULL;
 		}
 	}
@@ -2291,7 +2330,7 @@ public:
 	{
 		if (fn)
 		{
-			if ( !m_pBase->IsRegistered() )
+			if ( !BaseClass::IsRegistered() )
 				Register();
 
 			if ( m_hCallback )
@@ -2306,8 +2345,8 @@ public:
 
 	inline void Unregister()
 	{
-		if ( g_pCVar && m_pBase->IsRegistered() )
-			g_pCVar->UnregisterConCommand( m_pBase );
+		if ( g_pCVar && BaseClass::IsRegistered() )
+			g_pCVar->UnregisterConCommand( this );
 
 		if ( g_pScriptVM )
 		{
@@ -2324,30 +2363,29 @@ public:
 	inline void Register()
 	{
 		if ( g_pCVar )
-			g_pCVar->RegisterConCommand( m_pBase );
+			g_pCVar->RegisterConCommand( this );
 	}
 
 	HSCRIPT m_hCallback;
+	ConCommand *m_pLinked;
 	HSCRIPT m_hCompletionCallback;
 	int m_nCmdNameLen;
-	ConCommand *m_pLinked;
-	ConCommand *m_pBase;
 };
 
-class CScriptConVar
+class CScriptConVar : public ConVar
 {
+	typedef ConVar BaseClass;
+
 public:
 	~CScriptConVar()
 	{
 		Unregister();
-		delete m_pBase;
 	}
 
 	CScriptConVar( const char *pName, const char *pDefaultValue, const char *pHelpString, int flags/*, float fMin, float fMax*/ )
-	{
-		m_pBase = new ConVar( pName, pDefaultValue, flags, pHelpString );
-		m_hCallback = NULL;
-	}
+		: BaseClass( pName, pDefaultValue, flags, pHelpString ),
+		m_hCallback(NULL)
+	{}
 
 	void SetChangeCallback( HSCRIPT fn )
 	{
@@ -2359,19 +2397,19 @@ public:
 		if (fn)
 		{
 			m_hCallback = fn;
-			m_pBase->InstallChangeCallback( (FnChangeCallback_t)ScriptConVarCallback );
+			BaseClass::InstallChangeCallback( (FnChangeCallback_t)ScriptConVarCallback );
 		}
 		else
 		{
 			m_hCallback = NULL;
-			m_pBase->InstallChangeCallback( NULL );
+			BaseClass::InstallChangeCallback( NULL );
 		}
 	}
 
 	inline void Unregister()
 	{
-		if ( g_pCVar && m_pBase->IsRegistered() )
-			g_pCVar->UnregisterConCommand( m_pBase );
+		if ( g_pCVar && BaseClass::IsRegistered() )
+			g_pCVar->UnregisterConCommand( this );
 
 		if ( g_pScriptVM )
 		{
@@ -2380,7 +2418,6 @@ public:
 	}
 
 	HSCRIPT m_hCallback;
-	ConVar *m_pBase;
 };
 
 static CUtlMap< unsigned int, bool > g_ConVarsBlocked( DefLessFunc(unsigned int) );
@@ -2403,9 +2440,7 @@ public:
 	inline bool IsOverridable( unsigned int hash )
 	{
 		int idx = g_ConCommandsOverridable.Find( hash );
-		if ( idx == g_ConCommandsOverridable.InvalidIndex() )
-			return false;
-		return true;
+		return ( idx != g_ConCommandsOverridable.InvalidIndex() );
 	}
 
 	inline void AddBlockedConVar( const char *name )
@@ -2416,9 +2451,7 @@ public:
 	inline bool IsBlockedConvar( const char *name )
 	{
 		int idx = g_ConVarsBlocked.Find( Hash(name) );
-		if ( idx == g_ConVarsBlocked.InvalidIndex() )
-			return false;
-		return true;
+		return ( idx != g_ConVarsBlocked.InvalidIndex() );
 	}
 
 public:
@@ -2541,8 +2574,8 @@ void CScriptConvarAccessor::RegisterCommand( const char *name, HSCRIPT fn, const
 	int idx = g_ScriptConCommands.Find(hash);
 	if ( idx == g_ScriptConCommands.InvalidIndex() )
 	{
-		ConCommand *pLinked = NULL;
-		if ( g_pCVar->FindVar(name) || ( ((pLinked = g_pCVar->FindCommand(name)) != NULL) && !IsOverridable(hash) ) )
+		ConCommandBase *pBase = g_pCVar->FindCommandBase(name);
+		if ( pBase && ( !pBase->IsCommand() || !IsOverridable(hash) ) )
 		{
 			DevWarning( 1, "CScriptConvarAccessor::RegisterCommand unable to register blocked ConCommand: %s\n", name );
 			return;
@@ -2551,7 +2584,7 @@ void CScriptConvarAccessor::RegisterCommand( const char *name, HSCRIPT fn, const
 		if ( !fn )
 			return;
 
-		CScriptConCommand *p = new CScriptConCommand( name, fn, helpString, flags, pLinked );
+		CScriptConCommand *p = new CScriptConCommand( name, fn, helpString, flags, static_cast< ConCommand* >(pBase) );
 		g_ScriptConCommands.Insert( hash, p );
 	}
 	else
@@ -2589,7 +2622,7 @@ void CScriptConvarAccessor::RegisterConvar( const char *name, const char *pDefau
 	int idx = g_ScriptConVars.Find(hash);
 	if ( idx == g_ScriptConVars.InvalidIndex() )
 	{
-		if ( g_pCVar->FindVar(name) || g_pCVar->FindCommand(name) )
+		if ( g_pCVar->FindCommandBase(name) )
 		{
 			DevWarning( 1, "CScriptConvarAccessor::RegisterConvar unable to register blocked ConCommand: %s\n", name );
 			return;
@@ -3040,8 +3073,11 @@ void RegisterScriptSingletons()
 	ScriptRegisterFunctionNamed( g_pScriptVM, CScriptSaveRestoreUtil::SaveTable, "SaveTable", "Store a table with primitive values that will persist across level transitions and save loads." );
 	ScriptRegisterFunctionNamed( g_pScriptVM, CScriptSaveRestoreUtil::RestoreTable, "RestoreTable", "Retrieves a table from storage. Write into input table." );
 	ScriptRegisterFunctionNamed( g_pScriptVM, CScriptSaveRestoreUtil::ClearSavedTable, "ClearSavedTable", "Removes the table with the given context." );
+	ScriptRegisterSimpleHook( g_pScriptVM, g_Hook_OnSave, "OnSave", FIELD_VOID, "Called when the game is saved." );
+	ScriptRegisterSimpleHook( g_pScriptVM, g_Hook_OnRestore, "OnRestore", FIELD_VOID, "Called when the game is restored." );
 	ScriptRegisterFunctionNamed( g_pScriptVM, CScriptReadWriteFile::FileWrite, "StringToFile", "Stores the string into the file" );
 	ScriptRegisterFunctionNamed( g_pScriptVM, CScriptReadWriteFile::FileRead, "FileToString", "Returns the string from the file, null if no file or file is too big." );
+	ScriptRegisterFunctionNamed( g_pScriptVM, CScriptReadWriteFile::FileExists, "FileExists", "Returns true if the file exists." );
 	ScriptRegisterFunctionNamed( g_pScriptVM, CScriptReadWriteFile::KeyValuesWrite, "KeyValuesToFile", "Stores the CScriptKeyValues into the file" );
 	ScriptRegisterFunctionNamed( g_pScriptVM, CScriptReadWriteFile::KeyValuesRead, "FileToKeyValues", "Returns the CScriptKeyValues from the file, null if no file or file is too big." );
 

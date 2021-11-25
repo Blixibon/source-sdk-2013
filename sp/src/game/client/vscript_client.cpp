@@ -15,11 +15,12 @@
 #include "gamerules.h"
 #include "vscript_client.nut"
 #ifdef MAPBASE_VSCRIPT
-#include "mapbase/matchers.h"
+#include "view.h"
 #include "c_world.h"
 #include "proxyentity.h"
 #include "materialsystem/imaterial.h"
 #include "materialsystem/imaterialvar.h"
+#include "mapbase/matchers.h"
 #include "mapbase/vscript_singletons.h"
 #endif
 
@@ -41,10 +42,13 @@ extern ScriptClassDesc_t * GetScriptDesc( CBaseEntity * );
 #endif // VMPROFILE
 
 #ifdef MAPBASE_VSCRIPT
+static ScriptHook_t g_Hook_OnEntityCreated;
+static ScriptHook_t g_Hook_OnEntityDeleted;
+
 //-----------------------------------------------------------------------------
 // Purpose: A clientside variant of CScriptEntityIterator.
 //-----------------------------------------------------------------------------
-class CScriptClientEntityIterator
+class CScriptClientEntityIterator : public IClientEntityListener
 {
 public:
 	HSCRIPT GetLocalPlayer()
@@ -96,6 +100,38 @@ public:
 		return NULL;
 	}
 
+	void EnableEntityListening()
+	{
+		// Start getting entity updates!
+		ClientEntityList().AddListenerEntity( this );
+	}
+
+	void DisableEntityListening()
+	{
+		// Stop getting entity updates!
+		ClientEntityList().RemoveListenerEntity( this );
+	}
+
+	void OnEntityCreated( CBaseEntity *pEntity )
+	{
+		if ( g_pScriptVM )
+		{
+			// entity
+			ScriptVariant_t args[] = { ScriptVariant_t( pEntity->GetScriptInstance() ) };
+			g_Hook_OnEntityCreated.Call( NULL, NULL, args );
+		}
+	};
+
+	void OnEntityDeleted( CBaseEntity *pEntity )
+	{
+		if ( g_pScriptVM )
+		{
+			// entity
+			ScriptVariant_t args[] = { ScriptVariant_t( pEntity->GetScriptInstance() ) };
+			g_Hook_OnEntityDeleted.Call( NULL, NULL, args );
+		}
+	};
+
 private:
 } g_ScriptEntityIterator;
 
@@ -106,6 +142,17 @@ BEGIN_SCRIPTDESC_ROOT_NAMED( CScriptClientEntityIterator, "CEntities", SCRIPT_SI
 	DEFINE_SCRIPTFUNC( CreateByClassname, "Creates an entity by classname" )
 	DEFINE_SCRIPTFUNC( FindByClassname, "Find entities by class name. Pass 'null' to start an iteration, or reference to a previously found entity to continue a search"  )
 	DEFINE_SCRIPTFUNC( FindByName, "Find entities by name. Pass 'null' to start an iteration, or reference to a previously found entity to continue a search"  )
+
+	DEFINE_SCRIPTFUNC( EnableEntityListening, "Enables the 'OnEntity' hooks. This function must be called before using them." )
+	DEFINE_SCRIPTFUNC( DisableEntityListening, "Disables the 'OnEntity' hooks." )
+
+	BEGIN_SCRIPTHOOK( g_Hook_OnEntityCreated, "OnEntityCreated", FIELD_VOID, "Called when an entity is created. Requires EnableEntityListening() to be fired beforehand." )
+		DEFINE_SCRIPTHOOK_PARAM( "entity", FIELD_HSCRIPT )
+	END_SCRIPTHOOK()
+
+	BEGIN_SCRIPTHOOK( g_Hook_OnEntityDeleted, "OnEntityDeleted", FIELD_VOID, "Called when an entity is deleted. Requires EnableEntityListening() to be fired beforehand." )
+		DEFINE_SCRIPTHOOK_PARAM( "entity", FIELD_HSCRIPT )
+	END_SCRIPTHOOK()
 END_SCRIPTDESC();
 
 //-----------------------------------------------------------------------------
@@ -615,6 +662,20 @@ bool VScriptClientInit()
 				ScriptRegisterFunction( g_pScriptVM, ScreenHeight, "Height of the screen in pixels" );
 				ScriptRegisterFunction( g_pScriptVM, IsWindowedMode, "" );
 				ScriptRegisterFunctionNamed( g_pScriptVM, ScriptScreenTransform, "ScreenTransform", "Get the x & y positions of a world position in screen space. Returns true if it's onscreen" );
+
+				ScriptRegisterFunction( g_pScriptVM, MainViewOrigin, "" );
+				ScriptRegisterFunction( g_pScriptVM, MainViewAngles, "" );
+				ScriptRegisterFunction( g_pScriptVM, PrevMainViewOrigin, "" );
+				ScriptRegisterFunction( g_pScriptVM, PrevMainViewAngles, "" );
+				ScriptRegisterFunction( g_pScriptVM, MainViewForward, "" );
+				ScriptRegisterFunction( g_pScriptVM, MainViewRight, "" );
+				ScriptRegisterFunction( g_pScriptVM, MainViewUp, "" );
+
+				ScriptRegisterFunction( g_pScriptVM, CurrentViewOrigin, "" );
+				ScriptRegisterFunction( g_pScriptVM, CurrentViewAngles, "" );
+				ScriptRegisterFunction( g_pScriptVM, CurrentViewForward, "" );
+				ScriptRegisterFunction( g_pScriptVM, CurrentViewRight, "" );
+				ScriptRegisterFunction( g_pScriptVM, CurrentViewUp, "" );
 
 				ScriptRegisterFunction( g_pScriptVM, CreateProp, "Create an animating prop" );
 #endif

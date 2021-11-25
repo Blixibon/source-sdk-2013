@@ -366,6 +366,14 @@ enum PLAYER_ANIM
 	PLAYER_RELOAD,
 	PLAYER_START_AIMING,
 	PLAYER_LEAVE_AIMING,
+
+#ifdef MAPBASE
+	// New player animations from Mapbase
+	PLAYER_ATTACK2,
+	PLAYER_ATTACK3,
+	PLAYER_UNHOLSTER,
+	PLAYER_HOLSTER,
+#endif
 };
 
 #ifdef HL2_DLL
@@ -1047,5 +1055,17 @@ enum
 	MAX_VISION_MODES
 };
 #endif // TF_DLL || TF_CLIENT_DLL
+
+#ifdef MAPBASE
+// Developer commentary types
+enum
+{
+	COMMENTARY_TYPE_AUDIO,		// Play commentary audio (default)
+
+	COMMENTARY_TYPE_TEXT,		// Display text data
+	COMMENTARY_TYPE_IMAGE,		// Display an image
+	COMMENTARY_TYPE_SCENE,		// Play a VCD file
+};
+#endif
 
 #endif // SHAREDDEFS_H

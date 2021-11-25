@@ -32,6 +32,9 @@
 #include "gib.h"
 #include "CRagdollMagnet.h"
 #endif
+#ifdef MAPBASE_VSCRIPT
+#include "mapbase/vscript_funcs_shared.h"
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -506,6 +509,11 @@ void CBaseAnimating::StudioFrameAdvanceInternal( CStudioHdr *pStudioHdr, float f
 	float flNewCycle = GetCycle() + flCycleDelta;
 	if (flNewCycle < 0.0 || flNewCycle >= 1.0) 
 	{
+		if (flNewCycle >= 1.0f)
+		{
+			ReachedEndOfSequence();
+		}
+
 		if (m_bSequenceLoops)
 		{
 			flNewCycle -= (int)(flNewCycle);
@@ -1291,7 +1299,7 @@ bool CBaseAnimating::ScriptHookHandleAnimEvent( animevent_t *pEvent )
 {
 	if (m_ScriptScope.IsInitialized() && g_Hook_HandleAnimEvent.CanRunInScope(m_ScriptScope))
 	{
-		HSCRIPT hEvent = g_pScriptVM->RegisterInstance( pEvent );
+		HSCRIPT hEvent = g_pScriptVM->RegisterInstance( reinterpret_cast<scriptanimevent_t*>(pEvent) );
 
 		// event
 		ScriptVariant_t args[] = { hEvent };
@@ -1940,7 +1948,7 @@ ConVar ai_setupbones_debug( "ai_setupbones_debug", "0", 0, "Shows that bones tha
 
 
 
-inline bool CBaseAnimating::CanSkipAnimation( void )
+bool CBaseAnimating::CanSkipAnimation( void )
 {
 	if ( !sv_pvsskipanimation.GetBool() )
 		return false;

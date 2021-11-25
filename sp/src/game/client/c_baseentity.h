@@ -296,6 +296,7 @@ public:
 	CScriptScope	m_ScriptScope;
 
 	static ScriptHook_t g_Hook_UpdateOnRemove;
+	static ScriptHook_t g_Hook_ModifyEmitSoundParams;
 #endif
 
 // IClientUnknown overrides.
@@ -1263,7 +1264,7 @@ public:
 #ifdef _DEBUG
 	void FunctionCheck( void *pFunction, const char *name );
 
-	ENTITYFUNCPTR TouchSet( ENTITYFUNCPTR func, char *name ) 
+	ENTITYFUNCPTR TouchSet( ENTITYFUNCPTR func, const char *name ) 
 	{ 
 		//COMPILE_TIME_ASSERT( sizeof(func) == 4 );
 		m_pfnTouch = func; 

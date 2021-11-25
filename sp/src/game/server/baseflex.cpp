@@ -95,9 +95,17 @@ BEGIN_DATADESC( CBaseFlex )
 
 END_DATADESC()
 
+#ifdef MAPBASE_VSCRIPT
+BEGIN_ENT_SCRIPTDESC( CBaseFlex, CBaseAnimatingOverlay, "Animated characters who have vertex flex capability." )
+#else
 BEGIN_ENT_SCRIPTDESC( CBaseFlex, CBaseAnimating, "Animated characters who have vertex flex capability." )
+#endif
 	DEFINE_SCRIPTFUNC_NAMED( ScriptGetOldestScene, "GetCurrentScene", "Returns the instance of the oldest active scene entity (if any)." )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptGetSceneByIndex, "GetSceneByIndex", "Returns the instance of the scene entity at the specified index." )
+
+#ifdef MAPBASE
+	DEFINE_SCRIPTFUNC( SetViewtarget, "Sets the entity's eye target." )
+#endif
 END_SCRIPTDESC();
 
 
@@ -2328,8 +2336,13 @@ void CBaseFlex::DoBodyLean( void )
 		{
 			m_vecPrevVelocity = vecDelta;
 			float decay =  ExponentialDecay( 0.5, 0.1, dt );
+#ifdef MAPBASE // From Alien Swarm SDK
+			m_vecShift = m_vecShift * decay;
+			m_vecLean = m_vecLean * decay;
+#else
 			m_vecShift = m_vecLean * decay;
 			m_vecLean = m_vecShift * decay;
+#endif
  		}
 
 		m_vecPrevOrigin = vecOrigin;
