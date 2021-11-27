@@ -788,7 +788,7 @@ bool CASW_Parasite::CanHurtTarget( CBaseEntity *pOther )
 		return false;
 	}
 
-	return false;
+	return true;
 }
 #endif
 

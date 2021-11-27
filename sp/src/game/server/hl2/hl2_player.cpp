@@ -1169,6 +1169,7 @@ void CHL2_Player::PostThink( void )
 
 #ifdef SP_ANIM_STATE
 	if (m_pPlayerAnimState)
+	{
 		QAngle angEyeAngles = EyeAngles();
 		m_pPlayerAnimState->Update( angEyeAngles.y, angEyeAngles.x );
 
