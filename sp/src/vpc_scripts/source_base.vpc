@@ -38,6 +38,9 @@ $Configuration "Debug"
 
 		// Mapbase base definitions
 		$PreprocessorDefinitions		"$BASE;MAPBASE"		[$MAPBASE]
+		
+		// Reversion Catalyst
+		$PreprocessorDefinitions		"$BASE;REVERSION_CATALYST"
 	}
 }
 
@@ -56,5 +59,8 @@ $Configuration "Release"
 
 		// Mapbase base definitions
 		$PreprocessorDefinitions		"$BASE;MAPBASE"		[$MAPBASE]
+		
+		// Reversion Catalyst
+		$PreprocessorDefinitions		"$BASE;REVERSION_CATALYST"
 	}
 }

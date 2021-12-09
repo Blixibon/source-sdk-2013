@@ -10,6 +10,8 @@ $Macro GAMENAME 	"mod_episodic" [$SOURCESDK]
 
 $Include "$SRCDIR\game\server\server_base.vpc"
 
+$Include "$SRCDIR\game\server\server_reversioncatalyst.vpc"
+
 $Configuration
 {
 	$Compiler

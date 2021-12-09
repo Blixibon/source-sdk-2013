@@ -1,0 +1,17 @@
+//-----------------------------------------------------------------------------
+//	CLIENT_REVERSIONCATALYST.VPC
+//
+//	Project Script
+//-----------------------------------------------------------------------------
+
+$Project
+{
+	$Folder	"Source Files"
+	{
+		$Folder	"Reversion Catalyst"
+		{
+			$File	"reversioncatalyst\c_npc_bm_human_grunt.cpp"
+			$File	"reversioncatalyst\c_npc_bm_human_grunt.h"
+		}
+	}
+}

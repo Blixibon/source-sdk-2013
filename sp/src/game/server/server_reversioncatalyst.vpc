@@ -1,0 +1,24 @@
+//-----------------------------------------------------------------------------
+//	SERVER_REVERSIONCATALYST.VPC
+//
+//	Project Base Script
+//-----------------------------------------------------------------------------
+
+$Project
+{
+	$Folder	"Source Files"
+	{
+		$Folder	"Reversion Catalyst"
+		{
+			$File	"reversioncatalyst\ai_base_bm_npc.cpp"
+			$File	"reversioncatalyst\ai_base_bm_npc.h"
+			$File	"reversioncatalyst\npc_bm_human_scientist.cpp"
+			$File	"reversioncatalyst\npc_bm_human_scientist.h"
+			$File	"reversioncatalyst\npc_bm_human_security.cpp"
+			$File	"reversioncatalyst\npc_bm_human_security.h"
+			$File	"reversioncatalyst\npc_bm_human_grunt.cpp"
+			$File	"reversioncatalyst\npc_bm_human_grunt.h"
+			$File	"reversioncatalyst\weapon_bm_glock.cpp"
+		}
+	}
+}
