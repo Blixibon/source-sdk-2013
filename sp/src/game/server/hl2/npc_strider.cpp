@@ -395,6 +395,9 @@ BEGIN_DATADESC( CNPC_Strider )
 	DEFINE_INPUTFUNC( FIELD_VOID, "EnableMinigun", InputEnableMinigun ),
 	DEFINE_INPUTFUNC( FIELD_FLOAT, "StopShootingMinigunForSeconds", InputStopShootingMinigunForSeconds ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "DisableCrouch", InputDisableCrouch ),
+#ifdef MAPBASE
+	DEFINE_INPUTFUNC( FIELD_VOID, "EnableCrouch", InputEnableCrouch ),
+#endif
 	DEFINE_INPUTFUNC( FIELD_VOID, "DisableMoveToLOS", InputDisableMoveToLOS ),
 	DEFINE_INPUTFUNC( FIELD_STRING, "DisableCollisionWith", InputDisableCollisionWith ),
 	DEFINE_INPUTFUNC( FIELD_STRING, "EnableCollisionWith", InputEnableCollisionWith ),
@@ -442,6 +445,11 @@ CNPC_Strider::CNPC_Strider()
 //---------------------------------------------------------
 CNPC_Strider::~CNPC_Strider()
 {
+#ifdef MAPBASE
+	if (m_hFocus)
+		UTIL_Remove( m_hFocus );
+#endif
+
 	delete m_pMinigun;
 }
 
@@ -2356,6 +2364,15 @@ void CNPC_Strider::InputDisableCrouch( inputdata_t &inputdata )
 {
 	m_bDontCrouch = true;
 }
+
+#ifdef MAPBASE
+//---------------------------------------------------------
+//---------------------------------------------------------
+void CNPC_Strider::InputEnableCrouch( inputdata_t &inputdata )
+{
+	m_bDontCrouch = false;
+}
+#endif
 
 //---------------------------------------------------------
 //---------------------------------------------------------
@@ -4442,7 +4459,7 @@ CBaseFilter *CNPC_Strider::GetStompFilter()
 		}
 		else
 		{
-			Warning("%s stomp filter not found!", GetDebugName(), STRING(m_strStompFilter));
+			Warning("%s stomp filter %s not found!", GetDebugName(), STRING(m_strStompFilter));
 		}
 	}
 

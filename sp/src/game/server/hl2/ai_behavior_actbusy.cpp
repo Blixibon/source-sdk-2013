@@ -1755,7 +1755,11 @@ void CAI_ActBusyBehavior::PlaySoundForActBusy( busyanimparts_t AnimPart )
 			CAI_Expresser *pExpresser = GetOuter()->GetExpresser();
 			if ( pExpresser )
 			{
+#ifdef NEW_RESPONSE_SYSTEM
+				CAI_Concept concept = STRING(pBusyAnim->iszSounds[AnimPart]);
+#else
 				const char *concept = STRING(pBusyAnim->iszSounds[AnimPart]);
+#endif
 
 				// Must be able to speak the concept
 				if ( !pExpresser->IsSpeaking() && pExpresser->CanSpeakConcept( concept ) )
@@ -1797,6 +1801,20 @@ bool CAI_ActBusyBehavior::PlayAnimForActBusy( busyanimparts_t AnimPart )
 
 	return false;
 }
+
+#ifdef MAPBASE
+//-----------------------------------------------------------------------------
+// Purpose: Get the busy's move activity
+//-----------------------------------------------------------------------------
+Activity CAI_ActBusyBehavior::GetMoveActivityForActBusy()
+{
+	busyanim_t *pBusyAnim = g_ActBusyAnimDataSystem.GetBusyAnim( m_iCurrentBusyAnim );
+	if ( !pBusyAnim )
+		return m_ForcedActivity;
+
+	return pBusyAnim->bTranslateActivity ? GetOuter()->TranslateActivity( m_ForcedActivity ) : m_ForcedActivity;
+}
+#endif
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -2026,7 +2044,11 @@ void CAI_ActBusyBehavior::StartTask( const Task_t *pTask )
 			// If we have a forced activity, use that. Otherwise, walk.
 			if ( m_ForcedActivity != ACT_INVALID && m_ForcedActivity != ACT_RESET )
 			{
+#ifdef MAPBASE
+				GetNavigator()->SetMovementActivity( GetMoveActivityForActBusy() );
+#else
 				GetNavigator()->SetMovementActivity( m_ForcedActivity );
+#endif
 
 				// Cover is void once I move
 				Forget( bits_MEMORY_INCOVER );
@@ -2457,6 +2479,16 @@ BEGIN_DATADESC( CAI_ActBusyGoal )
 	DEFINE_OUTPUT( m_OnNPCSeeEnemy, "OnNPCSeeEnemy" ),
 END_DATADESC()
 
+#ifdef MAPBASE_VSCRIPT
+BEGIN_ENT_SCRIPTDESC( CAI_ActBusyGoal, CAI_GoalEntity, "A goal entity which makes NPCs act busy." )
+
+	DEFINE_SCRIPTFUNC_NAMED( ScriptForceBusy, "ForceBusy", "Force a NPC to act busy." )
+	DEFINE_SCRIPTFUNC_NAMED( ScriptForceBusyComplex, "ForceBusyComplex", "Force a NPC to act busy with additional parameters." )
+	DEFINE_SCRIPTFUNC_NAMED( ScriptStopBusy, "StopBusy", "Force a NPC to stop busying." )
+
+END_SCRIPTDESC();
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -2728,8 +2760,15 @@ void CAI_ActBusyGoal::InputForceThisNPCToStopBusy( inputdata_t &inputdata )
 	if ( !pBehavior )
 		return;
 
-	// Just stop busying
-	pBehavior->StopBusying();
+	if (!IsActive() && pBehavior->GetActBusyGoal() == this)
+	{
+		pBehavior->Disable();
+	}
+	else
+	{
+		// Just stop busying
+		pBehavior->StopBusying();
+	}
 }
 #endif
 
@@ -2821,6 +2860,46 @@ interval_t &CAI_ActBusyGoal::NextBusySearchInterval()
 	}
 
 	return m_NextBusySearch;
+}
+#endif
+
+#ifdef MAPBASE_VSCRIPT
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void CAI_ActBusyGoal::ScriptForceBusy( HSCRIPT hNPC, HSCRIPT hHint, bool bTeleportOnly )
+{
+	CAI_ActBusyBehavior *pBehavior = GetBusyBehaviorForNPC( ToEnt( hNPC ), "ForceBusy (vscript)" );
+	if ( !pBehavior )
+		return;
+
+	// Tell the NPC to immediately act busy
+	pBehavior->SetBusySearchRange( m_flBusySearchRange );
+	pBehavior->ForceActBusy( this, dynamic_cast<CAI_Hint*>(ToEnt( hHint )), NO_MAX_TIME, false, bTeleportOnly );
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void CAI_ActBusyGoal::ScriptForceBusyComplex( HSCRIPT hNPC, HSCRIPT hHint, bool bTeleportOnly, bool bVisibleOnly, bool bUseNearestBusy, float flMaxTime, int activity, HSCRIPT pSeeEntity )
+{
+	CAI_ActBusyBehavior *pBehavior = GetBusyBehaviorForNPC( ToEnt( hNPC ), "ForceBusyComplex (vscript)" );
+	if ( !pBehavior )
+		return;
+
+	// Tell the NPC to immediately act busy
+	pBehavior->SetBusySearchRange( m_flBusySearchRange );
+	pBehavior->ForceActBusy( this, dynamic_cast<CAI_Hint*>(ToEnt( hHint )), flMaxTime, bVisibleOnly, bTeleportOnly, bUseNearestBusy, ToEnt( pSeeEntity ), (Activity)activity );
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void CAI_ActBusyGoal::ScriptStopBusy( HSCRIPT hNPC )
+{
+	CAI_ActBusyBehavior *pBehavior = GetBusyBehaviorForNPC( ToEnt( hNPC ), "StopBusy (vscript)" );
+	if ( !pBehavior )
+		return;
+
+	// Just stop busying
+	pBehavior->StopBusying();
 }
 #endif
 

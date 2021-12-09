@@ -70,7 +70,9 @@ CON_COMMAND( ai_debug_node_connect, "Debug the attempted connection between two 
 
 ConVar g_ai_norebuildgraph( "ai_norebuildgraph", "0" );
 #ifdef MAPBASE
-ConVar g_ai_nographrebuildmessage( "ai_nographrebuildmessage", "0", FCVAR_ARCHIVE, "Stops the \"Node graph out of date\" message from appearing when rebuilding node graph" );
+ConVar g_ai_norebuildgraphmessage( "ai_norebuildgraphmessage", "0", FCVAR_ARCHIVE, "Stops the \"Node graph out of date\" message from appearing when rebuilding node graph" );
+
+ConVar g_ai_ignore_graph_timestamps( "g_ai_ignore_graph_timestamps", "1", FCVAR_NONE, "Ignores file timestamps when rebuilding nodegraphs, only relying on internal map version differences" );
 #endif
 
 
@@ -948,6 +950,13 @@ void CAI_NetworkManager::InitializeAINetworks()
 		}
 	}
 
+#ifdef MAPBASE_VSCRIPT
+	if (g_pScriptVM)
+	{
+		g_pScriptVM->RegisterInstance( g_pBigAINet, "AINetwork" );
+	}
+#endif
+
 	// Reset node counter used during load
 	CNodeEnt::m_nNodeCount = 0;
 
@@ -979,6 +988,11 @@ bool CAI_NetworkManager::IsAIFileCurrent ( const char *szMapName )
 		// dvd build process validates and guarantees correctness, timestamps are allowed to be wrong
 		return true;
 	}
+
+#ifdef MAPBASE
+	if (g_ai_ignore_graph_timestamps.GetBool())
+		return true;
+#endif
 	
 	{
 		const char *pGameDir = CommandLine()->ParmValue( "-game", "hl2" );		
@@ -1114,7 +1128,7 @@ void CAI_NetworkManager::DelayedInit( void )
 
 			DevMsg( "Node Graph out of Date. Rebuilding... (%d, %d, %d)\n", (int)m_bDontSaveGraph, (int)!CAI_NetworkManager::NetworksLoaded(), (int) engine->IsInEditMode() );
 #ifdef MAPBASE
-			if (!g_ai_nographrebuildmessage.GetBool())
+			if (!g_ai_norebuildgraphmessage.GetBool())
 				UTIL_CenterPrintAll( "Node Graph out of Date. Rebuilding...\n" );
 
 			// Do it much sooner after map load
@@ -3052,6 +3066,16 @@ int CAI_NetworkBuilder::ComputeConnection( CAI_Node *pSrcNode, CAI_Node *pDestNo
 		}
 		else
 		{
+#ifdef MAPBASE
+			// This is kind of a hack since target node IDs are designed to be used *after* the nodegraph is generated.
+			// However, for the purposes of forcing a climb connection outside of regular lineup bounds, it seems to be a reasonable solution.
+			if (pSrcNode->GetHint() && pDestNode->GetHint() &&
+				(pSrcNode->GetHint()->GetTargetWCNodeID() == pDestNode->GetHint()->GetWCId() || pDestNode->GetHint()->GetTargetWCNodeID() == pSrcNode->GetHint()->GetWCId()))
+			{
+				DebugConnectMsg( srcId, destId, "      Ignoring climbing lineup due to manual target ID linkage\n" );
+			}
+			else
+#endif
 			if ( !IsInLineForClimb(srcPos, UTIL_YawToVector( pSrcNode->m_flYaw ), destPos, UTIL_YawToVector( pDestNode->m_flYaw ) ) )
 			{
 				Assert( !IsInLineForClimb(destPos, UTIL_YawToVector( pDestNode->m_flYaw ), srcPos, UTIL_YawToVector( pSrcNode->m_flYaw ) ) );

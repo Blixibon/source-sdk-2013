@@ -32,6 +32,7 @@
 #ifdef MAPBASE
 #include "mapbase/GlobalStrings.h"
 #include "globalstate.h"
+#include "sceneentity.h"
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -40,9 +41,12 @@
 int g_fCombineQuestion;				// true if an idle grunt asked a question. Cleared when someone answers. YUCK old global from grunt code
 
 #ifdef MAPBASE
-ConVar npc_combine_idle_walk_easy("npc_combine_idle_walk_easy", "1");
-ConVar npc_combine_unarmed_anims("npc_combine_unarmed_anims", "1");
-ConVar npc_combine_altfire_not_allies_only( "npc_combine_altfire_not_allies_only", "1" );
+ConVar npc_combine_idle_walk_easy( "npc_combine_idle_walk_easy", "1", FCVAR_NONE, "Mapbase: Allows Combine soldiers to use ACT_WALK_EASY as a walking animation when idle." );
+ConVar npc_combine_unarmed_anims( "npc_combine_unarmed_anims", "1", FCVAR_NONE, "Mapbase: Allows Combine soldiers to use unarmed idle/walk animations when they have no weapon." );
+ConVar npc_combine_protected_run( "npc_combine_protected_run", "0", FCVAR_NONE, "Mapbase: Allows Combine soldiers to use \"protected run\" animations." );
+ConVar npc_combine_altfire_not_allies_only( "npc_combine_altfire_not_allies_only", "1", FCVAR_NONE, "Mapbase: Elites are normally only allowed to fire their alt-fire attack at the player and the player's allies; This allows elites to alt-fire at other enemies too." );
+
+ConVar npc_combine_new_cover_behavior( "npc_combine_new_cover_behavior", "1", FCVAR_NONE, "Mapbase: Toggles small patches for parts of npc_combine AI related to soldiers failing to take cover. These patches are minimal and only change cases where npc_combine would otherwise look at an enemy without shooting or run up to the player to melee attack when they don't have to. Consult the Mapbase wiki for more information." );
 #endif
 
 #define COMBINE_SKIN_DEFAULT		0
@@ -113,19 +117,20 @@ int COMBINE_AE_ALTFIRE;
 //Activity ACT_COMBINE_WALKING_AR2;
 //Activity ACT_COMBINE_STANDING_SHOTGUN;
 //Activity ACT_COMBINE_CROUCHING_SHOTGUN;
-#ifndef SHARED_COMBINE_ACTIVITIES
+#if !SHARED_COMBINE_ACTIVITIES
 Activity ACT_COMBINE_THROW_GRENADE;
 #endif
 Activity ACT_COMBINE_LAUNCH_GRENADE;
 Activity ACT_COMBINE_BUGBAIT;
-#ifndef SHARED_COMBINE_ACTIVITIES
+#if !SHARED_COMBINE_ACTIVITIES
 Activity ACT_COMBINE_AR2_ALTFIRE;
 #endif
 Activity ACT_WALK_EASY;
 Activity ACT_WALK_MARCH;
 #ifdef MAPBASE
-Activity ACT_IDLE_UNARMED;
-Activity ACT_WALK_UNARMED;
+Activity ACT_TURRET_CARRY_IDLE;
+Activity ACT_TURRET_CARRY_WALK;
+Activity ACT_TURRET_CARRY_RUN;
 #endif
 
 // -----------------------------------------------
@@ -222,10 +227,14 @@ DEFINE_INPUTFUNC( FIELD_VOID,	"DropGrenade",	InputDropGrenade ),
 
 DEFINE_INPUTFUNC( FIELD_INTEGER,	"SetTacticalVariant",	InputSetTacticalVariant ),
 
+DEFINE_INPUTFUNC( FIELD_STRING, "SetPoliceGoal", InputSetPoliceGoal ),
+
 DEFINE_AIGRENADE_DATADESC()
 #endif
 
+#ifndef MAPBASE
 DEFINE_FIELD( m_iLastAnimEventHandled, FIELD_INTEGER ),
+#endif
 DEFINE_FIELD( m_fIsElite, FIELD_BOOLEAN ),
 #ifndef MAPBASE
 DEFINE_FIELD( m_vecAltFireTarget, FIELD_VECTOR ),
@@ -365,6 +374,37 @@ void CNPC_Combine::InputSetTacticalVariant( inputdata_t &inputdata )
 {
 	m_iTacticalVariant = inputdata.value.Int();
 }
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : &inputdata - 
+//-----------------------------------------------------------------------------
+void CNPC_Combine::InputSetPoliceGoal( inputdata_t &inputdata )
+{
+	if (/*!inputdata.value.String() ||*/ inputdata.value.String()[0] == 0)
+	{
+		m_PolicingBehavior.Disable();
+		return;
+	}
+
+	CBaseEntity *pGoal = gEntList.FindEntityByName( NULL, inputdata.value.String() );
+
+	if ( pGoal == NULL )
+	{
+		DevMsg( "SetPoliceGoal: %s (%s) unable to find ai_goal_police: %s\n", GetClassname(), GetDebugName(), inputdata.value.String() );
+		return;
+	}
+
+	CAI_PoliceGoal *pPoliceGoal = dynamic_cast<CAI_PoliceGoal *>(pGoal);
+
+	if ( pPoliceGoal == NULL )
+	{
+		DevMsg( "SetPoliceGoal: %s (%s)'s target %s is not an ai_goal_police entity!\n", GetClassname(), GetDebugName(), inputdata.value.String() );
+		return;
+	}
+
+	m_PolicingBehavior.Enable( pPoliceGoal );
+}
 #endif
 
 //-----------------------------------------------------------------------------
@@ -448,6 +488,14 @@ void CNPC_Combine::Spawn( void )
 	m_flNextAltFireTime = gpGlobals->curtime;
 
 	NPCInit();
+
+#ifdef MAPBASE
+	// This was moved from CalcWeaponProficiency() so soldiers don't change skin unnaturally and uncontrollably
+	if ( GetActiveWeapon() && EntIsClass(GetActiveWeapon(), gm_isz_class_Shotgun) && m_nSkin != COMBINE_SKIN_SHOTGUNNER )
+	{
+		m_nSkin = COMBINE_SKIN_SHOTGUNNER;
+	}
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -462,6 +510,9 @@ bool CNPC_Combine::CreateBehaviors()
 	AddBehavior( &m_StandoffBehavior );
 	AddBehavior( &m_FollowBehavior );
 	AddBehavior( &m_FuncTankBehavior );
+#ifdef MAPBASE
+	AddBehavior( &m_PolicingBehavior );
+#endif
 
 	return BaseClass::CreateBehaviors();
 }
@@ -495,7 +546,12 @@ void CNPC_Combine::GatherConditions()
 
 	if( GetState() == NPC_STATE_COMBAT )
 	{
+#ifdef MAPBASE
+		// Don't override the standoff
+		if( IsCurSchedule( SCHED_COMBINE_WAIT_IN_COVER, false ) && !m_StandoffBehavior.IsActive() )
+#else
 		if( IsCurSchedule( SCHED_COMBINE_WAIT_IN_COVER, false ) )
+#endif
 		{
 			// Soldiers that are standing around doing nothing poll for attack slots so
 			// that they can respond quickly when one comes available. If they can 
@@ -695,19 +751,12 @@ Class_T	CNPC_Combine::Classify ( void )
 
 #ifdef MAPBASE
 //-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-inline bool CNPC_Combine::IsElite( void )
-{
-	return m_fIsElite;
-}
-
-//-----------------------------------------------------------------------------
 // Purpose: Function for gauging whether we're capable of alt-firing.
 //-----------------------------------------------------------------------------
 bool CNPC_Combine::IsAltFireCapable( void )
 {
-	return IsElite() || m_bAlternateCapable;
+	// The base class tells us if we're carrying an alt-fire-able weapon.
+	return (IsElite() || m_bAlternateCapable) && BaseClass::IsAltFireCapable();
 }
 
 //-----------------------------------------------------------------------------
@@ -1148,6 +1197,15 @@ void CNPC_Combine::StartTask( const Task_t *pTask )
 		break;
 	case TASK_RANGE_ATTACK1:
 		{
+#ifdef MAPBASE
+			// The game can crash if a soldier's weapon is removed while they're shooting
+			if (!GetActiveWeapon())
+			{
+				TaskFail( "No weapon" );
+				break;
+			}
+#endif
+
 			m_nShots = GetActiveWeapon()->GetRandomBurst();
 			m_flShotDelay = GetActiveWeapon()->GetFireRate();
 
@@ -1462,6 +1520,23 @@ void CNPC_Combine::BuildScheduleTestBits( void )
 	{
 		SetCustomInterruptCondition( COND_COMBINE_ON_FIRE );
 	}
+
+#ifdef MAPBASE
+	if (npc_combine_new_cover_behavior.GetBool())
+	{
+		if ( IsCurSchedule( SCHED_COMBINE_COMBAT_FAIL ) )
+		{
+			SetCustomInterruptCondition( COND_NEW_ENEMY );
+			SetCustomInterruptCondition( COND_LIGHT_DAMAGE );
+			SetCustomInterruptCondition( COND_HEAVY_DAMAGE );
+		}
+		else if ( IsCurSchedule( SCHED_COMBINE_MOVE_TO_MELEE ) )
+		{
+			SetCustomInterruptCondition( COND_HEAR_DANGER );
+			SetCustomInterruptCondition( COND_HEAR_MOVE_AWAY );
+		}
+	}
+#endif
 }
 
 
@@ -1473,11 +1548,6 @@ void CNPC_Combine::BuildScheduleTestBits( void )
 //-----------------------------------------------------------------------------
 Activity CNPC_Combine::Weapon_TranslateActivity( Activity eNewActivity, bool *pRequired )
 {
-	// We have differing low animations and ACT_CROUCHIDLE is not friendly to weapon translation.
-	// ACT_CROUCHIDLE is pretty much deprecated at this point anyway.
-	if (eNewActivity == ACT_CROUCHIDLE)
-		eNewActivity = ACT_RANGE_AIM_LOW;
-
 	return BaseClass::Weapon_TranslateActivity(eNewActivity, pRequired);
 }
 
@@ -1486,11 +1556,12 @@ Activity CNPC_Combine::Weapon_TranslateActivity( Activity eNewActivity, bool *pR
 //-----------------------------------------------------------------------------
 Activity CNPC_Combine::NPC_BackupActivity( Activity eNewActivity )
 {
-	// Otherwise we move around, T-posing.
-	if (eNewActivity == ACT_WALK)
-		return ACT_WALK_UNARMED;
-	else if (eNewActivity == ACT_RUN)
-		return ACT_RUN_RIFLE;
+	// Some models might not contain ACT_COMBINE_BUGBAIT, which the soldier model uses instead of ACT_IDLE_ON_FIRE.
+	// Contrariwise, soldiers may be called to use ACT_IDLE_ON_FIRE in other parts of the AI and need to translate to ACT_COMBINE_BUGBAIT.
+	if (eNewActivity == ACT_COMBINE_BUGBAIT)
+		return ACT_IDLE_ON_FIRE;
+	else if (eNewActivity == ACT_IDLE_ON_FIRE)
+		return ACT_COMBINE_BUGBAIT;
 
 	return BaseClass::NPC_BackupActivity( eNewActivity );
 }
@@ -1523,7 +1594,7 @@ Activity CNPC_Combine::NPC_TranslateActivity( Activity eNewActivity )
 		else
 #endif
 		{
-#ifdef SHARED_COMBINE_ACTIVITIES
+#if SHARED_COMBINE_ACTIVITIES
 			return ACT_COMBINE_THROW_GRENADE;
 #else
 			return ( Activity )ACT_COMBINE_THROW_GRENADE;
@@ -1556,16 +1627,32 @@ Activity CNPC_Combine::NPC_TranslateActivity( Activity eNewActivity )
 		}
 	}
 #ifdef MAPBASE
-	else if (!GetActiveWeapon() && npc_combine_unarmed_anims.GetBool() && HaveSequenceForActivity(ACT_IDLE_UNARMED))
+	else if (!GetActiveWeapon() && !npc_combine_unarmed_anims.GetBool())
 	{
 		if (eNewActivity == ACT_IDLE || eNewActivity == ACT_IDLE_ANGRY)
-			eNewActivity = ACT_IDLE_UNARMED;
+			eNewActivity = ACT_IDLE_SMG1;
 		else if (eNewActivity == ACT_WALK)
-			eNewActivity = ACT_WALK_UNARMED;
+			eNewActivity = ACT_WALK_RIFLE;
+		else if (eNewActivity == ACT_RUN)
+			eNewActivity = ACT_RUN_RIFLE;
 	}
-	else if (eNewActivity == ACT_WALK && m_NPCState == NPC_STATE_IDLE && npc_combine_idle_walk_easy.GetBool() && HaveSequenceForActivity(ACT_WALK_EASY))
+	else if (m_NPCState == NPC_STATE_IDLE && eNewActivity == ACT_WALK)
 	{
-		eNewActivity = ACT_WALK_EASY;
+		if (npc_combine_idle_walk_easy.GetBool())
+		{
+			// ACT_WALK_EASY has been replaced with ACT_WALK_RELAXED for weapon translation purposes
+			eNewActivity = ACT_WALK_RELAXED;
+		}
+		else if (GetActiveWeapon())
+		{
+			eNewActivity = ACT_WALK_RIFLE;
+		}
+	}
+
+	if ( eNewActivity == ACT_RUN && ( IsCurSchedule( SCHED_TAKE_COVER_FROM_BEST_SOUND ) || IsCurSchedule( SCHED_FLEE_FROM_BEST_SOUND ) ) )
+	{
+		if ( random->RandomInt( 0, 1 ) && npc_combine_protected_run.GetBool() && HaveSequenceForActivity( ACT_RUN_PROTECTED ) )
+			eNewActivity = ACT_RUN_PROTECTED;
 	}
 #endif
 
@@ -1950,7 +2037,7 @@ int CNPC_Combine::SelectSchedule( void )
 			Vector vecTarget = m_hForcedGrenadeTarget->WorldSpaceCenter();
 
 #ifdef MAPBASE
-			// I switched this to IsAltFireCapable() before, but m_bAlternateCapable makes it necessary to use IsElite() again.
+			// This was switched to IsAltFireCapable() before, but m_bAlternateCapable makes it necessary to use IsElite() again.
 #endif
 			if ( IsElite() )
 			{
@@ -2146,7 +2233,12 @@ int CNPC_Combine::SelectFailSchedule( int failedSchedule, int failedTask, AI_Tas
 {
 	if( failedSchedule == SCHED_COMBINE_TAKE_COVER1 )
 	{
+#ifdef MAPBASE
+		if( IsInSquad() && IsStrategySlotRangeOccupied(SQUAD_SLOT_ATTACK1, SQUAD_SLOT_ATTACK2) && HasCondition(COND_SEE_ENEMY)
+			&& ( !npc_combine_new_cover_behavior.GetBool() || (taskFailCode == FAIL_NO_COVER) ) )
+#else
 		if( IsInSquad() && IsStrategySlotRangeOccupied(SQUAD_SLOT_ATTACK1, SQUAD_SLOT_ATTACK2) && HasCondition(COND_SEE_ENEMY) )
+#endif
 		{
 			// This eases the effects of an unfortunate bug that usually plagues shotgunners. Since their rate of fire is low,
 			// they spend relatively long periods of time without an attack squad slot. If you corner a shotgunner, usually 
@@ -2377,6 +2469,13 @@ int CNPC_Combine::TranslateSchedule( int scheduleType )
 				return TranslateSchedule( SCHED_RANGE_ATTACK1 );
 			}
 
+#ifdef MAPBASE
+			if ( npc_combine_new_cover_behavior.GetBool() && HasCondition( COND_CAN_RANGE_ATTACK2 ) && OccupyStrategySlot( SQUAD_SLOT_GRENADE1 ) )
+			{
+				return TranslateSchedule( SCHED_RANGE_ATTACK2 );
+			}
+#endif
+
 			// Run somewhere randomly
 			return TranslateSchedule( SCHED_FAIL ); 
 			break;
@@ -2520,7 +2619,6 @@ int CNPC_Combine::TranslateSchedule( int scheduleType )
 #ifdef MAPBASE
 			// SCHED_COMBINE_WAIT_IN_COVER uses INCOVER, but only gets out of it when the soldier moves.
 			// That seems to mess up shooting, so this Forget() attempts to fix that.
-			// I don't know if there's a better workaround.
 			Forget( bits_MEMORY_INCOVER );
 #endif
 
@@ -2922,20 +3020,16 @@ void CNPC_Combine::SpeakSentence( int sentenceType )
 
 #ifdef COMBINE_SOLDIER_USES_RESPONSE_SYSTEM
 //=========================================================
-//=========================================================
-inline bool CNPC_Combine::SpeakIfAllowed( const char *concept, SentencePriority_t sentencepriority, SentenceCriteria_t sentencecriteria )
-{
-	return SpeakIfAllowed( concept, NULL, sentencepriority, sentencecriteria );
-}
-
-//=========================================================
-//=========================================================
 bool CNPC_Combine::SpeakIfAllowed( const char *concept, const char *modifiers, SentencePriority_t sentencepriority, SentenceCriteria_t sentencecriteria )
 {
 	AI_CriteriaSet set;
 	if (modifiers)
 	{
+#ifdef NEW_RESPONSE_SYSTEM
+		GatherCriteria( &set, concept, modifiers );
+#else
 		GetExpresser()->MergeModifiers(set, modifiers);
+#endif
 	}
 	return SpeakIfAllowed( concept, set, sentencepriority, sentencecriteria );
 }
@@ -2948,6 +3042,10 @@ bool CNPC_Combine::SpeakIfAllowed( const char *concept, AI_CriteriaSet& modifier
 		return false;
 
 	if ( !GetExpresser()->CanSpeakConcept( concept ) )
+		return false;
+
+	// Don't interrupt scripted VCD dialogue
+	if ( IsRunningScriptedSceneWithSpeechAndNotPaused( this, true ) )
 		return false;
 
 	if ( Speak( concept, modifiers ) )
@@ -3566,13 +3664,46 @@ Vector CNPC_Combine::GetCrouchEyeOffset( void )
 	return COMBINE_EYE_CROUCHING_POSITION;
 }
 
+#ifdef MAPBASE
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+bool CNPC_Combine::IsCrouchedActivity( Activity activity )
+{
+	if (BaseClass::IsCrouchedActivity( activity ))
+		return true;
+
+	Activity realActivity = TranslateActivity(activity);
+
+	// Soldiers need to consider these crouched activities, but not all NPCs should.
+	switch ( realActivity )
+	{
+		case ACT_RANGE_AIM_LOW:
+		case ACT_RANGE_AIM_AR2_LOW:
+		case ACT_RANGE_AIM_SMG1_LOW:
+		case ACT_RANGE_AIM_PISTOL_LOW:
+		case ACT_RANGE_ATTACK1_LOW:
+		case ACT_RANGE_ATTACK_AR2_LOW:
+		case ACT_RANGE_ATTACK_SMG1_LOW:
+		case ACT_RANGE_ATTACK_SHOTGUN_LOW:
+		case ACT_RANGE_ATTACK_PISTOL_LOW:
+		case ACT_RANGE_ATTACK2_LOW:
+			return true;
+	}
+
+	return false;
+}
+#endif
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 void CNPC_Combine::SetActivity( Activity NewActivity )
 {
 	BaseClass::SetActivity( NewActivity );
 
+#ifndef MAPBASE // CAI_GrenadeUser
 	m_iLastAnimEventHandled = -1;
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -3655,10 +3786,12 @@ WeaponProficiency_t CNPC_Combine::CalcWeaponProficiency( CBaseCombatWeapon *pWea
 	else if( FClassnameIs( pWeapon, "weapon_shotgun" )	)
 #endif
 	{
+#ifndef MAPBASE // Moved so soldiers don't change skin unnaturally and uncontrollably
 		if( m_nSkin != COMBINE_SKIN_SHOTGUNNER )
 		{
 			m_nSkin = COMBINE_SKIN_SHOTGUNNER;
 		}
+#endif
 
 		return WEAPON_PROFICIENCY_PERFECT;
 	}
@@ -3670,6 +3803,13 @@ WeaponProficiency_t CNPC_Combine::CalcWeaponProficiency( CBaseCombatWeapon *pWea
 	{
 		return WEAPON_PROFICIENCY_GOOD;
 	}
+#ifdef MAPBASE
+	else if ( pWeapon->ClassMatches( gm_isz_class_Pistol ) )
+	{
+		// Mods which need a lower soldier pistol accuracy can either change this value or use proficiency override in Hammer.
+		return WEAPON_PROFICIENCY_VERY_GOOD;
+	}
+#endif
 
 	return BaseClass::CalcWeaponProficiency( pWeapon );
 }
@@ -3785,7 +3925,12 @@ bool CNPC_Combine::IsRunningApproachEnemySchedule()
 
 bool CNPC_Combine::ShouldPickADeathPose( void ) 
 { 
+#ifdef MAPBASE
+	// Check base class as well
+	return !IsCrouching() && BaseClass::ShouldPickADeathPose();
+#else
 	return !IsCrouching(); 
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -3808,19 +3953,20 @@ DECLARE_TASK( TASK_COMBINE_GET_PATH_TO_FORCED_GREN_LOS )
 DECLARE_TASK( TASK_COMBINE_SET_STANDING )
 
 //Activities
-#ifndef SHARED_COMBINE_ACTIVITIES
+#if !SHARED_COMBINE_ACTIVITIES
 DECLARE_ACTIVITY( ACT_COMBINE_THROW_GRENADE )
 #endif
 DECLARE_ACTIVITY( ACT_COMBINE_LAUNCH_GRENADE )
 DECLARE_ACTIVITY( ACT_COMBINE_BUGBAIT )
-#ifndef SHARED_COMBINE_ACTIVITIES
+#if !SHARED_COMBINE_ACTIVITIES
 DECLARE_ACTIVITY( ACT_COMBINE_AR2_ALTFIRE )
 #endif
 DECLARE_ACTIVITY( ACT_WALK_EASY )
 DECLARE_ACTIVITY( ACT_WALK_MARCH )
 #ifdef MAPBASE
-DECLARE_ACTIVITY( ACT_IDLE_UNARMED )
-DECLARE_ACTIVITY( ACT_WALK_UNARMED )
+DECLARE_ACTIVITY( ACT_TURRET_CARRY_IDLE )
+DECLARE_ACTIVITY( ACT_TURRET_CARRY_WALK )
+DECLARE_ACTIVITY( ACT_TURRET_CARRY_RUN )
 #endif
 
 DECLARE_ANIMEVENT( COMBINE_AE_BEGIN_ALTFIRE )

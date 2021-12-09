@@ -102,6 +102,7 @@ isstaticprop_ret IsStaticProp( studiohdr_t* pHdr )
 	if (!(pHdr->flags & STUDIOHDR_FLAGS_STATIC_PROP))
 		return RET_FAIL_NOT_MARKED_STATIC_PROP;
 
+#ifndef MAPBASE
 	// If it's got a propdata section in the model's keyvalues, it's not allowed to be a prop_static
 	KeyValues *modelKeyValues = new KeyValues(pHdr->pszName());
 	if ( StudioKeyValues( pHdr, modelKeyValues ) )
@@ -117,6 +118,7 @@ isstaticprop_ret IsStaticProp( studiohdr_t* pHdr )
 		}
 	}
 	modelKeyValues->deleteThis();
+#endif
 
 	return RET_VALID;
 }
@@ -166,11 +168,7 @@ bool LoadStudioModel( char const* pModelName, char const* pEntityType, CUtlBuffe
 	}
 
 	isstaticprop_ret isStaticProp = IsStaticProp(pHdr);
-#ifdef MAPBASE
-	if ( isStaticProp != RET_VALID && strcmp(pEntityType, "prop_static_override") != 0 )
-#else
 	if ( isStaticProp != RET_VALID )
-#endif
 	{
 		if ( isStaticProp == RET_FAIL_NOT_MARKED_STATIC_PROP )
 		{
@@ -244,11 +242,7 @@ CPhysCollide* ComputeConvexHull( studiohdr_t* pStudioHdr )
 //-----------------------------------------------------------------------------
 // Add, find collision model in cache
 //-----------------------------------------------------------------------------
-#ifdef MAPBASE
-static CPhysCollide* GetCollisionModel( char const* pModelName, bool bOverridePropdata = false )
-#else
 static CPhysCollide* GetCollisionModel( char const* pModelName )
-#endif
 {
 	// Convert to a common string
 	char* pTemp = (char*)_alloca(strlen(pModelName) + 1);
@@ -271,11 +265,7 @@ static CPhysCollide* GetCollisionModel( char const* pModelName )
 
 	// Load the studio model file
 	CUtlBuffer buf;
-#ifdef MAPBASE
-	if (!LoadStudioModel(pModelName, bOverridePropdata ? "prop_static_override" : "prop_static", buf))
-#else
 	if (!LoadStudioModel(pModelName, "prop_static", buf))
-#endif
 	{
 		Warning("Error loading studio model \"%s\"!\n", pModelName );
 
@@ -486,11 +476,7 @@ static bool ComputeLightingOrigin( StaticPropBuild_t const& build, Vector& light
 static void AddStaticPropToLump( StaticPropBuild_t const& build )
 {
 	// Get the collision model
-#ifdef MAPBASE
-	CPhysCollide* pConvexHull = GetCollisionModel( build.m_pModelName, (build.m_Flags & STATIC_PROP_OVERRIDE_PROPDATA) > 0 );
-#else
 	CPhysCollide* pConvexHull = GetCollisionModel( build.m_pModelName );
-#endif
 	if (!pConvexHull)
 		return;
 
@@ -579,6 +565,10 @@ static void SetLumpData( )
 
 void EmitStaticProps()
 {
+#ifdef MAPBASE
+	Msg("Placing static props...\n");
+#endif
+
 	CreateInterfaceFn physicsFactory = GetPhysicsFactory();
 	if ( physicsFactory )
 	{
@@ -603,7 +593,14 @@ void EmitStaticProps()
 	{
 		char* pEntity = ValueForKey(&entities[i], "classname");
 #ifdef MAPBASE
-		if (!strncmp(pEntity, "prop_static", 11) || !strcmp(pEntity, "static_prop"))
+		const int iInsertAsStatic = IntForKey( &entities[i], "insertasstaticprop" ); // If the key is absent, IntForKey will return 0.
+		bool bInsertAsStatic = g_bPropperInsertAllAsStatic;
+
+		// 1 = No, 2 = Yes;  Any other number will just use what g_bPropperInsertAllAsStatic is set as.
+		if ( iInsertAsStatic == 1 ) { bInsertAsStatic = false; }
+		else if ( iInsertAsStatic == 2 ) { bInsertAsStatic = true; }
+
+		if ( !strcmp( pEntity, "static_prop" ) || !strcmp( pEntity, "prop_static" ) || ( !strcmp( pEntity, "propper_model" ) && bInsertAsStatic ) )
 #else
 		if (!strcmp(pEntity, "static_prop") || !strcmp(pEntity, "prop_static"))
 #endif
@@ -612,7 +609,26 @@ void EmitStaticProps()
 
 			GetVectorForKey( &entities[i], "origin", build.m_Origin );
 			GetAnglesForKey( &entities[i], "angles", build.m_Angles );
+#ifdef MAPBASE
+			if ( !strcmp( pEntity, "propper_model" ) )
+			{
+				char* pModelName = ValueForKey( &entities[i], "modelname" );
+			
+				// The modelname keyvalue lacks 'models/' at the start and '.mdl' at the end, so we have to add them.	
+				char modelpath[MAX_VALUE];
+				sprintf( modelpath, "models/%s.mdl", pModelName );
+
+				Msg( "Inserting propper_model (%.0f %.0f %.0f) as prop_static: %s\n", build.m_Origin[0], build.m_Origin[1], build.m_Origin[2], modelpath );
+
+				build.m_pModelName = modelpath;
+			}
+			else // Otherwise we just assume it's a normal prop_static
+			{
+				build.m_pModelName = ValueForKey( &entities[i], "model" );
+			}
+#else
 			build.m_pModelName = ValueForKey( &entities[i], "model" );
+#endif
 			build.m_Solid = IntForKey( &entities[i], "solid" );
 			build.m_Skin = IntForKey( &entities[i], "skin" );
 			build.m_FadeMaxDist = FloatForKey( &entities[i], "fademaxdist" );
@@ -638,14 +654,6 @@ void EmitStaticProps()
 			{
 				build.m_Flags |= STATIC_PROP_SCREEN_SPACE_FADE;
 			}
-
-#ifdef MAPBASE
-			//if (IntForKey(&entities[i], "override_propdata") == 1)
-			if (!strcmp(pEntity + 11, "_override"))
-			{
-				build.m_Flags |= STATIC_PROP_OVERRIDE_PROPDATA;
-			}
-#endif
 
 			const char *pKey = ValueForKey( &entities[i], "fadescale" );
 			if ( pKey && pKey[0] )
@@ -677,6 +685,13 @@ void EmitStaticProps()
 			// strip this ent from the .bsp file
 			entities[i].epairs = 0;
 		}
+#ifdef MAPBASE
+		else if ( g_bPropperStripEntities && !strncmp( pEntity, "propper_", 8 ) ) // Strip out any entities with 'propper_' in their classname, as they don't actually exist in-game.
+		{
+			Warning( "Not including %s in BSP compile due to it being a propper entity that isn't used in-game.\n", pEntity );
+			entities[i].epairs = 0;
+		}
+#endif
 	}
 
 	// Strip out lighting origins; has to be done here because they are used when

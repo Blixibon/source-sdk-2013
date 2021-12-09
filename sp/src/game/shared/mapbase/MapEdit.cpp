@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Mapbase - https://github.com/mapbase-source/source-sdk-2013 ============//
 //
 // Purpose: The flimsy MapEdit system that was
 //			heavily inspired by Synergy's MapEdit, completely based on the Commentary System
@@ -39,7 +39,7 @@ inline void DebugMsg(const tchar *pMsg, ...)
 {
 	if (mapedit_debug.GetBool() == true)
 	{
-		Msg(pMsg);
+		Msg("%s", pMsg);
 	}
 }
 
@@ -409,7 +409,6 @@ public:
 
 					pkvClassname = pkvClassname->GetNextKey();
 				}
-				pkvClassname->deleteThis();
 			}
 			else if (FStrEq(pNodeName, "edit"))
 			{
@@ -432,7 +431,6 @@ public:
 
 					pName = pName->GetNextKey();
 				}
-				pName->deleteThis();
 			}
 			else if (FStrEq(pNodeName, "delete"))
 			{
@@ -455,7 +453,6 @@ public:
 
 					pName = pName->GetNextKey();
 				}
-				pName->deleteThis();
 			}
 			else if (FStrEq(pNodeName, "fire"))
 			{
@@ -464,7 +461,7 @@ public:
 				{
 					pNodeName = pName->GetName();
 
-					const char *pInputName = NULL;
+					string_t pInputName = NULL_STRING;
 					variant_t varInputParam;
 					float flInputDelay = 0.0f;
 					CBaseEntity *pActivator = NULL;
@@ -480,7 +477,7 @@ public:
 						{
 							// Input name
 							case 0:
-								pInputName = inputparams; break;
+								pInputName = AllocPooledString(inputparams); break;
 							// Input parameter
 							case 1:
 								varInputParam.SetString(AllocPooledString(inputparams)); break;
@@ -500,9 +497,10 @@ public:
 						iter++;
 						inputparams = strtok(NULL, ",");
 					}
+					free(pszValue);
 
 					DebugMsg("MapEdit Debug: Firing input %s on %s\n", pInputName, pNodeName);
-					g_EventQueue.AddEvent(pNodeName, pInputName, varInputParam, flInputDelay, pActivator, pCaller, iOutputID);
+					g_EventQueue.AddEvent(pNodeName, STRING(pInputName), varInputParam, flInputDelay, pActivator, pCaller, iOutputID);
 
 					pName = pName->GetNextKey();
 				}
@@ -524,12 +522,10 @@ public:
 
 					pkvNodeData = pkvNodeData->GetNextKey();
 				}
-				pkvNodeData->deleteThis();
 			}
 
 			pkvNode = pkvNode->GetNextKey();
 		}
-		pkvNode->deleteThis();
 	}
 
 	void SpawnMapEdit(const char *pFile = NULL)
@@ -544,7 +540,7 @@ public:
 		else
 		{
 			DebugMsg("MapEdit Debug: File not NULL, loading %s\n", pFile);
-			Q_snprintf(szFullName,sizeof(szFullName), pFile);
+			Q_strncpy(szFullName, pFile, sizeof(szFullName));
 		}
 		KeyValues *pkvFile = new KeyValues( "MapEdit" );
 		if ( pkvFile->LoadFromFile( filesystem, szFullName, "MOD" ) )
@@ -888,8 +884,8 @@ void CC_MapEdit_Print( const CCommand& args )
 				pkvNode = pkvNode->GetNextKey();
 			}
 
-			pkvNode->deleteThis();
 		}
+		pkvFile->deleteThis();
 	}
 }
 static ConCommand mapedit_print("mapedit_print", CC_MapEdit_Print, "Prints a mapedit file in the console.");

@@ -169,6 +169,7 @@ BEGIN_DATADESC( CNPC_Manhack )
 	DEFINE_FIELD( m_hSmokeTrail,				FIELD_EHANDLE),
 #ifdef MAPBASE
 	DEFINE_FIELD( m_hPrevOwner,					FIELD_EHANDLE ),
+	DEFINE_KEYFIELD( m_bNoSprites,			FIELD_BOOLEAN,	"NoSprites" ),
 #endif
 
 	// DEFINE_FIELD( m_pLightGlow,				FIELD_CLASSPTR ),
@@ -198,6 +199,10 @@ BEGIN_DATADESC( CNPC_Manhack )
 	// Function Pointers
 	DEFINE_INPUTFUNC( FIELD_VOID,	"DisableSwarm", InputDisableSwarm ),
 	DEFINE_INPUTFUNC( FIELD_VOID,   "Unpack",		InputUnpack ),
+#ifdef MAPBASE
+	DEFINE_INPUTFUNC( FIELD_VOID, "EnableSprites", InputEnableSprites ),
+	DEFINE_INPUTFUNC( FIELD_VOID, "DisableSprites", InputDisableSprites ),
+#endif
 
 	DEFINE_ENTITYFUNC( CrashTouch ),
 
@@ -2188,9 +2193,9 @@ void CNPC_Manhack::Precache(void)
 	//
 	// Model.
 	//
-	PrecacheModel("models/manhack.mdl");
+	PrecacheModel( DefaultOrCustomModel( "models/manhack.mdl" ) );
 	PrecacheModel( MANHACK_GLOW_SPRITE );
-	PropBreakablePrecacheAll( MAKE_STRING("models/manhack.mdl") );
+	PropBreakablePrecacheAll( MAKE_STRING( DefaultOrCustomModel( "models/manhack.mdl" ) ) );
 	
 	PrecacheScriptSound( "NPC_Manhack.Die" );
 	PrecacheScriptSound( "NPC_Manhack.Bat" );
@@ -2384,7 +2389,7 @@ void CNPC_Manhack::Spawn(void)
 	AddSpawnFlags( SF_NPC_FADE_CORPSE );
 #endif // _XBOX
 
-	SetModel( "models/manhack.mdl" );
+	SetModel( DefaultOrCustomModel( "models/manhack.mdl" ) );
 	SetHullType(HULL_TINY_CENTERED); 
 	SetHullSizeNormal();
 
@@ -2479,6 +2484,11 @@ void CNPC_Manhack::Spawn(void)
 //-----------------------------------------------------------------------------
 void CNPC_Manhack::StartEye( void )
 {
+#ifdef MAPBASE
+	if (m_bNoSprites)
+		return;
+#endif
+
 	//Create our Eye sprite
 	if ( m_pEyeGlow == NULL )
 	{
@@ -2998,6 +3008,26 @@ void CNPC_Manhack::InputUnpack( inputdata_t &inputdata )
 	SetCondition( COND_LIGHT_DAMAGE );
 }
 
+#ifdef MAPBASE
+//-----------------------------------------------------------------------------
+// Purpose: Creates the sprite if it has been destroyed
+//-----------------------------------------------------------------------------
+void CNPC_Manhack::InputEnableSprites( inputdata_t &inputdata )
+{
+	m_bNoSprites = false;
+	StartEye();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Destroys the sprite
+//-----------------------------------------------------------------------------
+void CNPC_Manhack::InputDisableSprites( inputdata_t &inputdata )
+{
+	KillSprites( 0.0 );
+	m_bNoSprites = true;
+}
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : *pPhysGunUser - 
@@ -3242,7 +3272,6 @@ void CNPC_Manhack::SetEyeState( int state )
 			{
 				//Toggle our state
 #ifdef MAPBASE
-				// Something from Half-Laugh.
 				// Makes it easier to distinguish between hostile and friendly manhacks.
 				if( m_bHackedByAlyx )
 				{

@@ -42,6 +42,8 @@
 #define SF_ITEM_NO_PLAYER_PICKUP	(1<<1)
 #define SF_ITEM_NO_PHYSCANNON_PUNT (1<<2)
 #define SF_ITEM_NO_NPC_PICKUP	(1<<3)
+
+#define SF_ITEM_ALWAYS_TOUCHABLE	(1<<6) // This needs to stay synced with the weapon spawnflag
 #endif
 
 
@@ -87,9 +89,12 @@ public:
 #endif
 
 #ifdef MAPBASE
-	// This is in CBaseEntity, but I can't find a use for it anywhere.
-	// Must not have been fully implemented. Please remove this if it turns out to be something important.
-	virtual bool IsCombatItem() { return true; }
+	// This appeared to have no prior use in Source SDK 2013.
+	// It may have been originally intended for TF2 or some other game-specific item class.
+	virtual bool IsCombatItem() const { return true; }
+
+	// Used to access item_healthkit values, etc. from outside of the class
+	virtual float GetItemAmount() { return 1.0f; }
 
 	void	InputEnablePlayerPickup( inputdata_t &inputdata );
 	void	InputDisablePlayerPickup( inputdata_t &inputdata );

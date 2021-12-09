@@ -23,6 +23,7 @@
 #include "ai_baseactor.h"
 #ifdef MAPBASE
 #include "mapbase/ai_grenade.h"
+#include "ai_behavior_police.h"
 #endif
 #ifdef EXPANDED_RESPONSE_SYSTEM_USAGE
 #include "mapbase/expandedrs_combine.h"
@@ -58,7 +59,7 @@ public:
 	// Create components
 	virtual bool	CreateComponents();
 
-#ifndef MAPBASE
+#ifndef MAPBASE // CAI_GrenadeUser
 	bool			CanThrowGrenade( const Vector &vecTarget );
 	bool			CheckCanThrowGrenade( const Vector &vecTarget );
 #endif
@@ -73,6 +74,10 @@ public:
 	virtual float	GetJumpGravity() const		{ return 1.8f; }
 
 	virtual Vector  GetCrouchEyeOffset( void );
+
+#ifdef MAPBASE
+	virtual bool	IsCrouchedActivity( Activity activity );
+#endif
 
 	void Event_Killed( const CTakeDamageInfo &info );
 
@@ -95,6 +100,8 @@ public:
 	void InputDropGrenade( inputdata_t &inputdata );
 
 	void InputSetTacticalVariant( inputdata_t &inputdata );
+
+	void InputSetPoliceGoal( inputdata_t &inputdata );
 #endif
 
 	bool			UpdateEnemyMemory( CBaseEntity *pEnemy, const Vector &position, CBaseEntity *pInformer = NULL );
@@ -104,15 +111,14 @@ public:
 	void			Activate();
 
 	Class_T			Classify( void );
+	bool			IsElite() { return m_fIsElite; }
 #ifdef MAPBASE
-	bool			IsElite();
 	bool			IsAltFireCapable();
 	bool			IsGrenadeCapable();
 	const char*		GetGrenadeAttachment() { return "lefthand"; }
 #else
-	bool			IsElite() { return m_fIsElite; }
 #endif
-#ifndef MAPBASE
+#ifndef MAPBASE // CAI_GrenadeUser
 	void			DelayAltFireAttack( float flDelay );
 	void			DelaySquadAltFireAttack( float flDelay );
 #endif
@@ -125,7 +131,7 @@ public:
 	Vector			EyeOffset( Activity nActivity );
 	Vector			EyePosition( void );
 	Vector			BodyTarget( const Vector &posSrc, bool bNoisy = true );
-#ifndef MAPBASE
+#ifndef MAPBASE // CAI_GrenadeUser
 	Vector			GetAltFireTarget();
 #endif
 
@@ -190,7 +196,10 @@ public:
 	// Speaking
 	void			SpeakSentence( int sentType );
 #ifdef COMBINE_SOLDIER_USES_RESPONSE_SYSTEM
-	bool			SpeakIfAllowed( const char *concept, SentencePriority_t sentencepriority = SENTENCE_PRIORITY_NORMAL, SentenceCriteria_t sentencecriteria = SENTENCE_CRITERIA_IN_SQUAD );
+	bool			SpeakIfAllowed( const char *concept, SentencePriority_t sentencepriority = SENTENCE_PRIORITY_NORMAL, SentenceCriteria_t sentencecriteria = SENTENCE_CRITERIA_IN_SQUAD )
+	{
+		return SpeakIfAllowed( concept, NULL, sentencepriority, sentencecriteria );
+	}
 	bool			SpeakIfAllowed( const char *concept, const char *modifiers, SentencePriority_t sentencepriority = SENTENCE_PRIORITY_NORMAL, SentenceCriteria_t sentencecriteria = SENTENCE_CRITERIA_IN_SQUAD );
 	bool			SpeakIfAllowed( const char *concept, AI_CriteriaSet& modifiers, SentencePriority_t sentencepriority = SENTENCE_PRIORITY_NORMAL, SentenceCriteria_t sentencecriteria = SENTENCE_CRITERIA_IN_SQUAD );
 	void			ModifyOrAppendCriteria( AI_CriteriaSet& set );
@@ -311,7 +320,7 @@ private:
 
 private:
 	int				m_nKickDamage;
-#ifndef MAPBASE
+#ifndef MAPBASE // CAI_GrenadeUser
 	Vector			m_vecTossVelocity;
 	EHANDLE			m_hForcedGrenadeTarget;
 #else
@@ -325,12 +334,12 @@ private:
 	// Time Variables
 	float			m_flNextPainSoundTime;
 	float			m_flNextAlertSoundTime;
-#ifndef MAPBASE
+#ifndef MAPBASE // CAI_GrenadeUser
 	float			m_flNextGrenadeCheck;	
 #endif
 	float			m_flNextLostSoundTime;
 	float			m_flAlertPatrolTime;		// When to stop doing alert patrol
-#ifndef MAPBASE
+#ifndef MAPBASE // CAI_GrenadeUser
 	float			m_flNextAltFireTime;		// Elites only. Next time to begin considering alt-fire attack.
 #endif
 
@@ -342,7 +351,7 @@ private:
 	CAI_Sentence< CNPC_Combine > m_Sentences;
 #endif
 
-#ifndef MAPBASE
+#ifndef MAPBASE // CAI_GrenadeUser
 	int			m_iNumGrenades;
 #endif
 	CAI_AssaultBehavior			m_AssaultBehavior;
@@ -351,11 +360,16 @@ private:
 	CAI_FuncTankBehavior		m_FuncTankBehavior;
 	CAI_RappelBehavior			m_RappelBehavior;
 	CAI_ActBusyBehavior			m_ActBusyBehavior;
+#ifdef MAPBASE
+	CAI_PolicingBehavior		m_PolicingBehavior;
+#endif
 
 public:
+#ifndef MAPBASE // CAI_GrenadeUser
 	int				m_iLastAnimEventHandled;
+#endif
 	bool			m_fIsElite;
-#ifndef MAPBASE
+#ifndef MAPBASE // CAI_GrenadeUser
 	Vector			m_vecAltFireTarget;
 #endif
 

@@ -15,6 +15,13 @@
 #include "simtimer.h"
 #include "soundenvelope.h"
 
+// In HL2MP we need to inherit from  BaseMultiplayerPlayer!
+#if defined ( HL2MP )
+#include "basemultiplayerplayer.h"
+#elif defined ( MAPBASE )
+#include "mapbase/singleplayer_animstate.h"
+#endif
+
 class CAI_Squad;
 class CPropCombineBall;
 
@@ -70,15 +77,29 @@ public:
 		else
 			return m_flDrainRate; 
 	}
+#ifdef MAPBASE
+	void	SetDeviceDrainRate( float flDrainRate ) { m_flDrainRate = flDrainRate; }
+#endif
 };
 
 //=============================================================================
 // >> HL2_PLAYER
 //=============================================================================
+#if defined ( HL2MP )
+class CHL2_Player : public CBaseMultiplayerPlayer
+#else
 class CHL2_Player : public CBasePlayer
+#endif
 {
 public:
+#if defined ( HL2MP )
+	DECLARE_CLASS( CHL2_Player, CBaseMultiplayerPlayer );
+#else
 	DECLARE_CLASS( CHL2_Player, CBasePlayer );
+#endif
+#ifdef MAPBASE_VSCRIPT
+	DECLARE_ENT_SCRIPTDESC();
+#endif
 
 	CHL2_Player();
 	~CHL2_Player( void );
@@ -108,8 +129,18 @@ public:
 	virtual void 		ModifyOrAppendPlayerCriteria( AI_CriteriaSet& set );
 
 #ifdef MAPBASE
-	void				ResetAnimation( void );
+	// For the logic_playerproxy output
+	void				SpawnedAtPoint( CBaseEntity *pSpawnPoint );
+
+	Activity			Weapon_TranslateActivity( Activity baseAct, bool *pRequired = NULL );
+
+#ifdef SP_ANIM_STATE
 	void				SetAnimation( PLAYER_ANIM playerAnim );
+
+	void				AddAnimStateLayer( int iSequence, float flBlendIn = 0.0f, float flBlendOut = 0.0f, float flPlaybackRate = 1.0f, bool bHoldAtEnd = false, bool bOnlyWhenStill = false );
+#endif
+
+	virtual CStudioHdr*	OnNewModel();
 
 	virtual const char *GetOverrideStepSound( const char *pszBaseStepSoundName );
 #endif
@@ -246,6 +277,10 @@ public:
 
 	void				SetLocatorTargetEntity( CBaseEntity *pEntity ) { m_hLocatorTargetEntity.Set( pEntity ); }
 
+#ifdef MAPBASE
+	virtual bool		CanAutoSwitchToNextBestWeapon( CBaseCombatWeapon *pWeapon );
+#endif
+
 	virtual int			GiveAmmo( int nCount, int nAmmoIndex, bool bSuppressSound);
 	virtual bool		BumpWeapon( CBaseCombatWeapon *pWeapon );
 	
@@ -277,6 +312,7 @@ public:
 	virtual	bool		IsHoldingEntity( CBaseEntity *pEnt );
 	virtual void		ForceDropOfCarriedPhysObjects( CBaseEntity *pOnlyIfHoldindThis );
 	virtual float		GetHeldObjectMass( IPhysicsObject *pHeldObject );
+	virtual CBaseEntity	*GetHeldObject( void );
 
 	virtual bool		IsFollowingPhysics( void ) { return (m_afPhysicsFlags & PFLAG_ONBARNACLE) > 0; }
 	void				InputForceDropPhysObjects( inputdata_t &data );
@@ -316,6 +352,13 @@ public:
 
 	// HUD HINTS
 	void DisplayLadderHudHint();
+
+#ifdef MAPBASE
+	void InitCustomSuitDevice( int iDeviceID, float flDrainRate );
+	void AddCustomSuitDevice( int iDeviceID );
+	void RemoveCustomSuitDevice( int iDeviceID );
+	bool IsCustomSuitDeviceActive( int iDeviceID );
+#endif
 
 	CSoundPatch *m_sndLeeches;
 	CSoundPatch *m_sndWaterSplashes;
@@ -398,6 +441,14 @@ private:
 	float				m_flTimeNextLadderHint;	// Next time we're eligible to display a HUD hint about a ladder.
 	
 	friend class CHL2GameMovement;
+
+#ifdef SP_ANIM_STATE
+	CSinglePlayerAnimState* m_pPlayerAnimState;
+
+	// At the moment, we network the render angles since almost none of the player anim stuff is done on the client in SP.
+	// If any of this is ever adapted for MP, this method should be replaced with replicating/moving the anim state to the client.
+	CNetworkVar( float, m_flAnimRenderYaw );
+#endif
 };
 
 

@@ -98,6 +98,15 @@ BEGIN_DATADESC( CAI_BaseActor )
 
 END_DATADESC()
 
+#ifdef MAPBASE_VSCRIPT
+BEGIN_ENT_SCRIPTDESC( CAI_BaseActor, CAI_BaseNPC, "The base class for NPCs which act in complex choreo scenes." )
+
+	DEFINE_SCRIPTFUNC_NAMED( ScriptAddLookTarget, "AddLookTarget", "Add a potential look target for this actor with the specified importance, duration, and ramp." )
+	DEFINE_SCRIPTFUNC_NAMED( ScriptAddLookTargetPos, "AddLookTargetPos", "Add a potential look target position for this actor with the specified importance, duration, and ramp." )
+
+END_SCRIPTDESC();
+#endif
+
 
 BEGIN_SIMPLE_DATADESC( CAI_InterestTarget_t )
 	DEFINE_FIELD( m_eType,		FIELD_INTEGER ),
@@ -231,13 +240,10 @@ void CAI_BaseActor::SetModel( const char *szModelName )
 //-----------------------------------------------------------------------------
 
 #ifdef MAPBASE
-// Half-Laugh had a nasty way of implementing CSceneEntity into StartSceneEvent and I'm both afraid to do it here
-// and I don't remember exactly how I did it. This is extremely important because
-// it's the only way we can access !target1, !target2, etc. Please revisit this later.
-#define STARTSCENEEVENT_HAS_CSCENEENTITY 0
-#endif
-
+bool CAI_BaseActor::StartSceneEvent( CSceneEventInfo *info, CChoreoScene *scene, CChoreoEvent *event, CChoreoActor *actor, CBaseEntity *pTarget, CSceneEntity *pSceneEnt )
+#else
 bool CAI_BaseActor::StartSceneEvent( CSceneEventInfo *info, CChoreoScene *scene, CChoreoEvent *event, CChoreoActor *actor, CBaseEntity *pTarget )
+#endif
 {
 	Assert( info );
 	Assert( info->m_pScene );
@@ -382,18 +388,13 @@ bool CAI_BaseActor::StartSceneEvent( CSceneEventInfo *info, CChoreoScene *scene,
 					CBaseEntity *pEnt = gEntList.FindEntityByName(NULL, sTarget, this);
 					if (!pEnt)
 					{
-#if STARTSCENEEVENT_HAS_CSCENEENTITY
 						DevMsg("%s not found with normal search, slamming to scene ent\n", sTarget);
-						pEnt = UTIL_FindNamedSceneEntity(sTarget, this, csceneent);
+						pEnt = UTIL_FindNamedSceneEntity(sTarget, this, pSceneEnt);
 						if (!pEnt)
 						{
 							DevWarning("%s slammed to self!\n", sTarget);
 							pEnt = this;
 						}
-#else
-						DevWarning("%s slammed to self!\n", sTarget);
-						pEnt = this;
-#endif
 					}
 
 					if (pEnt && sInput)
@@ -402,10 +403,9 @@ bool CAI_BaseActor::StartSceneEvent( CSceneEventInfo *info, CChoreoScene *scene,
 						if (bParameter && sParameter)
 						{
 							const char *strParam = sParameter;
-#if STARTSCENEEVENT_HAS_CSCENEENTITY
 							if (strParam[0] == '!')
 							{
-								CBaseEntity *pParamEnt = UTIL_FindNamedSceneEntity(strParam, this, csceneent);
+								CBaseEntity *pParamEnt = UTIL_FindNamedSceneEntity(strParam, this, pSceneEnt);
 								if (pParamEnt && pParamEnt->GetEntityName() != NULL_STRING && !gEntList.FindEntityProcedural(strParam))
 								{
 									// We make sure it's a scene entity that can't be found with entlist procedural so we can translate !target# without messing with !activators, etc.
@@ -413,7 +413,6 @@ bool CAI_BaseActor::StartSceneEvent( CSceneEventInfo *info, CChoreoScene *scene,
 									strParam = pParamEnt->GetEntityName().ToCStr();
 								}
 							}
-#endif
 
 							if (strParam)
 							{
@@ -836,7 +835,11 @@ void CAI_BaseActor::UpdateLatchedValues( )
 		// set head latch
 		m_fLatchedPositions |= HUMANOID_LATCHED_HEAD;
 
+#ifdef MAPBASE // From Alien Swarm SDK
+		if ( CanSkipAnimation() || !GetAttachment( "eyes", m_latchedEyeOrigin, &m_latchedHeadDirection ))
+#else
 		if (!HasCondition( COND_IN_PVS ) || !GetAttachment( "eyes", m_latchedEyeOrigin, &m_latchedHeadDirection ))
+#endif
 		{
 			m_latchedEyeOrigin = BaseClass::EyePosition( );
 			AngleVectors( GetLocalAngles(), &m_latchedHeadDirection );
@@ -1627,7 +1630,11 @@ void CAI_BaseActor::MaintainLookTargets( float flInterval )
 	}
 
 	// don't bother with any of the rest if the player can't see you
+#ifdef MAPBASE // From Alien Swarm SDK
+	if ( CanSkipAnimation() )
+#else
 	if (!HasCondition( COND_IN_PVS ))
+#endif
 	{
 		return;
 	}
@@ -1934,7 +1941,7 @@ void CAI_BaseActor::OnStateChange( NPC_STATE OldState, NPC_STATE NewState )
 {
 	PlayExpressionForState( NewState );
 
-#ifdef HL2_EPISODIC
+#if defined(HL2_EPISODIC) || defined(MAPBASE)
 	// If we've just switched states, ensure we stop any scenes that asked to be stopped
 	if ( OldState == NPC_STATE_IDLE )
 	{
@@ -2034,7 +2041,11 @@ bool CAI_BaseActor::UseSemaphore( void )
 
 CAI_Expresser *CAI_BaseActor::CreateExpresser()
 {
+#ifdef NEW_RESPONSE_SYSTEM
+	m_pExpresser = new CAI_ExpresserWithFollowup(this);
+#else
 	m_pExpresser = new CAI_Expresser(this);
+#endif
 	return m_pExpresser;
 }
 

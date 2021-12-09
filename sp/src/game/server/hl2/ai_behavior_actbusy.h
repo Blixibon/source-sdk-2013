@@ -153,6 +153,10 @@ public:
 	bool	IsInSafeZone( CBaseEntity *pEntity );
 	int		CountEnemiesInSafeZone();
 
+#ifdef MAPBASE
+	CAI_ActBusyGoal	*GetActBusyGoal() const { return m_hActBusyGoal; }
+#endif
+
 private:
 	virtual int		SelectSchedule( void );
 	int				SelectScheduleForLeaving( void );
@@ -163,6 +167,9 @@ private:
 	void			NotifyBusyEnding( void );
 	bool			HasAnimForActBusy( int iActBusy, busyanimparts_t AnimPart );
 	bool			PlayAnimForActBusy( busyanimparts_t AnimPart );
+#ifdef MAPBASE
+	Activity		GetMoveActivityForActBusy();
+#endif
 	void			PlaySoundForActBusy( busyanimparts_t AnimPart ); 
 
 private:
@@ -239,6 +246,12 @@ public:
 	interval_t &NextBusySearchInterval();
 #endif
 
+#ifdef MAPBASE_VSCRIPT
+	void ScriptForceBusy( HSCRIPT hNPC, HSCRIPT hHint, bool bTeleportOnly );
+	void ScriptForceBusyComplex( HSCRIPT hNPC, HSCRIPT hHint, bool bTeleportOnly, bool bVisibleOnly, bool bUseNearestBusy, float flMaxTime, int activity, HSCRIPT pSeeEntity );
+	void ScriptStopBusy( HSCRIPT hNPC );
+#endif
+
 protected:
 	CAI_ActBusyBehavior *GetBusyBehaviorForNPC( const char *pszActorName, CBaseEntity *pActivator, CBaseEntity *pCaller, const char *sInputName );
 	CAI_ActBusyBehavior *GetBusyBehaviorForNPC( CBaseEntity *pEntity, const char *sInputName );
@@ -257,6 +270,9 @@ protected:
 #endif
 
 	DECLARE_DATADESC();
+#ifdef MAPBASE_VSCRIPT
+	DECLARE_ENT_SCRIPTDESC();
+#endif
 
 protected:
 	float			m_flBusySearchRange;

@@ -42,6 +42,10 @@
 #include "physics_bone_follower.h"
 #endif // HL2_EPISODIC
 
+#ifdef MAPBASE
+#include "filters.h"
+#endif
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -115,6 +119,9 @@ static const char *s_pChunkModelName[CHOPPER_MAX_CHUNKS] =
 #define SF_HELICOPTER_IGNORE_AVOID_FORCES	0x00080000
 #define SF_HELICOPTER_AGGRESSIVE			0x00100000
 #define SF_HELICOPTER_LONG_SHADOW			0x00200000
+#ifdef MAPBASE
+#define SF_HELICOPTER_AIM_WITH_GUN_OFF		0x00400000
+#endif
 
 #define CHOPPER_SLOW_BOMB_SPEED	250
 
@@ -4856,6 +4863,26 @@ void CNPC_AttackHelicopter::Hunt( void )
 		{
 			BullrushBombs();
 		}
+#ifdef MAPBASE
+		// Some may want the hunter-chopper to aim at different positions searching for its target
+		// without actually firing at anything. Gun aiming is only handled in FireGun(), which is
+		// disabled when the gun is disabled. point_posecontroller doesn't seem to work well for this either,
+		// so a new spawnflag is handled here to allow the chopper to aim at its enemy even when the gun is off.
+		else if ( HasSpawnFlags( SF_HELICOPTER_AIM_WITH_GUN_OFF ) && GetEnemy() )
+		{
+			// Get gun attachment points
+			Vector vBasePos;
+			GetAttachment( m_nGunBaseAttachment, vBasePos );
+
+			Vector vecFireAtPosition;
+			ComputeFireAtPosition( &vecFireAtPosition );
+	
+			Vector vTargetDir = vecFireAtPosition - vBasePos;
+			VectorNormalize( vTargetDir );
+
+			PoseGunTowardTargetDirection( vTargetDir );
+		}
+#endif
 	}
 
 #ifdef HL2_EPISODIC
@@ -5657,6 +5684,9 @@ LINK_ENTITY_TO_CLASS( npc_heli_avoidsphere, CAvoidSphere );
 BEGIN_DATADESC( CAvoidSphere )
 
 	DEFINE_KEYFIELD( m_flRadius, FIELD_FLOAT, "radius" ),
+#ifdef MAPBASE
+	DEFINE_KEYFIELD( m_iszAvoidFilter, FIELD_STRING, "AvoidFilter" ),
+#endif
 
 END_DATADESC()
 
@@ -5697,6 +5727,18 @@ void CAvoidSphere::Activate( )
 {
 	BaseClass::Activate();
 	s_AvoidSpheres.AddToTail( this );
+
+#ifdef MAPBASE
+	m_hAvoidFilter = gEntList.FindEntityByName( NULL, m_iszAvoidFilter, this );
+	if (m_hAvoidFilter)
+	{
+		if (dynamic_cast<CBaseFilter*>(m_hAvoidFilter.Get()) == NULL)
+		{
+			Warning( "%s: \"%s\" is not a valid filter", GetDebugName(), m_hAvoidFilter->GetDebugName() );
+			m_hAvoidFilter = NULL;
+		}
+	}
+#endif
 }
 
 void CAvoidSphere::UpdateOnRemove( )
@@ -5722,6 +5764,12 @@ void CAvoidSphere::ComputeAvoidanceForces( CBaseEntity *pEntity, float flEntityR
 	{
 		CAvoidSphere *pSphere = s_AvoidSpheres[i].Get();
 		const Vector &vecAvoidCenter = pSphere->WorldSpaceCenter();
+
+#ifdef MAPBASE
+		// Continue if not passing the avoid sphere filter
+		if ( pSphere->m_hAvoidFilter && !(static_cast<CBaseFilter*>( pSphere->m_hAvoidFilter.Get())->PassesFilter(pSphere, pEntity )) )
+			continue;
+#endif
 
 		// NOTE: This test can be thought of sweeping a sphere through space
 		// and seeing if it intersects the avoidance sphere

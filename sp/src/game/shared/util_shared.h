@@ -584,15 +584,34 @@ public:
 		return (m_timestamp > 0.0f) ? m_duration : 0.0f;
 	}
 
+	/// 1.0 for newly started, 0.0 for elapsed
+	float GetRemainingRatio( void ) const
+	{
+		if (HasStarted() && m_duration > 0.0f)
+		{
+			float left = GetRemainingTime() / m_duration;
+			if (left < 0.0f)
+				return 0.0f;
+			if (left > 1.0f)
+				return 1.0f;
+			return left;
+		}
+
+		return 0.0f;
+	}
+
 private:
 	float m_duration;
 	float m_timestamp;
 	float Now( void ) const;		// work-around since client header doesn't like inlined gpGlobals->curtime
 };
 
-char* ReadAndAllocStringValue( KeyValues *pSub, const char *pName, const char *pFilename = NULL );
+const char* ReadAndAllocStringValue( KeyValues *pSub, const char *pName, const char *pFilename = NULL );
 
 int UTIL_StringFieldToInt( const char *szValue, const char **pValueStrings, int iNumStrings );
+
+int UTIL_CountNumBitsSet( unsigned int nVar );
+int UTIL_CountNumBitsSet( uint64 nVar );
 
 //-----------------------------------------------------------------------------
 // Holidays
