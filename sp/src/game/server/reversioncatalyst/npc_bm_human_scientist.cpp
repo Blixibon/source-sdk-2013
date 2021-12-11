@@ -21,6 +21,10 @@ ConVar	sk_human_scientist_health( "sk_human_scientist_health", "35" );
 #define BODYGROUP_FEMALE_SYRINGE 5
 
 LINK_ENTITY_TO_CLASS( npc_bm_human_scientist, CNPC_BM_HumanScientist );
+LINK_ENTITY_TO_CLASS( npc_human_scientist, CNPC_BM_HumanScientist ); // For simplicity/ease of use/legacy support/etc.
+LINK_ENTITY_TO_CLASS( npc_human_scientist_female, CNPC_BM_HumanScientist ); // For simplicity/ease of use/legacy support/etc.
+LINK_ENTITY_TO_CLASS( npc_human_scientist_kleiner, CNPC_BM_HumanScientist ); // For simplicity/ease of use/legacy support/etc.
+LINK_ENTITY_TO_CLASS( npc_human_scientist_eli, CNPC_BM_HumanScientist ); // For simplicity/ease of use/legacy support/etc.
 
 BEGIN_DATADESC( CNPC_BM_HumanScientist )
 
@@ -81,10 +85,28 @@ void CNPC_BM_HumanScientist::Spawn()
 //=========================================================
 void CNPC_BM_HumanScientist::Precache()
 {
-	if( !GetModelName() )
+	if ( GetModelName() == NULL_STRING )
 	{
-		SetModelName( MAKE_STRING( "models/humans/scientist.mdl" ) );
+		if ( FStrEq( GetClassname(), "npc_human_scientist_female" ) )
+		{
+			SetModelName( AllocPooledString( "models/humans/scientist_female.mdl" ) );
+		}
+		else if ( FStrEq( GetClassname(), "npc_human_scientist_kleiner" ) )
+		{
+			SetModelName( AllocPooledString( "models/humans/scientist_kliener.mdl" ) );
+		}
+		else if ( FStrEq( GetClassname(), "npc_human_scientist_eli" ) )
+		{
+			SetModelName( AllocPooledString( "models/humans/scientist_eli.mdl" ) );
+		}
+		else
+		{
+			SetModelName( AllocPooledString( "models/humans/scientist.mdl" ) );
+		}
 	}
+
+	if (!FStrEq( GetClassname(), "npc_bm_human_scientist" ))
+		SetClassname( "npc_bm_human_scientist" );
 
 	PrecacheModel( STRING( GetModelName() ) );
 

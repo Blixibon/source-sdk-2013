@@ -19,6 +19,7 @@ ConVar	sk_human_security_health( "sk_human_security_health", "40" );
 #define BODYGROUP_FLASHLIGHT 2
 
 LINK_ENTITY_TO_CLASS( npc_bm_human_security, CNPC_BM_HumanSecurity );
+LINK_ENTITY_TO_CLASS( npc_human_security, CNPC_BM_HumanSecurity ); // For simplicity/ease of use/legacy support/etc.
 
 BEGIN_DATADESC( CNPC_BM_HumanSecurity )
 
@@ -85,6 +86,9 @@ void CNPC_BM_HumanSecurity::Precache()
 	{
 		SetModelName( MAKE_STRING( "models/humans/guard.mdl" ) );
 	}
+
+	if (!FStrEq( GetClassname(), "npc_bm_human_security" ))
+		SetClassname( "npc_bm_human_security" );
 
 	PrecacheModel( STRING( GetModelName() ) );
 

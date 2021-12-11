@@ -20,6 +20,10 @@ extern ConVar sk_plr_dmg_buckshot;
 extern ConVar sk_plr_num_shotgun_pellets;
 
 LINK_ENTITY_TO_CLASS( npc_bm_human_grunt, CNPC_BM_HumanGrunt );
+LINK_ENTITY_TO_CLASS( npc_human_grunt, CNPC_BM_HumanGrunt ); // For simplicity/ease of use/legacy support/etc.
+LINK_ENTITY_TO_CLASS( npc_human_medic, CNPC_BM_HumanGrunt ); // For simplicity/ease of use/legacy support/etc.
+LINK_ENTITY_TO_CLASS( npc_human_commander, CNPC_BM_HumanGrunt ); // For simplicity/ease of use/legacy support/etc.
+LINK_ENTITY_TO_CLASS( npc_human_grenadier, CNPC_BM_HumanGrunt ); // For simplicity/ease of use/legacy support/etc.
 
 #define AE_SOLDIER_BLOCK_PHYSICS		20 // trying to block an incoming physics object
 
@@ -134,6 +138,14 @@ void CNPC_BM_HumanGrunt::Precache()
 	{
 		SetModelName( MAKE_STRING( "models/humans/marine.mdl" ) );
 	}
+
+	if (FStrEq( GetClassname(), "npc_human_medic" ))
+		m_SoldierType = ST_MEDIC;
+	else if (FStrEq( GetClassname(), "npc_human_commander" ))
+		m_SoldierType = ST_COMMANDER;
+
+	if (!FStrEq( GetClassname(), "npc_bm_human_grunt" ))
+		SetClassname( "npc_bm_human_grunt" );
 
 	PrecacheModel( STRING( GetModelName() ) );
 
