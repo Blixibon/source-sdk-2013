@@ -18,7 +18,15 @@ $Project
 			$File	"reversioncatalyst\npc_bm_human_security.h"
 			$File	"reversioncatalyst\npc_bm_human_grunt.cpp"
 			$File	"reversioncatalyst\npc_bm_human_grunt.h"
-			$File	"reversioncatalyst\weapon_bm_glock.cpp"
+			$File	"reversioncatalyst\npc_bm_osprey.cpp"
+			$File	"reversioncatalyst\npc_bm_osprey.h"
+			$File	"reversioncatalyst\weapon_bm_base.cpp"
+			$File	"reversioncatalyst\weapon_bm_base.h"
+			
+			// Just make the BM weapons derive from the HL2 ones in their respective CPP files
+			//$File	"reversioncatalyst\weapon_bm_glock.cpp"
+			//$File	"reversioncatalyst\weapon_bm_mp5.cpp"
+			//$File	"reversioncatalyst\weapon_bm_shotgun.cpp"
 		}
 	}
 }
