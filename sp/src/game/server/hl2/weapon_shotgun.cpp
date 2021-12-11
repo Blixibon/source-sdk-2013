@@ -18,6 +18,9 @@
 #include "soundent.h"
 #include "vstdlib/random.h"
 #include "gamestats.h"
+#ifdef REVERSION_CATALYST
+#include "reversioncatalyst/weapon_bm_base.h"
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -912,3 +915,22 @@ void CWeaponShotgun::WeaponIdle( void )
 	}
 }
 */
+
+#ifdef REVERSION_CATALYST
+//-----------------------------------------------------------------------------
+// CWeapon_BM_Shotgun
+//-----------------------------------------------------------------------------
+class CWeapon_BM_Shotgun : public CBase_BM_Weapon<CWeaponShotgun>
+{
+public:
+	DECLARE_CLASS( CWeapon_BM_Shotgun, CBase_BM_Weapon<CWeaponShotgun> );
+	DECLARE_SERVERCLASS();
+};
+
+IMPLEMENT_SERVERCLASS_ST( CWeapon_BM_Shotgun, DT_Weapon_BM_Shotgun )
+END_SEND_TABLE()
+
+LINK_ENTITY_TO_CLASS( weapon_bm_shotgun, CWeapon_BM_Shotgun );
+
+PRECACHE_WEAPON_REGISTER( weapon_bm_shotgun );
+#endif

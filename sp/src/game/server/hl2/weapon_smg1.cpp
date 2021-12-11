@@ -17,6 +17,10 @@
 #include "soundent.h"
 #include "rumble_shared.h"
 #include "gamestats.h"
+#ifdef REVERSION_CATALYST
+#include "reversioncatalyst/weapon_bm_base.h"
+#include "te_effect_dispatch.h"
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -615,3 +619,96 @@ const WeaponProficiencyInfo_t *CWeaponSMG1::GetProficiencyValues()
 
 	return proficiencyTable;
 }
+
+#ifdef REVERSION_CATALYST
+extern acttable_t* GetAR2Acttable();
+extern int GetAR2ActtableCount();
+
+//-----------------------------------------------------------------------------
+// CWeapon_BM_MP5
+//-----------------------------------------------------------------------------
+class CWeapon_BM_MP5 : public CBase_BM_Weapon<CWeaponSMG1>
+{
+public:
+	DECLARE_CLASS( CWeapon_BM_MP5, CBase_BM_Weapon<CWeaponSMG1> );
+	DECLARE_SERVERCLASS();
+
+	void	Precache();
+	Activity	GetPrimaryAttackActivity( void );
+	void	Operator_HandleAnimEvent( animevent_t* pEvent, CBaseCombatCharacter* pOperator );
+	void	DoImpactEffect( trace_t& tr, int nDamageType );
+
+	float	GetFireRate( void ) { return 0.1f; }
+	
+	// Use the AR2 activity table instead
+	acttable_t *ActivityList( void ) { return GetAR2Acttable(); }
+	int ActivityListCount( void ) { return GetAR2ActtableCount(); }
+};
+
+IMPLEMENT_SERVERCLASS_ST( CWeapon_BM_MP5, DT_Weapon_BM_MP5 )
+END_SEND_TABLE()
+
+LINK_ENTITY_TO_CLASS( weapon_bm_mp5, CWeapon_BM_MP5 );
+LINK_ENTITY_TO_CLASS( weapon_mp5, CWeapon_BM_MP5 ); // For simplicity/ease of use/etc.
+
+PRECACHE_WEAPON_REGISTER( weapon_bm_mp5 );
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_MP5::Precache( void )
+{
+	if (FStrEq( GetClassname(), "weapon_mp5" ))
+		SetClassname( "weapon_bm_mp5" );
+
+	BaseClass::Precache();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Output : Activity
+//-----------------------------------------------------------------------------
+Activity CWeapon_BM_MP5::GetPrimaryAttackActivity( void )
+{
+	return ACT_VM_PRIMARYATTACK;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : *pEvent - 
+//			*pOperator - 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_MP5::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator )
+{
+	switch( pEvent->event )
+	{ 
+		case EVENT_WEAPON_AR2:
+			{
+				pEvent->event = EVENT_WEAPON_SMG1;
+				BaseClass::Operator_HandleAnimEvent( pEvent, pOperator );
+			}
+			break;
+
+		default:
+			CBaseCombatWeapon::Operator_HandleAnimEvent( pEvent, pOperator );
+			break;
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : &tr - 
+//			nDamageType - 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_MP5::DoImpactEffect( trace_t &tr, int nDamageType )
+{
+	CEffectData data;
+
+	data.m_vOrigin = tr.endpos + ( tr.plane.normal * 1.0f );
+	data.m_vNormal = tr.plane.normal;
+
+	DispatchEffect( "MP5Impact", data );
+
+	BaseClass::DoImpactEffect( tr, nDamageType );
+}
+#endif

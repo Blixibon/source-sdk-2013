@@ -17,6 +17,9 @@
 #include "game.h"
 #include "vstdlib/random.h"
 #include "gamestats.h"
+#ifdef REVERSION_CATALYST
+#include "reversioncatalyst/weapon_bm_base.h"
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -116,7 +119,11 @@ public:
 
 	DECLARE_ACTTABLE();
 
+#ifdef REVERSION_CATALYST
+protected:
+#else
 private:
+#endif
 	float	m_flSoonestPrimaryAttack;
 	float	m_flLastAttackTime;
 	float	m_flAccuracyPenalty;
@@ -442,7 +449,11 @@ void CWeaponPistol::UpdatePenaltyTime( void )
 		return;
 
 	// Check our penalty time decay
+#ifdef REVERSION_CATALYST
+	if ( ( ( pOwner->m_nButtons & (IN_ATTACK | IN_ATTACK2) ) == false ) && ( m_flSoonestPrimaryAttack < gpGlobals->curtime ) )
+#else
 	if ( ( ( pOwner->m_nButtons & IN_ATTACK ) == false ) && ( m_flSoonestPrimaryAttack < gpGlobals->curtime ) )
+#endif
 	{
 		m_flAccuracyPenalty -= gpGlobals->frametime;
 		m_flAccuracyPenalty = clamp( m_flAccuracyPenalty, 0.0f, PISTOL_ACCURACY_MAXIMUM_PENALTY_TIME );
@@ -485,11 +496,21 @@ void CWeaponPistol::ItemPostFrame( void )
 		return;
 
 	//Allow a refire as fast as the player can click
+#ifdef REVERSION_CATALYST
+	// Note that holding down secondary counts now
+	if ( ( ( pOwner->m_nButtons & IN_ATTACK | IN_ATTACK2 ) == false ) && ( m_flSoonestPrimaryAttack < gpGlobals->curtime ) )
+#else
 	if ( ( ( pOwner->m_nButtons & IN_ATTACK ) == false ) && ( m_flSoonestPrimaryAttack < gpGlobals->curtime ) )
+#endif
 	{
 		m_flNextPrimaryAttack = gpGlobals->curtime - 0.1f;
 	}
+#ifdef REVERSION_CATALYST
+	// Note that holding down secondary counts now
+	else if ( ( pOwner->m_nButtons & IN_ATTACK | IN_ATTACK2 ) && ( m_flNextPrimaryAttack < gpGlobals->curtime ) && ( m_iClip1 <= 0 ) )
+#else
 	else if ( ( pOwner->m_nButtons & IN_ATTACK ) && ( m_flNextPrimaryAttack < gpGlobals->curtime ) && ( m_iClip1 <= 0 ) )
+#endif
 	{
 		DryFire();
 	}
@@ -545,3 +566,67 @@ void CWeaponPistol::AddViewKick( void )
 	//Add it to the view punch
 	pPlayer->ViewPunch( viewPunch );
 }
+
+#ifdef REVERSION_CATALYST
+//-----------------------------------------------------------------------------
+// CWeapon_BM_Glock
+//-----------------------------------------------------------------------------
+class CWeapon_BM_Glock : public CBase_BM_Weapon<CWeaponPistol>
+{
+public:
+	DECLARE_CLASS( CWeapon_BM_Glock, CBase_BM_Weapon<CWeaponPistol> );
+	DECLARE_SERVERCLASS();
+
+	void	Precache();
+	Activity	GetPrimaryAttackActivity( void );
+
+	void	SecondaryAttack( void );
+
+	virtual float GetFireRate( void )
+	{
+		return InSecondary( ToBasePlayer( GetOwner() ) ) ? 0.2f : 0.5f;
+	}
+
+	// TODO: Something more efficient?
+	inline bool InSecondary( CBasePlayer *pOwner ) { return (pOwner && pOwner->m_nButtons & IN_ATTACK2); }
+};
+
+IMPLEMENT_SERVERCLASS_ST( CWeapon_BM_Glock, DT_Weapon_BM_Glock )
+END_SEND_TABLE()
+
+LINK_ENTITY_TO_CLASS( weapon_bm_glock, CWeapon_BM_Glock );
+LINK_ENTITY_TO_CLASS( weapon_glock, CWeapon_BM_Glock ); // For simplicity/ease of use/legacy support/etc.
+
+PRECACHE_WEAPON_REGISTER( weapon_bm_glock );
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_Glock::Precache( void )
+{
+	if (FStrEq( GetClassname(), "weapon_glock" ))
+		SetClassname( "weapon_bm_glock" );
+
+	BaseClass::Precache();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Output : Activity
+//-----------------------------------------------------------------------------
+Activity CWeapon_BM_Glock::GetPrimaryAttackActivity( void )
+{
+	return ACT_VM_PRIMARYATTACK;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_Glock::SecondaryAttack( void )
+{
+	if (m_flNextPrimaryAttack <= gpGlobals->curtime)
+	{
+		PrimaryAttack();
+	}
+}
+#endif

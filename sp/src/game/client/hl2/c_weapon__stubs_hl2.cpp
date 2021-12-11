@@ -44,6 +44,11 @@ STUB_WEAPON_CLASS( weapon_hopwire, WeaponHopwire, C_BaseHLCombatWeapon );
 #ifdef HL2_LOSTCOAST
 STUB_WEAPON_CLASS( weapon_oldmanharpoon, WeaponOldManHarpoon, C_WeaponCitizenPackage );
 #endif
+#ifdef REVERSION_CATALYST
+STUB_WEAPON_CLASS( weapon_bm_glock, Weapon_BM_Glock, C_WeaponPistol );
+STUB_WEAPON_CLASS( weapon_bm_mp5, Weapon_BM_MP5, C_WeaponSMG1 );
+STUB_WEAPON_CLASS( weapon_bm_shotgun, Weapon_BM_Shotgun, C_WeaponShotgun );
+#endif
 #endif
 
 
