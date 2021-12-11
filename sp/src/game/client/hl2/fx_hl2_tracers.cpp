@@ -28,6 +28,10 @@ CLIENTEFFECT_REGISTER_BEGIN( PrecacheTracers )
 CLIENTEFFECT_MATERIAL( "effects/gunshiptracer" )
 CLIENTEFFECT_MATERIAL( "effects/combinemuzzle1" )
 CLIENTEFFECT_MATERIAL( "effects/combinemuzzle2_nocull" )
+#ifdef REVERSION_CATALYST
+CLIENTEFFECT_MATERIAL( "effects/bmmuzzle1" )
+CLIENTEFFECT_MATERIAL( "effects/bmmuzzle2_nocull" )
+#endif
 CLIENTEFFECT_REGISTER_END()
 
 //-----------------------------------------------------------------------------
@@ -693,3 +697,131 @@ void HunterMuzzleFlashCallback( const CEffectData &data )
 }
 
 DECLARE_CLIENT_EFFECT( "HunterMuzzleFlash", HunterMuzzleFlashCallback );
+
+#ifdef REVERSION_CATALYST
+//-----------------------------------------------------------------------------
+// Purpose: Airboat gun tracers 
+//-----------------------------------------------------------------------------
+void ApacheTracerCallback( const CEffectData &data )
+{
+	// Grab the data
+	Vector vecStart = GetTracerOrigin( data );
+	float flVelocity = data.m_flScale;
+
+	// Use default velocity if none specified
+	if ( !flVelocity )
+	{
+		flVelocity = 8000;
+	}
+
+	//Get out shot direction and length
+	Vector vecShotDir;
+	VectorSubtract( data.m_vOrigin, vecStart, vecShotDir );
+	float flTotalDist = VectorNormalize( vecShotDir );
+
+	// Don't make small tracers
+	if ( flTotalDist <= 256 )
+		return;
+
+	float flLength = random->RandomFloat( 256.0f, 384.0f );
+	float flLife = ( flTotalDist + flLength ) / flVelocity;	//NOTENOTE: We want the tail to finish its run as well
+	
+	// Add it
+	FX_AddDiscreetLine( vecStart, vecShotDir, flVelocity, flLength, flTotalDist, 1.5f, flLife, "effects/tracer_middle" );
+
+	if (data.m_fFlags & TRACER_FLAG_WHIZ)
+	{
+		FX_TracerSound( vecStart, data.m_vOrigin, TRACER_TYPE_GUNSHIP );
+	}
+}
+
+DECLARE_CLIENT_EFFECT( "ApacheTracer", ApacheTracerCallback );
+
+//-----------------------------------------------------------------------------
+// Chopper muzzle flashes
+//-----------------------------------------------------------------------------
+void MuzzleFlash_Apache( ClientEntityHandle_t hEntity, int attachmentIndex )
+{
+	VPROF_BUDGET( "MuzzleFlash_Apache", VPROF_BUDGETGROUP_PARTICLE_RENDERING );
+
+	matrix3x4_t	matAttachment;
+	// If the client hasn't seen this entity yet, bail.
+	if ( !FX_GetAttachmentTransform( hEntity, attachmentIndex, matAttachment ) )
+		return;
+	
+	CSmartPtr<CLocalSpaceEmitter> pSimple = CLocalSpaceEmitter::Create( "MuzzleFlash", hEntity, attachmentIndex );
+
+	SimpleParticle *pParticle;
+	Vector			forward(1,0,0), offset; //NOTENOTE: All coords are in local space
+
+	float flScale = random->RandomFloat( 2.5f, 4.5f );
+
+	// Flash
+	for ( int i = 1; i < 7; i++ )
+	{
+		offset = (forward * (i*2.0f*flScale));
+
+		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), pSimple->GetPMaterial( VarArgs( "effects/bmmuzzle%d", random->RandomInt(1,2) ) ), offset );
+			
+		if ( pParticle == NULL )
+			return;
+
+		pParticle->m_flLifetime		= 0.0f;
+		pParticle->m_flDieTime		= random->RandomFloat( 0.05f, 0.1f );
+
+		pParticle->m_vecVelocity.Init();
+
+		pParticle->m_uchColor[0]	= 255;
+		pParticle->m_uchColor[1]	= 255;
+		pParticle->m_uchColor[2]	= 255;
+
+		pParticle->m_uchStartAlpha	= 255;
+		pParticle->m_uchEndAlpha	= 128;
+
+		pParticle->m_uchStartSize	= ( (random->RandomFloat( 6.0f, 8.0f ) * (10-(i))/7) * flScale );
+		pParticle->m_uchEndSize		= pParticle->m_uchStartSize;
+		pParticle->m_flRoll			= random->RandomInt( 0, 360 );
+		pParticle->m_flRollDelta	= 0.0f;
+	}
+	
+	// Grab the origin out of the transform for the attachment
+	Vector		origin;
+	MatrixGetColumn( matAttachment, 3, &origin );	
+	CreateMuzzleflashELight( origin, 6, 128, 256, hEntity );
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void ApacheMuzzleFlashCallback( const CEffectData &data )
+{
+	MuzzleFlash_Apache( data.m_hEntity, data.m_nAttachmentIndex );
+}
+
+DECLARE_CLIENT_EFFECT( "ApacheMuzzleFlash", ApacheMuzzleFlashCallback );
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : &data - 
+//-----------------------------------------------------------------------------
+void MP5ImpactCallback( const CEffectData &data )
+{
+	FX_AddQuad( data.m_vOrigin, 
+				data.m_vNormal, 
+				random->RandomFloat( 24, 32 ),
+				0,
+				0.75f, 
+				1.0f,
+				0.0f,
+				0.4f,
+				random->RandomInt( 0, 360 ), 
+				0,
+				Vector( 1.0f, 1.0f, 1.0f ), 
+				0.25f, 
+				"effects/bmmuzzle2_nocull",
+				(FXQUAD_BIAS_SCALE|FXQUAD_BIAS_ALPHA) );
+}
+
+DECLARE_CLIENT_EFFECT( "MP5Impact", MP5ImpactCallback );
+#endif
