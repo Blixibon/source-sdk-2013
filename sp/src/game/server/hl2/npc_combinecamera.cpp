@@ -138,7 +138,12 @@ public:
 
 	int OnTakeDamage(const CTakeDamageInfo &inputInfo);
 
+#ifdef REVERSION_CATALYST
+	// CLASS_MILITARY is used by the HECU now
+	Class_T Classify() { return (m_bEnabled) ? CLASS_COMBINE : CLASS_NONE; }
+#else
 	Class_T Classify() { return (m_bEnabled) ? CLASS_MILITARY : CLASS_NONE; }
+#endif
 	
 	bool IsValidEnemy( CBaseEntity *pEnemy );
 	bool FVisible(CBaseEntity *pEntity, int traceMask = MASK_BLOCKLOS, CBaseEntity **ppBlocker = NULL);

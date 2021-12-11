@@ -604,6 +604,11 @@ public:
 
 	virtual bool			IsNPC( void ) const { return true; }
 
+#ifdef REVERSION_CATALYST
+	// Returns true if this is a NPC replicated from Black Mesa: Source.
+	virtual bool			IsBlackMesa() { return false; }
+#endif
+
 	//---------------------------------
 
 	void TestPlayerPushing( CBaseEntity *pPlayer );
