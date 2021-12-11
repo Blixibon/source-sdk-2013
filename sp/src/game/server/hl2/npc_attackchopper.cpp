@@ -46,6 +46,11 @@
 #include "filters.h"
 #endif
 
+#ifdef REVERSION_CATALYST
+#include "reversioncatalyst/ai_base_bm_npc.h"
+#include "weapon_rpg.h"
+#endif
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -426,6 +431,9 @@ public:
 	// FIXME: Work this back into the base class
 	virtual bool ShouldUseFixedPatrolLogic() { return true; }
 
+	// For the BM apache
+	virtual const char* GetChargeGunSound() { return "NPC_AttackHelicopter.ChargeGun"; }
+
 protected:
 
 	int m_poseWeapon_Pitch, m_poseWeapon_Yaw, m_poseRudder;
@@ -583,9 +591,15 @@ private:
 	void CreateChopperHusk();
 
 	// Pow!
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	void ExplodeAndThrowChunk( const Vector &vecExplosionPos );
 
 	// Drop a corpse!
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	void DropCorpse( int nDamage );
 
 	// Should we trigger a damage effect?
@@ -650,6 +664,10 @@ private:
 	void SpotlightStartup();
 	void SpotlightShutdown();
 
+#ifdef REVERSION_CATALYST
+protected:
+#endif
+
 	CBaseEntity *GetCrashPoint()	{ return m_hCrashPoint.Get(); }
 
 private:
@@ -692,6 +710,10 @@ private:
 	void InitBoneFollowers( void );
 	CBoneFollowerManager	m_BoneFollowerManager;
 #endif // HL2_EPISODIC
+
+#ifdef REVERSION_CATALYST
+protected:
+#endif
 
 	CAI_Spotlight	m_Spotlight;
 	Vector		m_angGun;
@@ -769,6 +791,10 @@ private:
 
 	// Sounds
 	CSoundPatch	*m_pGunFiringSound;
+
+#ifdef REVERSION_CATALYST
+private:
+#endif
 
 	// Outputs
 #ifndef MAPBASE
@@ -995,7 +1021,7 @@ void CNPC_AttackHelicopter::Precache( void )
 		PrecacheModel("models/combine_soldier.mdl");
 	}
 
-	PrecacheScriptSound("NPC_AttackHelicopter.ChargeGun");
+	PrecacheScriptSound(GetChargeGunSound());
 	if ( HasSpawnFlags( SF_HELICOPTER_LOUD_ROTOR_SOUND ) )
 	{
 		PrecacheScriptSound("NPC_AttackHelicopter.RotorsLoud");
@@ -2262,7 +2288,12 @@ bool CNPC_AttackHelicopter::PoseGunTowardTargetDirection( const Vector &vTargetD
 		m_angGun.y = MAX( angles.y, m_angGun.y - 12 );
 	}
 
+#ifdef REVERSION_CATALYST
+	// HACKHACK: Compared to the Combine hunter-chopper model, the apache model seems to invert the weapon pitch's pose parameter value.
+	SetPoseParameter( m_poseWeapon_Pitch, IsBlackMesa() ? m_angGun.x : -m_angGun.x );
+#else
 	SetPoseParameter( m_poseWeapon_Pitch, -m_angGun.x );
+#endif
 	SetPoseParameter( m_poseWeapon_Yaw, m_angGun.y );
 
 	return true;
@@ -2306,7 +2337,7 @@ bool CNPC_AttackHelicopter::DoGunIdle( const Vector &vGunDir, const Vector &vTar
 	if ( ( m_nAttackMode == ATTACK_MODE_BULLRUSH_VEHICLE ) && 
 		( IsInSecondaryMode( BULLRUSH_MODE_SHOOT_GUN ) || IsInSecondaryMode(BULLRUSH_MODE_SHOOT_IDLE_PLAYER) ) )
 	{
-		EmitSound( "NPC_AttackHelicopter.ChargeGun" );
+		EmitSound( GetChargeGunSound() );
 		m_flChargeTime = gpGlobals->curtime + CHOPPER_GUN_CHARGE_TIME;
 		m_nGunState = GUN_STATE_CHARGING;
 		m_flCircleOfDeathRadius = CHOPPER_MAX_CIRCLE_OF_DEATH_RADIUS;
@@ -2350,7 +2381,7 @@ bool CNPC_AttackHelicopter::DoGunIdle( const Vector &vGunDir, const Vector &vTar
 	}
 	else
 	{
-		EmitSound( "NPC_AttackHelicopter.ChargeGun" );
+		EmitSound( GetChargeGunSound() );
 		float flChargeTime = CHOPPER_GUN_CHARGE_TIME;
 		float flVariance = flChargeTime * 0.1f;
 		m_flChargeTime = gpGlobals->curtime + random->RandomFloat(flChargeTime - flVariance, flChargeTime + flVariance);
@@ -3684,6 +3715,10 @@ int CNPC_AttackHelicopter::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	return nRetVal;
 }
 
+#ifdef REVERSION_CATALYST
+void Apache_BecomeChunks( CNPC_AttackHelicopter *pChopper );
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -3698,6 +3733,15 @@ void Chopper_BecomeChunks( CBaseEntity *pChopper )
 	pAttackHelicopter = dynamic_cast<CNPC_AttackHelicopter*>(pChopper);
 	if( pAttackHelicopter != NULL )
 	{
+#ifdef REVERSION_CATALYST
+		if (pAttackHelicopter->IsBlackMesa())
+		{
+			// Use the unique function
+			Apache_BecomeChunks( pAttackHelicopter );
+			return;
+		}
+#endif
+
 		// New for EP2, we may be tailspinning, (crashing) and playing an animation that is spinning
 		// our root bone, which means our model is not facing the way our entity is facing. So we have
 		// to do some attachment point math to get the proper angles to use for computing the relative
@@ -6239,3 +6283,430 @@ CHelicopterChunk *CHelicopterChunk::CreateHelicopterChunk( const Vector &vecPos,
 
 	return pChunk;
 }
+
+#ifdef REVERSION_CATALYST
+#define APACHE_MODEL "models/props_vehicles/apache.mdl"
+#define APACHE_HOVER_SOUND	"NPC_Apache.HoverLoop"
+#define APACHE_ROTOR_BLAST_SOUND	"NPC_AttackHelicopter.RotorBlast"
+
+#define APACHE_GUN_SOUND	"NPC_Apache.FireGun"
+#define APACHE_GUN_CHARGE_SOUND	"NPC_Apache.ChargeGun"
+
+#define APACHE_ROCKET_WARN_SOUND	"NPC_Apache.ChargeRockets"
+#define APACHE_ROCKET_WARN_TIME	2.5f
+#define APACHE_ROCKET_COOLDOWN	20.0f
+
+static const char* s_pRocketThinkContext = "ApacheRockets";
+
+//-----------------------------------------------------------------------------
+// A custom helicopter 
+//-----------------------------------------------------------------------------
+class CNPC_BM_Apache : public CAI_Base_BM_NPC<CNPC_AttackHelicopter>
+{
+public:
+	DECLARE_CLASS( CNPC_BM_Apache, CAI_Base_BM_NPC<CNPC_AttackHelicopter> );
+	DECLARE_DATADESC();
+
+	CNPC_BM_Apache();
+	~CNPC_BM_Apache();
+
+	virtual void	Precache( void );
+	virtual void	Spawn( void );
+	Class_T Classify ( void ) { return CLASS_MILITARY; }
+
+	void	Startup();
+	void	InitializeRotorSound( void );
+
+	void		AimRocketGun( void );
+	void		FireRockets();
+	void		FinishFireRockets();
+	virtual void FireRocket( Vector vLaunchPos, Vector vLaunchDir );
+	
+	void	DoImpactEffect( trace_t &tr, int nDamageType );
+	void	DoMuzzleFlash( void );
+
+	const char*	GetChargeGunSound() { return APACHE_GUN_CHARGE_SOUND; }
+
+	virtual const char* GetTracerType( void ) { return "ApacheTracer"; }
+	
+	void ExplodeAndThrowChunk( const Vector &vecExplosionPos );
+	void DropCorpse( int nDamage );
+
+private:
+
+	float m_flNextRocketAttack;
+};
+
+LINK_ENTITY_TO_CLASS( npc_bm_apache, CNPC_BM_Apache );
+
+BEGIN_DATADESC( CNPC_BM_Apache )
+
+	DEFINE_FIELD( m_flNextRocketAttack, FIELD_TIME ),
+
+	DEFINE_THINKFUNC( FireRockets ),
+	DEFINE_THINKFUNC( FinishFireRockets ),
+
+END_DATADESC()
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+CNPC_BM_Apache::CNPC_BM_Apache()
+{
+	AddSpawnFlags( SF_HELICOPTER_LIGHTS );
+
+	m_flMaxSpeed = 3000.0f;
+	m_flMaxSpeedFiring = 3000.0f;
+	m_flNextRocketAttack = 0.0f;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+CNPC_BM_Apache::~CNPC_BM_Apache()
+{
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CNPC_BM_Apache::Precache( void )
+{
+	if (GetModelName() == NULL_STRING)
+		SetModelName( AllocPooledString( APACHE_MODEL ) );
+
+	PrecacheScriptSound( APACHE_HOVER_SOUND );
+	PrecacheScriptSound( APACHE_ROTOR_BLAST_SOUND );
+
+	PrecacheScriptSound( APACHE_GUN_SOUND );
+
+	PrecacheScriptSound( APACHE_ROCKET_WARN_SOUND );
+
+	// If we're never going to engage in combat, we don't need to load these assets!
+	if ( m_bNonCombat == false )
+	{
+		PrecacheModel( "models/humans/marine.mdl" );
+
+		PrecacheModel( "models/gibs/apache_gibs/apache_fueselage.mdl" );
+		PrecacheModel( "models/gibs/apache_gibs/apache_gun.mdl" );
+
+		UTIL_PrecacheOther( "rpg_missile" );
+	}
+
+	BaseClass::Precache();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CNPC_BM_Apache::Spawn( void )
+{
+	if (GetModelName() == NULL_STRING)
+		SetModelName( AllocPooledString( APACHE_MODEL ) );
+
+	BaseClass::Spawn();
+
+	// Needed because this uses CLASS_MILITARY
+	AddClassRelationship( CLASS_MISSILE, D_FR, 0 );
+
+	m_fHelicopterFlags |= BITS_HELICOPTER_MISSILE_ON;
+
+	m_iAmmoType = GetAmmoDef()->Index( "SMG1" ); // TODO: BMHelicopterGun?
+}
+
+//------------------------------------------------------------------------------
+// Startup the chopper
+//------------------------------------------------------------------------------
+void CNPC_BM_Apache::Startup()
+{
+	// Skip base class due to overriding chopper lights
+	CBaseHelicopter::Startup();
+
+	if ( HasSpawnFlags( SF_HELICOPTER_LIGHTS ) )
+	{
+		for ( int i = 0; i < 2; ++i )
+		{
+			// See if there's an attachment for this smoke trail
+			int nAttachment = LookupAttachment( i != 0 ? "lightpodr" : "lightpodl" );
+			if ( nAttachment == 0 )
+			{
+				m_hLights[i] = NULL;
+				continue;
+			}
+
+			m_hLights[i] = CSprite::SpriteCreate( "sprites/glow01.vmt", vec3_origin, false );
+			if ( !m_hLights[i] )
+				continue;
+
+			m_hLights[i]->SetParent( this, nAttachment );
+			m_hLights[i]->SetLocalOrigin( vec3_origin );
+			m_hLights[i]->SetLocalVelocity( vec3_origin );
+			m_hLights[i]->SetMoveType( MOVETYPE_NONE );
+			m_hLights[i]->SetTransparency( kRenderWorldGlow, 64, 255, 64, 255, kRenderFxNone );
+			m_hLights[i]->SetScale( 1.0f );
+			m_hLights[i]->SetGlowProxySize( 8.0f );
+			m_hLights[i]->TurnOn();
+		}
+
+		//SetContextThink( &CNPC_AttackHelicopter::BlinkLightsThink, gpGlobals->curtime + CHOPPER_LIGHT_BLINK_TIME_SHORT, s_pBlinkLightThinkContext );
+	}
+}
+
+//------------------------------------------------------------------------------
+// Purpose: Create our rotor sound
+//------------------------------------------------------------------------------
+void CNPC_BM_Apache::InitializeRotorSound( void )
+{
+	if ( !m_pRotorSound )
+	{
+		CSoundEnvelopeController &controller = CSoundEnvelopeController::GetController();
+		CPASAttenuationFilter filter( this );
+
+		m_pRotorSound = controller.SoundCreate( filter, entindex(), APACHE_HOVER_SOUND );
+		m_pRotorBlast = controller.SoundCreate( filter, entindex(), APACHE_ROTOR_BLAST_SOUND );
+
+		m_pGunFiringSound = controller.SoundCreate( filter, entindex(), APACHE_GUN_SOUND );
+		controller.Play( m_pGunFiringSound, 0.0, 100 );
+	}
+	else
+	{
+		Assert(m_pRotorSound);
+		Assert(m_pRotorBlast);
+		Assert(m_pGunFiringSound);
+	}
+
+	// Skip CNPC_AttackHelicopter
+	CBaseHelicopter::InitializeRotorSound();
+}
+
+//------------------------------------------------------------------------------
+// Purpose: 
+//------------------------------------------------------------------------------
+void CNPC_BM_Apache::AimRocketGun( void )
+{
+	if (m_flNextRocketAttack > gpGlobals->curtime)
+		return;
+
+	if (!GetEnemy())
+		return;
+
+	// Do the warning
+	for ( int i = 0; i < MAX_HELICOPTER_LIGHTS; ++i )
+	{
+		if ( !m_hLights[i] )
+			continue;
+
+		m_hLights[i]->SetRenderColor( 255, 192, 0 );
+		m_hLights[i]->SetScale( 1.0f );
+	}
+
+	EmitSound( APACHE_ROCKET_WARN_SOUND );
+
+	SetContextThink( &CNPC_BM_Apache::FireRockets, gpGlobals->curtime + APACHE_ROCKET_WARN_TIME, s_pRocketThinkContext );
+
+	m_flNextRocketAttack = gpGlobals->curtime += APACHE_ROCKET_COOLDOWN;
+}
+
+//------------------------------------------------------------------------------
+// Purpose: 
+//------------------------------------------------------------------------------
+void CNPC_BM_Apache::FireRockets( void )
+{
+	for (int i = 0; i < 2; i++)
+	{
+		int nAttachment = LookupAttachment( i != 0 ? "rocketpodr" : "rocketpodl" );
+		if ( nAttachment == 0 )
+		{
+			continue;
+		}
+
+		Vector vLaunchPos, vLaunchDir;
+		GetAttachment( nAttachment, vLaunchPos, &vLaunchDir );
+
+		// Try to get the direction to the enemy.
+		// If the enemy is above us, just use the attachment points.
+		if ( GetEnemy() && GetEnemy()->GetAbsOrigin().z < GetAbsOrigin().z )
+		{
+			vLaunchDir = GetShootEnemyDir( vLaunchPos );
+		}
+
+		FireRocket( vLaunchPos, vLaunchDir );
+	}
+
+	for ( int i = 0; i < MAX_HELICOPTER_LIGHTS; ++i )
+	{
+		if ( !m_hLights[i] )
+			continue;
+
+		m_hLights[i]->SetRenderColor( 255, 0, 0 );
+		m_hLights[i]->SetScale( 0.5f );
+	}
+
+	SetContextThink( &CNPC_BM_Apache::FinishFireRockets, gpGlobals->curtime + 0.25f, s_pRocketThinkContext );
+}
+
+//------------------------------------------------------------------------------
+// Purpose: 
+//------------------------------------------------------------------------------
+void CNPC_BM_Apache::FinishFireRockets( void )
+{
+	// Turn the lights back to normal
+	for ( int i = 0; i < MAX_HELICOPTER_LIGHTS; ++i )
+	{
+		if ( !m_hLights[i] )
+			continue;
+
+		m_hLights[i]->SetRenderColor( 64, 255, 64 );
+		m_hLights[i]->SetScale( 1.0f );
+	}
+}
+
+//------------------------------------------------------------------------------
+// Purpose: 
+//------------------------------------------------------------------------------
+void CNPC_BM_Apache::FireRocket( Vector vLaunchPos, Vector vLaunchDir )
+{
+	QAngle vecAngles;
+	VectorAngles( vLaunchDir, vecAngles );
+
+	CMissile *pMissile = CMissile::Create( vLaunchPos, vecAngles, edict() );
+
+	// Needs a grace period
+	pMissile->SetGracePeriod( 1.0f );
+}
+
+//-----------------------------------------------------------------------------
+// Allows the shooter to change the impact effect of his bullets
+//-----------------------------------------------------------------------------
+void CNPC_BM_Apache::DoImpactEffect( trace_t &tr, int nDamageType )
+{
+	UTIL_ImpactTrace( &tr, nDamageType, "ApacheImpact" );
+} 
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CNPC_BM_Apache::DoMuzzleFlash( void )
+{
+	BaseClass::DoMuzzleFlash();
+	
+	CEffectData data;
+
+	data.m_nAttachmentIndex = LookupAttachment( "muzzle" );
+	data.m_nEntIndex = entindex();
+	DispatchEffect( "ApacheMuzzleFlash", data );
+}
+
+//------------------------------------------------------------------------------
+// Pow!
+//------------------------------------------------------------------------------
+void CNPC_BM_Apache::ExplodeAndThrowChunk( const Vector &vecExplosionPos )
+{
+	CEffectData data;
+	data.m_vOrigin = vecExplosionPos;
+	DispatchEffect( "HelicopterMegaBomb", data );
+
+	EmitSound( "BaseExplosionEffect.Sound" );
+
+	UTIL_ScreenShake( vecExplosionPos, 25.0, 150.0, 1.0, 750.0f, SHAKE_START );
+
+	if(GetCrashPoint() != NULL)
+	{
+		// Make it clear that I'm done for.
+		ExplosionCreate( vecExplosionPos, QAngle(0,0,1), this, 100, 128, false );
+	}
+
+	// TODO: Chunks?
+	/*
+	if ( random->RandomInt( 0, 4 ) )
+	{
+		for ( int i = 0; i < 2; i++ )
+		{
+			Chopper_CreateChunk( this, vecExplosionPos, RandomAngle(0, 360), g_PropDataSystem.GetRandomChunkModel( "MetalChunks" ), true );
+		}
+	}
+	else
+	{
+		Chopper_CreateChunk( this, vecExplosionPos, RandomAngle(0, 360), s_pChunkModelName[random->RandomInt( 0, CHOPPER_MAX_SMALL_CHUNKS - 1 )], false );
+	}
+	*/
+}
+
+
+//-----------------------------------------------------------------------------
+// Drop a corpse!
+//-----------------------------------------------------------------------------
+void CNPC_BM_Apache::DropCorpse( int nDamage )
+{
+	// Don't drop another corpse if the next guy's not out on the gun yet
+	if ( m_flLastCorpseFall > gpGlobals->curtime )
+		return;
+
+	// Clamp damage to prevent ridiculous ragdoll velocity
+	if( nDamage > 250.0f )
+		nDamage = 250.0f;
+
+	m_flLastCorpseFall = gpGlobals->curtime + 3.0;
+
+	// Spawn a ragdoll combine guard
+	float forceScale = nDamage * 75 * 4;
+	Vector vecForceVector = RandomVector(-1,1);
+	vecForceVector.z = 0.5;
+	vecForceVector *= forceScale;
+
+	CBaseEntity *pGib = CreateRagGib( "models/humans/marine.mdl", GetAbsOrigin(), GetAbsAngles(), vecForceVector );
+	if ( pGib )
+	{
+		pGib->SetOwnerEntity( this );
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void Apache_BecomeChunks( CNPC_AttackHelicopter *pChopper )
+{
+	QAngle vecChunkAngles = pChopper->GetAbsAngles();
+	Vector vecForward, vecUp;
+	pChopper->GetVectors( &vecForward, NULL, &vecUp );
+
+	Vector vecChunkPos = pChopper->GetAbsOrigin();
+
+	Vector vecRight(0,0,0);
+
+	if( hl2_episodic.GetBool() )
+	{
+		// We need to get a right hand vector to toss the cockpit and tail pieces
+		// so their motion looks like a continuation of the tailspin animation
+		// that the chopper plays before crashing.
+		pChopper->GetVectors( NULL, &vecRight, NULL );
+	}
+
+	// Body
+	CHelicopterChunk *pBodyChunk = CHelicopterChunk::CreateHelicopterChunk( vecChunkPos, vecChunkAngles, pChopper->GetAbsVelocity(), "models/gibs/apache_gibs/apache_fueselage.mdl", CHUNK_BODY );
+
+	//pChopper->GetAttachment( pChopper->LookupAttachment( "gun" ), vecChunkPos, vecChunkAngles );
+
+	// Gun
+	CHelicopterChunk *pCockpitChunk = CHelicopterChunk::CreateHelicopterChunk( vecChunkPos, vecChunkAngles, pChopper->GetAbsVelocity() + vecRight * -800.0f, "models/gibs/apache_gibs/apache_gun.mdl", CHUNK_COCKPIT );
+
+	pCockpitChunk->m_hMaster = pBodyChunk;
+
+	// Constrain all the pieces together loosely
+	IPhysicsObject *pBodyObject = pBodyChunk->VPhysicsGetObject();
+	Assert( pBodyObject );
+
+	IPhysicsObject *pCockpitObject = pCockpitChunk->VPhysicsGetObject();
+	Assert( pCockpitObject );
+
+	IPhysicsConstraintGroup *pGroup = NULL;
+	
+	// Create the constraint
+	constraint_fixedparams_t fixed;
+	fixed.Defaults();
+	fixed.InitWithCurrentObjectState( pBodyObject, pCockpitObject );
+	fixed.constraint.Defaults();
+
+	pBodyChunk->m_pCockpitConstraint = physenv->CreateFixedConstraint( pBodyObject, pCockpitObject, pGroup, fixed );
+}
+#endif
