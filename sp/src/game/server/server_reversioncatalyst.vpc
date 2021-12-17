@@ -4,14 +4,22 @@
 //	Project Base Script
 //-----------------------------------------------------------------------------
 
+$Configuration
+{
+	$Compiler
+	{
+		$AdditionalIncludeDirectories	"$BASE;$SRCDIR\game\shared\reversioncatalyst;.\reversioncatalyst;"
+	}
+}
+
 $Project
 {
 	$Folder	"Source Files"
 	{
 		$Folder	"Reversion Catalyst"
 		{
-			$File	"reversioncatalyst\ai_base_bm_npc.cpp"
-			$File	"reversioncatalyst\ai_base_bm_npc.h"
+			$File	"$SRCDIR\game\shared\reversioncatalyst\ai_base_bm_npc.cpp"
+			$File	"$SRCDIR\game\shared\reversioncatalyst\ai_base_bm_npc.h"
 			$File	"reversioncatalyst\npc_bm_human_scientist.cpp"
 			$File	"reversioncatalyst\npc_bm_human_scientist.h"
 			$File	"reversioncatalyst\npc_bm_human_security.cpp"
@@ -20,8 +28,13 @@ $Project
 			$File	"reversioncatalyst\npc_bm_human_grunt.h"
 			$File	"reversioncatalyst\npc_bm_osprey.cpp"
 			$File	"reversioncatalyst\npc_bm_osprey.h"
+			$File	"reversioncatalyst\npc_bm_sentry_ground.cpp"
+			$File	"reversioncatalyst\npc_bm_sentry_ground.h"
 			$File	"reversioncatalyst\weapon_bm_base.cpp"
 			$File	"reversioncatalyst\weapon_bm_base.h"
+			
+			$File	"$SRCDIR\game\shared\reversioncatalyst\rc_bm_character_manifest.cpp"
+			$File	"$SRCDIR\game\shared\reversioncatalyst\rc_bm_character_manifest.h"
 			
 			// Just make the BM weapons derive from the HL2 ones in their respective CPP files
 			//$File	"reversioncatalyst\weapon_bm_glock.cpp"

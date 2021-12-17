@@ -15,17 +15,31 @@ ConVar	sk_human_security_health( "sk_human_security_health", "40" );
 
 #define BODYGROUP_HELMET 2
 #define BODYGROUP_CHEST 3
-#define BODYGROUP_HOLSTER 2
-#define BODYGROUP_FLASHLIGHT 2
+#define BODYGROUP_HOLSTER 4
+#define BODYGROUP_FLASHLIGHT 5
 
 LINK_ENTITY_TO_CLASS( npc_bm_human_security, CNPC_BM_HumanSecurity );
 LINK_ENTITY_TO_CLASS( npc_human_security, CNPC_BM_HumanSecurity ); // For simplicity/ease of use/legacy support/etc.
 
 BEGIN_DATADESC( CNPC_BM_HumanSecurity )
 
+	DEFINE_KEYFIELD( m_fWeaponDrawn, FIELD_BOOLEAN, "weapondrawn" ),
 	DECLARE_BM_NPC_DATADESC()
+	DECLARE_BM_HUMAN_DATADESC()
 
 END_DATADESC()
+
+IMPLEMENT_SERVERCLASS_ST( CNPC_BM_HumanSecurity, DT_NPC_BM_HumanSecurity )
+	SendPropInt( SENDINFO( m_iCharacterIndex ), 16, 0 ),
+END_SEND_TABLE()
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+CNPC_BM_HumanSecurity::CNPC_BM_HumanSecurity()
+{
+	m_fWeaponDrawn = false;
+}
 
 //=========================================================
 // Classify - indicates this NPC's place in the 
@@ -50,28 +64,20 @@ void CNPC_BM_HumanSecurity::Spawn()
 
 	if (!m_bCustomBody)
 	{
-		if (GetModelPtr())
-			m_nSkin = RandomInt(0, GetModelPtr()->numskinfamilies());
-
-		// Always wear a helmet and a vest
-		SetBodygroup( BODYGROUP_HELMET, 0 );
-		SetBodygroup( BODYGROUP_CHEST, RandomInt(1,2) );
-		SetBodygroup( BODYGROUP_FLASHLIGHT, RandomInt(0,1) );
-
-		// Looks weird without this
-		SetBodygroup( BODYGROUP_HOLSTER, RandomInt(1,2) );
+		SelectAndApplyCharacter();
 	}
 
 	if (GetActiveWeapon() && GetActiveWeapon()->WeaponClassify() == WEPCLASS_HANDGUN)
 	{
-		// Empty holster
-		SetBodygroup( BODYGROUP_HOLSTER, 2 );
-	}
-	else if (!m_bCustomBody)
-	{
-		// Pretend we have a pistol holstered
-		// todo: actual holster/unholster handling
-		SetBodygroup( BODYGROUP_HOLSTER, 1 );
+		if (!m_fWeaponDrawn)
+		{
+			DoHolster();
+		}
+		else if (GetBodygroup(BODYGROUP_HOLSTER) != 0)
+		{
+			// Empty holster
+			SetBodygroup( BODYGROUP_HOLSTER, 2 );
+		}
 	}
 
 	NPCInit();
@@ -93,4 +99,46 @@ void CNPC_BM_HumanSecurity::Precache()
 	PrecacheModel( STRING( GetModelName() ) );
 
 	BaseClass::Precache();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Allows NPC to holster from more than just the animation event
+//-----------------------------------------------------------------------------
+bool CNPC_BM_HumanSecurity::DoHolster( void )
+{
+	if (GetActiveWeapon() && IsGlock( GetActiveWeapon() ) && GetBodygroup( BODYGROUP_HOLSTER ) == 2)
+	{
+		// Toggle our holster bodygroup
+		SetBodygroup( BODYGROUP_HOLSTER, 1 );
+	}
+
+	return BaseClass::DoHolster();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Allows NPC to unholster from more than just the animation event
+//-----------------------------------------------------------------------------
+bool CNPC_BM_HumanSecurity::DoUnholster( void )
+{
+	bool bBase = BaseClass::DoUnholster();
+
+	if (bBase)
+	{
+		if (GetActiveWeapon() && IsGlock( GetActiveWeapon() ) && GetBodygroup( BODYGROUP_HOLSTER ) == 1)
+		{
+			// Toggle our holster bodygroup
+			SetBodygroup( BODYGROUP_HOLSTER, 2 );
+		}
+	}
+
+	return bBase;
+}
+
+//------------------------------------------------------------------------------
+// Purpose: 
+//------------------------------------------------------------------------------
+WeaponProficiency_t CNPC_BM_HumanSecurity::CalcWeaponProficiency( CBaseCombatWeapon *pWeapon )
+{
+	// Only allied guards have perfect accuracy
+	return IsPlayerAlly() ? WEAPON_PROFICIENCY_PERFECT : WEAPON_PROFICIENCY_VERY_GOOD;
 }

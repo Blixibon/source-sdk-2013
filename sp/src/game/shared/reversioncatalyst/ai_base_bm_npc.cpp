@@ -6,4 +6,3 @@
 
 #include "cbase.h"
 #include "ai_base_bm_npc.h"
-

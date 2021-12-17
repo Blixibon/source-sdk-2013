@@ -11,22 +11,25 @@
 #endif
 
 #include "cbase.h"
-#include "c_ai_basenpc.h"
+#include "ai_base_bm_npc.h"
 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-class C_NPC_BM_HumanGrunt : public C_AI_BaseNPC
+class C_NPC_BM_HumanGrunt : public CAI_Base_BM_Human<C_AI_BaseNPC>
 {
-	DECLARE_CLASS( C_NPC_BM_HumanGrunt, C_AI_BaseNPC );
+	DECLARE_CLASS( C_NPC_BM_HumanGrunt, CAI_Base_BM_Human<C_AI_BaseNPC> );
 public:
-	//DECLARE_CLIENTCLASS();
+	DECLARE_CLIENTCLASS();
 
-	C_NPC_BM_HumanGrunt() {}
+	C_NPC_BM_HumanGrunt();
 
-	void FireEvent( const Vector& origin, const QAngle& angles, int event, const char *options );
+	void	OnDataChanged( DataUpdateType_t type );
 
-	int m_iUseMarch;
+	void	FireEvent( const Vector& origin, const QAngle& angles, int event, const char *options );
+
+	//bool	m_bHasCigar;
+	//LocalFlexController_t		m_iCigarFlex;
 };
 
-#endif // C_BREAKABLEPROP_H
+#endif // C_NPC_BM_HUMAN_GRUNT_H

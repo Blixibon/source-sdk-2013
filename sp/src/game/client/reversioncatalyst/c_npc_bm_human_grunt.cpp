@@ -11,12 +11,31 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-//IMPLEMENT_CLIENTCLASS_DT( C_NPC_BM_HumanGrunt, DT_NPC_BM_HumanGrunt, CNPC_BM_HumanGrunt )
-//	RecvPropInt( RECVINFO ( m_iUseMarch) ),
-//END_RECV_TABLE()
+IMPLEMENT_CLIENTCLASS_DT( C_NPC_BM_HumanGrunt, DT_NPC_BM_HumanGrunt, CNPC_BM_HumanGrunt )
+	//RecvPropBool( RECVINFO ( m_bHasCigar) ),
+
+	RecvPropInt( RECVINFO( m_iCharacterIndex ) ),
+END_RECV_TABLE()
 
 // This is originally from c_baseanimating.cpp, but extern doesn't work for some reason
 const float RUN_SPEED_ESTIMATE_SQR = 150.0f * 150.0f;
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+C_NPC_BM_HumanGrunt::C_NPC_BM_HumanGrunt()
+{
+	//m_bHasCigar = false;
+	//m_iCigarFlex = LocalFlexController_t(-1);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Turns soldier footsteps into marine footsteps
+//-----------------------------------------------------------------------------
+void C_NPC_BM_HumanGrunt::OnDataChanged( DataUpdateType_t type )
+{
+	BaseClass::OnDataChanged( type );
+}
 
 //-----------------------------------------------------------------------------
 // Purpose: Turns soldier footsteps into marine footsteps

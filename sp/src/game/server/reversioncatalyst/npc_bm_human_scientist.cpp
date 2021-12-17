@@ -10,6 +10,7 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+extern ISoundEmitterSystemBase *soundemitterbase;
 
 ConVar	sk_human_scientist_health( "sk_human_scientist_health", "35" );
 
@@ -29,8 +30,13 @@ LINK_ENTITY_TO_CLASS( npc_human_scientist_eli, CNPC_BM_HumanScientist ); // For 
 BEGIN_DATADESC( CNPC_BM_HumanScientist )
 
 	DECLARE_BM_NPC_DATADESC()
+	DECLARE_BM_HUMAN_DATADESC()
 
 END_DATADESC()
+
+IMPLEMENT_SERVERCLASS_ST( CNPC_BM_HumanScientist, DT_NPC_BM_HumanScientist )
+	SendPropInt( SENDINFO( m_iCharacterIndex ), 16, 0 ),
+END_SEND_TABLE()
 
 //=========================================================
 // Classify - indicates this NPC's place in the 
@@ -39,6 +45,13 @@ END_DATADESC()
 Class_T	CNPC_BM_HumanScientist::Classify( void )
 {
 	return	CLASS_PLAYER_ALLY;
+}
+
+const char *CNPC_BM_HumanScientist::GetCharacterClassname()
+{
+	gender_t gender = soundemitterbase->GetActorGender( STRING( GetModelName() ) );
+	
+	return gender == GENDER_FEMALE ? "npc_human_scientist_female" : "npc_human_scientist";
 }
 
 //=========================================================
@@ -55,26 +68,7 @@ void CNPC_BM_HumanScientist::Spawn()
 
 	if (!m_bCustomBody)
 	{
-		if (GetModelPtr())
-			m_nSkin = RandomInt(0, GetModelPtr()->numskinfamilies());
-
-		if (Q_strstr(STRING(GetModelName()), "female"))
-		{
-			// Use any type of hair
-			SetBodygroup( BODYGROUP_FEMALE_HAIR, RandomInt(0,4) );
-
-			// Half of all scientists wear glasses
-			// (one of them is a pencil, but still)
-			if (RandomInt(0, 1) == 1)
-				SetBodygroup( BODYGROUP_FEMALE_GLASSES, RandomInt(1,6) );
-		}
-		else
-		{
-			// Half of all scientists wear glasses
-			// (one of them is a pencil, but still)
-			if (RandomInt(0, 1) == 1)
-				SetBodygroup( BODYGROUP_MALE_GLASSES, RandomInt(1,6) );
-		}
+		SelectAndApplyCharacter();
 	}
 
 	NPCInit();
