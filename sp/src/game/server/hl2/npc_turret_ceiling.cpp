@@ -19,6 +19,11 @@
 #include "animation.h"
 #include "basehlcombatweapon_shared.h"
 #include "iservervehicle.h"
+#ifdef REVERSION_CATALYST
+#include "reversioncatalyst/ai_base_bm_npc.h"
+#include "beam_shared.h"
+#include "particle_parse.h"
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -176,6 +181,9 @@ protected:
 	virtual const char *GetDieSound()		{ return "NPC_CeilingTurret.Die"; }
 
 	virtual float		GetFireRate(bool bFightingPlayer = false)		{ return bFightingPlayer ? 0.5f : 0.1f; }
+#ifdef REVERSION_CATALYST
+	virtual float		GetScanPitch()		{ return 15.0f; }
+#endif
 
 	virtual void		SetIdleGoalAngles()		{ m_vecGoalAngles = GetAbsAngles(); }
 #endif
@@ -188,6 +196,9 @@ protected:
 	bool	PreThink( turretState_e state );
 #endif
 	void	Shoot( const Vector &vecSrc, const Vector &vecDirToEnemy );
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	void	SetEyeState( eyeState_t state );
 	void	Ping( void );	
 	void	Toggle( void );
@@ -895,7 +906,11 @@ void CNPC_CeilingTurret::SearchThink( void )
 	}
 	
 	//Display that we're scanning
+#ifdef REVERSION_CATALYST
+	m_vecGoalAngles.x = GetScanPitch();
+#else
 	m_vecGoalAngles.x = 15.0f;
+#endif
 	m_vecGoalAngles.y = GetAbsAngles().y + ( sin( gpGlobals->curtime * 2.0f ) * 45.0f );
 
 	//Turn and ping
@@ -1749,4 +1764,319 @@ void CNPC_LabTurret::InputSetArmYaw( inputdata_t &inputdata )
 	SetArmYaw( inputdata.value.Float() );
 }
 #endif
+#endif
+
+
+#ifdef REVERSION_CATALYST
+ConVar sk_sentry_ceiling_health( "sk_sentry_ceiling_health", "50" );
+ConVar sk_sentry_ceiling_motorspeed( "sk_sentry_ceiling_motorspeed", "350" );
+ConVar sk_sentry_ceiling_scan_pitch( "sk_sentry_ceiling_scan_pitch", "22.5" );
+
+class CNPC_BM_CeilingSentry : public CAI_Base_BM_NPC<CNPC_CeilingTurret>
+{
+	DECLARE_CLASS( CNPC_BM_CeilingSentry, CAI_Base_BM_NPC<CNPC_CeilingTurret> );
+public:
+	CNPC_BM_CeilingSentry();
+
+	Class_T	Classify( void ) 
+	{
+		if( m_bEnabled ) 
+			return CLASS_MILITARY;
+
+		return CLASS_NONE;
+	}
+
+	const char *GetTracerType( void ) { return "Tracer"; }
+	void		DoMuzzleFlash();
+
+	bool		PreThink( turretState_e state );
+
+	void		Precache( void );
+	void		Spawn();
+	void		Activate();
+
+	void		StopLoopingSounds( void ) { EmitSound( "npc_sentry_ceiling.MotorStop" ); }
+
+	float		MaxYawSpeed( void ) { return sk_sentry_ceiling_motorspeed.GetFloat(); }
+	float		GetScanPitch() { return sk_sentry_ceiling_scan_pitch.GetFloat(); }
+
+	void		SetEyeState( eyeState_t state );
+	void		UpdateLaser();
+
+protected:
+
+	const char *GetTurretModel()	{ return "models/NPCs/sentry_ceiling.mdl"; }
+
+	const char *GetRetireSound()	{ return "npc_sentry_ceiling.Retire"; }
+	const char *GetDeploySound()	{ return "npc_sentry_ceiling.Deploy"; }
+	const char *GetMoveSound()		{ return "npc_sentry_ceiling.MotorLoop"; }
+	const char *GetActiveSound()	{ return "npc_sentry_ceiling.Active"; }
+	const char *GetAlertSound()		{ return "npc_sentry_ceiling.Alert"; }
+	const char *GetShootSound()		{ return "npc_sentry_ceiling.Shoot"; }
+	const char *GetPingSound()		{ return "npc_sentry_ceiling.Ping"; }
+	const char *GetDieSound()		{ return "npc_sentry_ceiling.Die"; }
+
+	float		GetFireRate(bool bFightingPlayer = false)		{ return 1.0f; }
+	
+	CBeam		*m_pBeam;
+
+	static int	m_poseLaser;
+	static int	m_poseMuzzle;
+
+	DECLARE_DATADESC();
+};
+
+int CNPC_BM_CeilingSentry::m_poseLaser;
+int CNPC_BM_CeilingSentry::m_poseMuzzle;
+
+BEGIN_DATADESC( CNPC_BM_CeilingSentry )
+
+	DEFINE_FIELD( m_pBeam, FIELD_CLASSPTR ),
+
+END_DATADESC()
+
+LINK_ENTITY_TO_CLASS( npc_bm_sentry_ceiling, CNPC_BM_CeilingSentry );
+LINK_ENTITY_TO_CLASS( npc_sentry_ceiling, CNPC_BM_CeilingSentry ); // For simplicity/ease of use/legacy support/etc.
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+CNPC_BM_CeilingSentry::CNPC_BM_CeilingSentry()
+{
+	m_pBeam = NULL;
+
+	// Ceiling sentries can see in all directions
+	m_flFieldOfView = -1.0f;
+
+	m_iHealth = sk_sentry_ceiling_health.GetInt();
+}
+
+short sSentryHaloSprite;
+
+//-----------------------------------------------------------------------------
+// Purpose: Precache
+//-----------------------------------------------------------------------------
+void CNPC_BM_CeilingSentry::Precache( void )
+{
+	BaseClass::Precache();
+
+	PrecacheScriptSound( "npc_sentry_ceiling.MotorStop" );
+
+	PrecacheParticleSystem( "npc_sentry_ceiling_muzzleflash" );
+
+	sSentryHaloSprite = PrecacheModel( "sprites/light_glow03.vmt" );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CNPC_BM_CeilingSentry::Spawn( void )
+{
+	BaseClass::Spawn();
+
+	m_iAmmoType = GetAmmoDef()->Index( "SMG1" );
+
+	SetPoseParameter( m_poseMove_Yaw, 0 );
+
+	if (m_pEyeGlow)
+	{
+		m_pEyeGlow->SetAttachment( this, LookupAttachment("alarm") );
+	}
+
+	m_pBeam = CBeam::BeamCreate( "sprites/laserbeam.vmt", 1.0f );
+	m_pBeam->SetColor( 255, 55, 52 );
+	m_pBeam->SetBrightness( 0 ); // Start off
+
+	m_pBeam->PointEntInit( GetAbsOrigin(), this );
+	m_pBeam->SetEndAttachment( m_poseLaser );
+	m_pBeam->SetNoise( 0 );
+	m_pBeam->SetWidth( 0.75f );
+	m_pBeam->SetEndWidth( 0 );
+	m_pBeam->SetScrollRate( 0 );
+	m_pBeam->SetFadeLength( 0 );
+	m_pBeam->SetHaloTexture( sSentryHaloSprite );
+	m_pBeam->SetHaloScale( 8.0f );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CNPC_BM_CeilingSentry::Activate( void )
+{
+	BaseClass::Activate();
+
+	m_poseLaser = LookupAttachment( "laser" );
+	m_poseMuzzle = LookupAttachment( "muzzle" );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+bool CNPC_BM_CeilingSentry::PreThink( turretState_e state )
+{
+	Msg( "Ceiling sentry PreThink: %i\n", state );
+	
+	if (m_pBeam)
+	{
+		UpdateLaser();
+	}
+
+	// HACKHACK (removes muzzle flash)
+	if (GetActivity() != (Activity)ACT_CEILING_TURRET_FIRE)
+		StopParticleEffects( this );
+
+	if (state == TURRET_DEAD)
+	{
+		SetNextThink( gpGlobals->curtime );
+
+		if ( m_lifeState != LIFE_DEAD )
+		{
+			SetActivity( ACT_DIESIMPLE );
+
+			StopLoopingSounds();
+			EmitSound( GetDieSound() );
+
+			// lots of smoke
+			Vector pos;
+			CollisionProp()->RandomPointInBounds( vec3_origin, Vector( 1, 1, 1 ), &pos );
+	
+			CBroadcastRecipientFilter filter;
+	
+			te->Smoke( filter, 0.0, &pos, g_sModelIndexSmoke, 2.5, 10 );
+	
+			g_pEffects->Sparks( pos );
+
+			m_lifeState = LIFE_DEAD;
+
+			if ( m_pBeam )
+			{
+				UTIL_Remove( m_pBeam );
+				m_pBeam = NULL;
+			}
+		}
+		
+		if ( IsActivityFinished() && ( UpdateFacing() == false ) )
+		{
+			SetHeight( CEILING_TURRET_RETRACT_HEIGHT );
+
+			m_flPlaybackRate = 0;
+			SetThink( NULL );
+		}
+		else
+		{
+			StudioFrameAdvance();
+		}
+
+		return true;
+	}
+	/*
+	else if (state == TURRET_RETIRING)
+	{
+		SetIdleGoalAngles();
+		return false;
+	}
+	*/
+
+	return BaseClass::PreThink(state);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Sets the state of the glowing eye attached to the turret
+// Input  : state - state the eye should be in
+//-----------------------------------------------------------------------------
+void CNPC_BM_CeilingSentry::SetEyeState( eyeState_t state )
+{
+	//Must have a valid eye to affect
+	if ( m_pEyeGlow == NULL )
+		return;
+
+	//Set the state
+	switch( state )
+	{
+	default:
+	case TURRET_EYE_SEE_TARGET: //Fade in and scale up
+		m_pEyeGlow->SetColor( 255, 0, 0 );
+		m_pEyeGlow->SetBrightness( 164, 0.1f );
+		m_pEyeGlow->SetScale( 0.4f, 0.1f );
+
+		if (m_pBeam)
+			m_pBeam->SetBrightness( 224 );
+		break;
+
+	case TURRET_EYE_SEEKING_TARGET: //Ping-pongs
+		
+		//Toggle our state
+		m_bBlinkState = !m_bBlinkState;
+		m_pEyeGlow->SetColor( 255, 128, 0 );
+
+		if (m_pBeam)
+			m_pBeam->SetBrightness( 128 );
+
+		if ( m_bBlinkState )
+		{
+			//Fade up and scale up
+			m_pEyeGlow->SetScale( 0.25f, 0.1f );
+			m_pEyeGlow->SetBrightness( 164, 0.1f );
+		}
+		else
+		{
+			//Fade down and scale down
+			m_pEyeGlow->SetScale( 0.2f, 0.1f );
+			m_pEyeGlow->SetBrightness( 64, 0.1f );
+		}
+
+		break;
+
+	case TURRET_EYE_DORMANT: //Fade out and scale down
+		m_pEyeGlow->SetColor( 0, 255, 0 );
+		m_pEyeGlow->SetScale( 0.1f, 0.5f );
+		m_pEyeGlow->SetBrightness( 64, 0.5f );
+
+		if (m_pBeam)
+			m_pBeam->SetBrightness( 128 );
+		break;
+
+	case TURRET_EYE_DEAD: //Fade out slowly
+		m_pEyeGlow->SetColor( 255, 0, 0 );
+		m_pEyeGlow->SetScale( 0.1f, 3.0f );
+		m_pEyeGlow->SetBrightness( 0, 3.0f );
+
+		if (m_pBeam)
+			m_pBeam->SetBrightness( 0 );
+		break;
+
+	case TURRET_EYE_DISABLED:
+		m_pEyeGlow->SetColor( 0, 255, 0 );
+		m_pEyeGlow->SetScale( 0.1f, 1.0f );
+		m_pEyeGlow->SetBrightness( 0, 1.0f );
+
+		if (m_pBeam)
+			m_pBeam->SetBrightness( 0 );
+		break;
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CNPC_BM_CeilingSentry::UpdateLaser()
+{
+	// Update laser
+	Vector vecLaserOrigin, vecLaserForward;
+	GetAttachment( m_poseLaser, vecLaserOrigin, &vecLaserForward );
+
+	trace_t tr;
+	UTIL_TraceLine( vecLaserOrigin, vecLaserOrigin + (vecLaserForward * 2048.0f), MASK_BLOCKLOS_AND_NPCS, this, COLLISION_GROUP_NONE, &tr );
+
+	m_pBeam->PointEntInit( tr.endpos, this );
+	m_pBeam->SetEndAttachment( m_poseLaser );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Overload our muzzle flash and send it to any actively held weapon
+//-----------------------------------------------------------------------------
+void CNPC_BM_CeilingSentry::DoMuzzleFlash()
+{
+	DispatchParticleEffect( "npc_sentry_ceiling_muzzleflash", PATTACH_POINT_FOLLOW, this, m_poseMuzzle );
+}
 #endif
