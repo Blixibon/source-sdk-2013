@@ -560,6 +560,9 @@ private:
 	bool ShouldDropBombs( void );
 
 	// Returns the max firing distance
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	float GetMaxFiringDistance();
 
 	// Make sure we don't hit too many times
@@ -6295,6 +6298,7 @@ CHelicopterChunk *CHelicopterChunk::CreateHelicopterChunk( const Vector &vecPos,
 #define APACHE_ROCKET_WARN_SOUND	"NPC_Apache.ChargeRockets"
 #define APACHE_ROCKET_WARN_TIME	2.5f
 #define APACHE_ROCKET_COOLDOWN	20.0f
+#define APACHE_ROCKET_SPEED 500.0f
 
 static const char* s_pRocketThinkContext = "ApacheRockets";
 
@@ -6316,6 +6320,9 @@ public:
 
 	void	Startup();
 	void	InitializeRotorSound( void );
+	float	GetMaxFiringDistance();
+
+	Vector		GetShootEnemyDir( const Vector& shootOrigin, bool bNoisy = true );
 
 	void		AimRocketGun( void );
 	void		FireRockets();
@@ -6434,7 +6441,7 @@ void CNPC_BM_Apache::Startup()
 				continue;
 			}
 
-			m_hLights[i] = CSprite::SpriteCreate( "sprites/glow01.vmt", vec3_origin, false );
+			m_hLights[i] = CSprite::SpriteCreate( "sprites/glow03.vmt", vec3_origin, false );
 			if ( !m_hLights[i] )
 				continue;
 
@@ -6443,7 +6450,7 @@ void CNPC_BM_Apache::Startup()
 			m_hLights[i]->SetLocalVelocity( vec3_origin );
 			m_hLights[i]->SetMoveType( MOVETYPE_NONE );
 			m_hLights[i]->SetTransparency( kRenderWorldGlow, 64, 255, 64, 255, kRenderFxNone );
-			m_hLights[i]->SetScale( 1.0f );
+			m_hLights[i]->SetScale( 0.75f );
 			m_hLights[i]->SetGlowProxySize( 8.0f );
 			m_hLights[i]->TurnOn();
 		}
@@ -6480,6 +6487,58 @@ void CNPC_BM_Apache::InitializeRotorSound( void )
 }
 
 //------------------------------------------------------------------------------
+// Returns the max firing distance
+//------------------------------------------------------------------------------
+float CNPC_BM_Apache::GetMaxFiringDistance()
+{
+	return 8000.0f;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+// Input  :
+// Output :
+//-----------------------------------------------------------------------------
+Vector CNPC_BM_Apache::GetShootEnemyDir( const Vector &shootOrigin, bool bNoisy )
+{
+	CBaseEntity *pEnemy = GetEnemy();
+
+	if ( pEnemy )
+	{
+		Vector vecEnemyPredictedPos = GetEnemyLKP();
+		float flTargetDist = (vecEnemyPredictedPos - shootOrigin).Length();
+		float flTargetTime = flTargetDist / APACHE_ROCKET_SPEED;
+
+		UTIL_PredictedPosition( pEnemy, vecEnemyPredictedPos, flTargetTime, &vecEnemyPredictedPos );
+
+		Vector vecEnemyOffset = pEnemy->BodyTarget( shootOrigin, bNoisy ) - pEnemy->GetAbsOrigin();
+
+#ifdef PORTAL
+		// Translate the enemy's position across the portals if it's only seen in the portal view cone
+		if ( !FInViewCone( vecEnemyLKP ) || !FVisible( vecEnemyLKP ) )
+		{
+			CProp_Portal *pPortal = FInViewConeThroughPortal( vecEnemyLKP );
+			if ( pPortal )
+			{
+				UTIL_Portal_VectorTransform( pPortal->m_hLinkedPortal->MatrixThisToLinked(), vecEnemyOffset, vecEnemyOffset );
+				UTIL_Portal_PointTransform( pPortal->m_hLinkedPortal->MatrixThisToLinked(), vecEnemyLKP, vecEnemyLKP );
+			}
+		}
+#endif
+
+		Vector retval = vecEnemyOffset + vecEnemyPredictedPos - shootOrigin;
+		VectorNormalize( retval );
+		return retval;
+	}
+	else
+	{
+		Vector forward;
+		AngleVectors( GetLocalAngles(), &forward );
+		return forward;
+	}
+}
+
+//------------------------------------------------------------------------------
 // Purpose: 
 //------------------------------------------------------------------------------
 void CNPC_BM_Apache::AimRocketGun( void )
@@ -6487,7 +6546,15 @@ void CNPC_BM_Apache::AimRocketGun( void )
 	if (m_flNextRocketAttack > gpGlobals->curtime)
 		return;
 
-	if (!GetEnemy())
+	// Don't fire if we're too far away, or if the enemy isn't in front of us
+	if (!GetEnemy() || GetEnemy()->Classify() == CLASS_MISSILE)
+		return;
+
+	float flMaxDistSqr = GetMaxFiringDistance();
+	flMaxDistSqr *= flMaxDistSqr;
+
+	float flDistSqr = ( WorldSpaceCenter() - GetEnemy()->WorldSpaceCenter() ).LengthSqr();
+	if (flDistSqr > flMaxDistSqr)
 		return;
 
 	// Do the warning
@@ -6533,13 +6600,14 @@ void CNPC_BM_Apache::FireRockets( void )
 		FireRocket( vLaunchPos, vLaunchDir );
 	}
 
+	// Make the lights red very briefly
 	for ( int i = 0; i < MAX_HELICOPTER_LIGHTS; ++i )
 	{
 		if ( !m_hLights[i] )
 			continue;
 
 		m_hLights[i]->SetRenderColor( 255, 0, 0 );
-		m_hLights[i]->SetScale( 0.5f );
+		m_hLights[i]->SetScale( 0.25f );
 	}
 
 	SetContextThink( &CNPC_BM_Apache::FinishFireRockets, gpGlobals->curtime + 0.25f, s_pRocketThinkContext );
@@ -6557,7 +6625,7 @@ void CNPC_BM_Apache::FinishFireRockets( void )
 			continue;
 
 		m_hLights[i]->SetRenderColor( 64, 255, 64 );
-		m_hLights[i]->SetScale( 1.0f );
+		m_hLights[i]->SetScale( 0.75f );
 	}
 }
 
@@ -6571,8 +6639,12 @@ void CNPC_BM_Apache::FireRocket( Vector vLaunchPos, Vector vLaunchDir )
 
 	CMissile *pMissile = CMissile::Create( vLaunchPos, vecAngles, edict() );
 
+	pMissile->SetAbsVelocity( vLaunchDir * APACHE_ROCKET_SPEED + Vector( 0, 0, 128 ) );
+
 	// Needs a grace period
 	pMissile->SetGracePeriod( 1.0f );
+
+	AddEntityRelationship( pMissile, D_LI, 0 );
 }
 
 //-----------------------------------------------------------------------------

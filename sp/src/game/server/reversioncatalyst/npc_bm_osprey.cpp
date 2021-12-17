@@ -15,12 +15,36 @@ LINK_ENTITY_TO_CLASS( npc_bm_osprey, CNPC_BM_Osprey );
 
 BEGIN_DATADESC( CNPC_BM_Osprey )
 
-	DEFINE_KEYFIELD( m_flMaxSpeed,		FIELD_FLOAT, "MaxSpeed" ),
-	DEFINE_KEYFIELD( m_flMaxSpeedFiring,	FIELD_FLOAT, "MaxSpeedfiring" ),
-
-	DEFINE_KEYFIELD( m_flAcceleration,		FIELD_FLOAT, "Acceleration" ),
-
 	DEFINE_FIELD( m_vecAngAcceleration, FIELD_VECTOR ),
+	
+	DEFINE_FIELD( m_bPlaneMode, FIELD_BOOLEAN ),
+	DEFINE_FIELD( m_flPlaneTransitionStartTime, FIELD_TIME ),
+	DEFINE_FIELD( m_flPlaneTransitionEndTime, FIELD_TIME ),
+
+	DEFINE_FIELD( m_soldiersToDrop, FIELD_INTEGER ),
+	DEFINE_FIELD( m_iDropState, FIELD_INTEGER ),
+	DEFINE_FIELD( m_iLandState, FIELD_INTEGER ),
+
+	DEFINE_FIELD( m_flTimeTakeOff, FIELD_TIME ),
+	DEFINE_FIELD( m_flNextTroopSpawnAttempt, FIELD_TIME ),
+	DEFINE_FIELD( m_flDropDelay, FIELD_TIME ),
+	DEFINE_FIELD( m_flTimeNextAttack, FIELD_TIME ),
+	DEFINE_FIELD( m_flLastTime, FIELD_TIME ),
+
+	DEFINE_INPUTFUNC( FIELD_FLOAT, "EnterPlaneMode", InputEnterPlaneMode ),
+	DEFINE_INPUTFUNC( FIELD_FLOAT, "ExitPlaneMode", InputExitPlaneMode ),
+
+	DEFINE_INPUTFUNC( FIELD_VOID, "BeginRappellingGrunts", InputBeginRappellingGrunts ),
+	DEFINE_INPUTFUNC( FIELD_VOID, "RemoveGrunts", InputRemoveGrunts ),
+	DEFINE_INPUTFUNC( FIELD_VOID, "WaitHereTillReady", InputWaitHereTillReady ),
+	DEFINE_INPUTFUNC( FIELD_VOID, "RappelToTarget", InputRappelToTarget ),
+	DEFINE_INPUTFUNC( FIELD_VOID, "KillRappelingGrunts", InputKillRappelingGrunts ),
+
+	DEFINE_OUTPUT( m_OnReadyToMoveDeployZone, "OnReadyToMoveDeployZone" ),
+	DEFINE_OUTPUT( m_OnReadyToRetreat, "OnReadyToRetreat" ),
+	DEFINE_OUTPUT( m_OnSpawnNPC, "OnSpawnNPC" ),
+
+	DEFINE_SOUNDPATCH( m_pNearRotorSound ),
 
 END_DATADESC()
 
@@ -29,6 +53,8 @@ END_DATADESC()
 //-----------------------------------------------------------------------------
 CNPC_BM_Osprey::CNPC_BM_Osprey()
 {
+	m_flMaxSpeed = OSPREY_MAX_SPEED;
+	m_flMaxSpeedFiring = OSPREY_MAX_SPEED;
 }
 
 //-----------------------------------------------------------------------------
@@ -49,6 +75,7 @@ void CNPC_BM_Osprey::Precache( void )
 	PrecacheModel( STRING(GetModelName()) );
 
 	PrecacheScriptSound( OSPREY_HOVER_SOUND );
+	PrecacheScriptSound( OSPREY_HOVER_SOUND_FAR );
 	PrecacheScriptSound( OSPREY_ROTOR_BLAST_SOUND );
 
 	BaseClass::Precache();
@@ -69,6 +96,7 @@ void CNPC_BM_Osprey::Spawn( void )
 	CreateVPhysics();
 
 	SetActivity( ACT_IDLE );
+	SetPoseParameter( m_poseSideDoor, 100.0f );
 	SetPoseParameter( m_poseGear, 100.0f );
 }
 
@@ -77,21 +105,82 @@ void CNPC_BM_Osprey::Spawn( void )
 //------------------------------------------------------------------------------
 void CNPC_BM_Osprey::InitializeRotorSound( void )
 {
+	CSoundEnvelopeController& controller = CSoundEnvelopeController::GetController();
+
 	if ( !m_pRotorSound )
 	{
-		CSoundEnvelopeController &controller = CSoundEnvelopeController::GetController();
 		CPASAttenuationFilter filter( this );
 
-		m_pRotorSound = controller.SoundCreate( filter, entindex(), OSPREY_HOVER_SOUND );
+		m_pRotorSound = controller.SoundCreate( filter, entindex(), OSPREY_HOVER_SOUND_FAR );
+		m_pNearRotorSound = controller.SoundCreate( filter, entindex(), OSPREY_HOVER_SOUND );
 		m_pRotorBlast = controller.SoundCreate( filter, entindex(), OSPREY_ROTOR_BLAST_SOUND );
 	}
 	else
 	{
 		Assert(m_pRotorSound);
+		Assert(m_pNearRotorSound);
 		Assert(m_pRotorBlast);
+	}
+	
+	if ( m_pNearRotorSound )
+	{
+		controller.Play( m_pNearRotorSound, 0.0, 100 );
 	}
 
 	BaseClass::InitializeRotorSound();
+}
+
+//------------------------------------------------------------------------------
+// Updates the rotor wash volume
+//------------------------------------------------------------------------------
+void CNPC_BM_Osprey::UpdateRotorWashVolume()
+{
+	BaseClass::UpdateRotorWashVolume();
+
+	if ( m_pNearRotorSound )
+	{
+		CSoundEnvelopeController& controller = CSoundEnvelopeController::GetController();
+		float flVolDelta = GetRotorVolume() - controller.SoundGetVolume( m_pNearRotorSound );
+		if (flVolDelta)
+		{
+			// We can change from 0 to 1 in 3 seconds. 
+			// Figure out how many seconds flVolDelta will take.
+			float flRampTime = fabs( flVolDelta ) * 3.0f;
+			controller.SoundChangeVolume( m_pNearRotorSound, GetRotorVolume(), flRampTime );
+		}
+	}
+}
+
+//------------------------------------------------------------------------------
+// Purpose :
+// Input   :
+// Output  :
+//------------------------------------------------------------------------------
+void CNPC_BM_Osprey::UpdateRotorSoundPitch( int iPitch )
+{
+	BaseClass::UpdateRotorSoundPitch( iPitch );
+
+	if ( m_pNearRotorSound )
+	{
+		CSoundEnvelopeController& controller = CSoundEnvelopeController::GetController();
+		controller.SoundChangePitch( m_pNearRotorSound, iPitch , 0.1 );
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CNPC_BM_Osprey::StopLoopingSounds()
+{
+	CSoundEnvelopeController &controller = CSoundEnvelopeController::GetController();
+
+	if ( m_pNearRotorSound )
+	{
+		controller.SoundDestroy( m_pNearRotorSound );
+		m_pNearRotorSound = NULL;
+	}
+
+	BaseClass::StopLoopingSounds();
 }
 
 //-----------------------------------------------------------------------------
@@ -113,6 +202,32 @@ void CNPC_BM_Osprey::PopulatePoseParameters( void )
 	BaseClass::PopulatePoseParameters();
 }
 
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CNPC_BM_Osprey::InputEnterPlaneMode( inputdata_t &inputdata )
+{
+	if (m_bPlaneMode)
+		return;
+
+	m_bPlaneMode = true;
+	m_flPlaneTransitionStartTime = gpGlobals->curtime;
+	m_flPlaneTransitionEndTime = inputdata.value.Float() > 0.0f ? gpGlobals->curtime + inputdata.value.Float() : gpGlobals->curtime + OSPREY_PLANE_DEFAULT_TRANSITION_TIME;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CNPC_BM_Osprey::InputExitPlaneMode( inputdata_t &inputdata )
+{
+	if (!m_bPlaneMode)
+		return;
+
+	m_bPlaneMode = false;
+	m_flPlaneTransitionStartTime = gpGlobals->curtime;
+	m_flPlaneTransitionEndTime = inputdata.value.Float() > 0.0f ? gpGlobals->curtime + inputdata.value.Float() : gpGlobals->curtime + OSPREY_PLANE_DEFAULT_TRANSITION_TIME;
+}
+
 //------------------------------------------------------------------------------
 // Purpose : 
 // Input   :
@@ -127,8 +242,21 @@ void CNPC_BM_Osprey::Flight( void )
 	float swayspeed = 0;
 	Vector vecImpulse = vec3_origin;
 
-	// TODO: Unloading soldiers?
-	bool bRunFlight = true;
+	// Osprey plane stuff
+	// 
+	// 1.0 = Plane mode, 0.0 = Hover mode
+	float flPlaneTransition = m_bPlaneMode ? 1.0f : 0.0f;
+	bool bInTransition = m_flPlaneTransitionEndTime > gpGlobals->curtime;
+	
+	// Only run the flight model in some flight states
+	bool bRunFlight = ( GetLandingState() == LANDING_NO || 
+							GetLandingState() == LANDING_LEVEL_OUT || 
+							GetLandingState() == LANDING_LIFTOFF ||
+							GetLandingState() == LANDING_SWOOPING ||
+							GetLandingState() == LANDING_DESCEND ||
+							GetLandingState() == LANDING_HOVER_LEVEL_OUT ||
+							GetLandingState() == LANDING_HOVER_DESCEND );
+
 	if ( bRunFlight )
 	{
 		if( GetFlags() & FL_ONGROUND )
@@ -137,12 +265,38 @@ void CNPC_BM_Osprey::Flight( void )
 			SetGroundEntity( NULL );
 		}
 
+		if (bInTransition)
+		{
+			float flTransitionTime = m_flPlaneTransitionEndTime - m_flPlaneTransitionStartTime;
+			float flTransitionProgress;
+			if (m_bPlaneMode)
+				flTransitionProgress = gpGlobals->curtime - m_flPlaneTransitionStartTime;
+			else
+				flTransitionProgress = m_flPlaneTransitionEndTime - gpGlobals->curtime;
+
+			flPlaneTransition = SimpleSplineRemapVal( flTransitionProgress, 0.0f, flTransitionTime, 0.0f, 1.0f );
+			Msg( "Osprey transition: %f\n", flPlaneTransition );
+		}
+
 		// calc desired acceleration
 		float dt = 1.0f;
 
 		Vector	accel;
 		float	accelRate = OSPREY_ACCEL_RATE;
 		float	maxSpeed = GetMaxSpeed();
+
+		if (bInTransition)
+		{
+			// Lerp between the regular acceleration and plane mode acceleration
+			accelRate = Lerp( flPlaneTransition, OSPREY_ACCEL_RATE, OSPREY_PLANE_ACCEL_RATE );
+			maxSpeed = Lerp( flPlaneTransition, maxSpeed, OSPREY_PLANE_MAX_SPEED );
+		}
+		else if (m_bPlaneMode)
+		{
+			// Plane mode has higher acceleration
+			accelRate = OSPREY_PLANE_ACCEL_RATE;
+			maxSpeed = OSPREY_PLANE_MAX_SPEED;
+		}
 
 		if ( m_lifeState == LIFE_DYING )
 		{
@@ -196,14 +350,29 @@ void CNPC_BM_Osprey::Flight( void )
 		Vector goalUp = accel;
 		VectorNormalize( goalUp );
 
+		float goalPitch;
+		float goalYaw;
+		float goalRoll;
+
 		// calc goal orientation to hit linear accel forces
-		float goalPitch = RAD2DEG( asin( DotProduct( forward, goalUp ) ) );
-		float goalYaw = UTIL_VecToYaw( m_vecDesiredFaceDir );
-		float goalRoll = RAD2DEG( asin( DotProduct( right, goalUp ) ) );
+		// TODO: Plane mode
+		if (m_bPlaneMode)
+		{
+			// Plane mode has different yaw and pitch changes
+			goalPitch = accel.z * 0.05f;
+			goalYaw = UTIL_VecToYaw( GetGoalOrientation() );
+			goalRoll = RAD2DEG( asin( DotProduct( right, goalUp ) ) );
+		}
+		else
+		{
+			goalPitch = RAD2DEG( asin( DotProduct( forward, goalUp ) ) );
+			goalYaw = UTIL_VecToYaw( m_vecDesiredFaceDir );
+			goalRoll = RAD2DEG( asin( DotProduct( right, goalUp ) ) );
+		}
 
 		// clamp goal orientations
-		goalPitch = clamp( goalPitch, -45, 60 );
-		goalRoll = clamp( goalRoll, -45, 45 );
+		goalPitch = clamp( goalPitch, -25, 25 );
+		goalRoll = clamp( goalRoll, -25, 25 );
 
 		// calc angular accel needed to hit goal pitch in dt time.
 		dt = 0.6;
@@ -308,24 +477,31 @@ void CNPC_BM_Osprey::Flight( void )
 	*/
 
 	// Apply the acceleration blend to the fins
-	float finAccelBlend = SimpleSplineRemapVal( finspeed, -60, 60, -1, 1 );
+	float finAccelBlend = SimpleSplineRemapVal( finspeed, -60, 60, -25, 25 );
 	float curFinAccel = GetPoseParameter( m_poseMiddleRudder );
-	curFinAccel = UTIL_Approach( finAccelBlend, curFinAccel, 0.1f );
+	curFinAccel = UTIL_Approach( finAccelBlend, curFinAccel, 2.5f );
 
-	float accelPose = EdgeLimitPoseParameter( m_poseMiddleRudder, curFinAccel * 25.0f );
+	float accelPose = EdgeLimitPoseParameter( m_poseMiddleRudder, curFinAccel );
 	SetPoseParameter( m_poseMiddleRudder, accelPose );
 
 	// Apply the spin sway to the fins
-	float finSwayBlend = SimpleSplineRemapVal( swayspeed, -60, 60, -1, 1 );
+	float finSwayBlend = SimpleSplineRemapVal( swayspeed, -60, 60, -25, 25 );
 	float curFinSway = GetPoseParameter( m_poseRightRudder );
-	curFinSway = UTIL_Approach( finSwayBlend, curFinSway, 0.1f );
+	curFinSway = UTIL_Approach( finSwayBlend, curFinSway, 2.5f );
 
-	float rudderPose = EdgeLimitPoseParameter( m_poseRightRudder, curFinSway * 25.0f );
-	float flapsPose = EdgeLimitPoseParameter( m_poseRightWingFlap, curFinSway * 15.0f );
+	float rudderPose = EdgeLimitPoseParameter( m_poseRightRudder, curFinSway );
+	float flapsPose = EdgeLimitPoseParameter( m_poseRightWingFlap, curFinSway * 0.6f );
 	SetPoseParameter( m_poseRightRudder, rudderPose );
 	SetPoseParameter( m_poseLeftRudder, rudderPose );
 	SetPoseParameter( m_poseRightWingFlap, flapsPose );
 	SetPoseParameter( m_poseLeftWingFlap, -flapsPose );
+
+	// Pose the nacelles
+	float nacellePose = EdgeLimitPoseParameter( m_poseRightNacelle, flPlaneTransition * 90.0f );
+	SetPoseParameter( m_poseRightNacelle, nacellePose );
+	SetPoseParameter( m_poseLeftNacelle, nacellePose );
+
+	//Msg( "fin accel: %f, fin sway: %f\n", curFinAccel, curFinSway );
 
 	if ( bRunFlight )
 	{
@@ -334,4 +510,150 @@ void CNPC_BM_Osprey::Flight( void )
 	}
 
 	//DevMsg("curFinAccel: %f, curFinSway: %f\n", curFinAccel, curFinSway );
+}
+
+//------------------------------------------------------------------------------
+// Purpose : Spawn the next NPC in our template list
+//------------------------------------------------------------------------------
+void CNPC_BM_Osprey::SpawnTroop( void )
+{
+#if 0
+	// Are we fully unloaded? If so, take off. Otherwise, tell the next troop to exit.
+	if ( m_iCurrentTroopExiting >= m_soldiersToDrop || m_sNPCTemplateData[m_iCurrentTroopExiting] == NULL_STRING )
+	{
+		// We're done, take off.
+		m_flTimeTakeOff = gpGlobals->curtime + 0.5;
+		return;
+	}
+
+	m_hLastTroopToLeave = NULL;
+
+	// Not time to try again yet?
+	if ( m_flNextTroopSpawnAttempt > gpGlobals->curtime )
+		return;
+
+	// HACK: This is a nasty piece of work. We want to make sure the deploy end is clear, and has enough
+	// room with our deploying NPC, but we don't want to create the NPC unless it's clear, and we don't
+	// know how much room he needs without spawning him. 
+	// So, because we know that we only ever spawn combine soldiers at the moment, we'll just use their hull.
+	// HACK: Add some bloat because the endpoint isn't perfectly aligned with NPC end origin
+	Vector vecNPCMins = NAI_Hull::Mins( HULL_HUMAN ) - Vector(4,4,4);
+	Vector vecNPCMaxs = NAI_Hull::Maxs( HULL_HUMAN ) + Vector(4,4,4);
+
+	// Scare NPCs away from our deploy endpoint to keep them away
+	Vector vecDeployEndPoint;
+	QAngle vecDeployEndAngles;
+	GetAttachment( m_iAttachmentTroopDeploy, vecDeployEndPoint, vecDeployEndAngles );
+
+	// Make sure there are no NPCs on the spot
+	trace_t tr;
+	CTraceFilterOnlyNPCsAndPlayer filter( this, COLLISION_GROUP_NONE );
+	AI_TraceHull( vecDeployEndPoint, vecDeployEndPoint, vecNPCMins, vecNPCMaxs, MASK_SOLID, &filter, &tr );
+	if ( tr.m_pEnt )
+	{
+		if ( g_debug_dropship.GetInt() == 2 )
+		{
+			NDebugOverlay::Box( vecDeployEndPoint, vecNPCMins, vecNPCMaxs, 255,0,0, 64, 0.5 );
+		}
+
+		m_flNextTroopSpawnAttempt = gpGlobals->curtime + 1;
+		return;
+	}
+
+	if ( g_debug_dropship.GetInt() == 2 )
+	{
+		NDebugOverlay::Box( vecDeployEndPoint, vecNPCMins, vecNPCMaxs, 0,255,0, 64, 0.5 );
+	}
+
+	// Get the spawn point inside the container
+	Vector vecSpawnOrigin;
+	QAngle vecSpawnAngles;
+	m_hContainer->GetAttachment( m_iAttachmentDeployStart, vecSpawnOrigin, vecSpawnAngles );
+
+	// Spawn the templated NPC
+	CBaseEntity *pEntity = NULL;
+	MapEntity_ParseEntity( pEntity, STRING(m_sNPCTemplateData[m_iCurrentTroopExiting]), NULL );
+
+	// Increment troop count
+	m_iCurrentTroopExiting++;
+
+	if ( !pEntity )
+	{
+		Warning("Dropship could not create template NPC\n" );
+		return;
+	}
+	CAI_BaseNPC	*pNPC = pEntity->MyNPCPointer();
+	Assert( pNPC );
+
+	// Spawn an entity blocker.
+	CBaseEntity *pBlocker = CEntityBlocker::Create( vecDeployEndPoint, vecNPCMins, vecNPCMaxs, pNPC, true );
+	g_EventQueue.AddEvent( pBlocker, "Kill", 2.5, this, this );
+	if ( g_debug_dropship.GetInt() == 2 )
+	{
+		NDebugOverlay::Box( vecDeployEndPoint, vecNPCMins, vecNPCMaxs, 255, 255, 255, 64, 2.5 );
+	}
+
+	// Ensure our NPCs are standing upright
+	vecSpawnAngles[PITCH] = vecSpawnAngles[ROLL] = 0;
+
+	// Move it to the container spawnpoint
+	pNPC->SetAbsOrigin( vecSpawnOrigin );
+	pNPC->SetAbsAngles( vecSpawnAngles );
+	DispatchSpawn( pNPC );
+	pNPC->m_NPCState = NPC_STATE_IDLE;
+	pNPC->Activate();
+
+	// Spawn a scripted sequence entity to make the NPC run out of the dropship
+	CAI_ScriptedSequence *pSequence = (CAI_ScriptedSequence*)CreateEntityByName( "scripted_sequence" );
+	pSequence->KeyValue( "m_iszEntity", STRING(pNPC->GetEntityName()) );
+	pSequence->KeyValue( "m_iszPlay", "Dropship_Deploy" );
+	pSequence->KeyValue( "m_fMoveTo", "4" );	// CINE_MOVETO_TELEPORT
+	pSequence->KeyValue( "OnEndSequence", UTIL_VarArgs("%s,NPCFinishDustoff,%s,0,-1", STRING(GetEntityName()), STRING(pNPC->GetEntityName())) );
+	pSequence->SetAbsOrigin( vecSpawnOrigin );
+	pSequence->SetAbsAngles( vecSpawnAngles );
+	pSequence->AddSpawnFlags( SF_SCRIPT_NOINTERRUPT | SF_SCRIPT_HIGH_PRIORITY | SF_SCRIPT_OVERRIDESTATE );
+	pSequence->Spawn();
+	pSequence->Activate();
+	variant_t emptyVariant;
+	pSequence->AcceptInput( "BeginSequence", this, this, emptyVariant, 0 );
+
+	m_hLastTroopToLeave = pNPC;
+
+	m_OnSpawnNPC.Set( pNPC, pNPC, this );
+#endif
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CNPC_BM_Osprey::InputBeginRappellingGrunts( inputdata_t& inputdata )
+{
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CNPC_BM_Osprey::InputRemoveGrunts( inputdata_t& inputdata )
+{
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CNPC_BM_Osprey::InputWaitHereTillReady( inputdata_t& inputdata )
+{
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CNPC_BM_Osprey::InputRappelToTarget( inputdata_t& inputdata )
+{
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CNPC_BM_Osprey::InputKillRappelingGrunts( inputdata_t& inputdata )
+{
 }
