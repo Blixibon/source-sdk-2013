@@ -149,6 +149,10 @@ private:
 	struct model_t			*m_pShells[3];
 	struct model_t			*m_pSpriteCombineFlash[2];
 
+#ifdef REVERSION_CATALYST
+	struct model_t			*m_pSpriteBlackMesaFlash[2];
+#endif
+
 #if defined( HL1_CLIENT_DLL )
 	struct model_t			*m_pHL1Shell;
 	struct model_t			*m_pHL1ShotgunShell;
@@ -176,6 +180,10 @@ private:
 	PMaterialHandle			m_Material_MuzzleFlash_NPC[4];
 	PMaterialHandle			m_Material_Combine_MuzzleFlash_Player[2];
 	PMaterialHandle			m_Material_Combine_MuzzleFlash_NPC[2];
+#ifdef REVERSION_CATALYST
+	PMaterialHandle			m_Material_BlackMesa_MuzzleFlash_Player[2];
+	PMaterialHandle			m_Material_BlackMesa_MuzzleFlash_NPC[2];
+#endif
 
 // Internal methods
 private:
@@ -212,6 +220,12 @@ private:
 
 	// RPG
 	void					MuzzleFlash_RPG_NPC( ClientEntityHandle_t hEntity, int attachmentIndex );
+
+#ifdef REVERSION_CATALYST
+	// Black Mesa				
+	void					MuzzleFlash_BlackMesa_Player( ClientEntityHandle_t hEntity, int attachmentIndex );
+	void					MuzzleFlash_BlackMesa_NPC( ClientEntityHandle_t hEntity, int attachmentIndex );
+#endif
 };
 
 

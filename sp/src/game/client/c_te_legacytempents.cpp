@@ -62,6 +62,13 @@ CLIENTEFFECT_REGISTER_BEGIN( PrecacheEffectMuzzleFlash )
 	CLIENTEFFECT_MATERIAL( "effects/combinemuzzle2_noz" )
 	CLIENTEFFECT_MATERIAL( "effects/strider_muzzle" )
 #endif
+#ifdef REVERSION_CATALYST
+	CLIENTEFFECT_MATERIAL( "effects/bmmuzzle1" )
+	CLIENTEFFECT_MATERIAL( "effects/bmmuzzle2" )
+	CLIENTEFFECT_MATERIAL( "effects/bmmuzzle1_noz" )
+	CLIENTEFFECT_MATERIAL( "effects/bmmuzzle2_noz" )
+#endif
+
 CLIENTEFFECT_REGISTER_END()
 #endif
 
@@ -1791,6 +1798,18 @@ void CTempEnts::MuzzleFlash( int type, ClientEntityHandle_t hEntity, int attachm
 		}
 		break;
 		break;
+#ifdef REVERSION_CATALYST
+	case MUZZLEFLASH_BLACKMESA:
+		if ( firstPerson )
+		{
+			MuzzleFlash_BlackMesa_Player( hEntity, attachmentIndex );
+		}
+		else
+		{
+			MuzzleFlash_BlackMesa_NPC( hEntity, attachmentIndex );
+		}
+		break;
+#endif
 	default:
 		{
 			//NOTENOTE: This means you specified an invalid muzzleflash type, check your spelling?
@@ -2416,6 +2435,11 @@ void CTempEnts::LevelInit()
 	m_pShells[2] = (model_t *) engine->LoadModel( "models/weapons/shotgun_shell.mdl" );
 #endif
 
+#ifdef REVERSION_CATALYST
+	m_pSpriteBlackMesaFlash[0] = (model_t*)engine->LoadModel( "effects/bmmuzzle1.vmt" );
+	m_pSpriteBlackMesaFlash[1] = (model_t*)engine->LoadModel( "effects/bmmuzzle2.vmt" );
+#endif
+
 #if defined( HL1_CLIENT_DLL )
 	m_pHL1Shell			= (model_t *)engine->LoadModel( "models/shell.mdl" );
 	m_pHL1ShotgunShell	= (model_t *)engine->LoadModel( "models/shotgunshell.mdl" );
@@ -2452,6 +2476,11 @@ void CTempEnts::Init (void)
 	m_pShells[0] = NULL;
 	m_pShells[1] = NULL;
 	m_pShells[2] = NULL;
+
+#ifdef REVERSION_CATALYST
+	m_pSpriteBlackMesaFlash[0] = NULL;
+	m_pSpriteBlackMesaFlash[1] = NULL;
+#endif
 
 #if defined( HL1_CLIENT_DLL )
 	m_pHL1Shell			= NULL;
@@ -2524,6 +2553,24 @@ inline void CTempEnts::CacheMuzzleFlashes( void )
 			m_Material_Combine_MuzzleFlash_NPC[i] = ParticleMgr()->GetPMaterial( VarArgs( "effects/combinemuzzle%d", i+1 ) );
 		}
 	}
+
+#ifdef REVERSION_CATALYST
+	for ( i = 0; i < 2; i++ )
+	{
+		if ( m_Material_BlackMesa_MuzzleFlash_Player[i] == NULL )
+		{
+			m_Material_BlackMesa_MuzzleFlash_Player[i] = ParticleMgr()->GetPMaterial( VarArgs( "effects/bmmuzzle%d_noz", i+1 ) );
+		}
+	}
+
+	for ( i = 0; i < 2; i++ )
+	{
+		if ( m_Material_BlackMesa_MuzzleFlash_NPC[i] == NULL )
+		{
+			m_Material_BlackMesa_MuzzleFlash_NPC[i] = ParticleMgr()->GetPMaterial( VarArgs( "effects/bmmuzzle%d", i+1 ) );
+		}
+	}
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -2805,6 +2852,288 @@ void CTempEnts::MuzzleFlash_Combine_NPC( ClientEntityHandle_t hEntity, int attac
 		}
 	}
 }
+
+#ifdef REVERSION_CATALYST
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : entityIndex - 
+//			attachmentIndex - 
+//-----------------------------------------------------------------------------
+void CTempEnts::MuzzleFlash_BlackMesa_Player( ClientEntityHandle_t hEntity, int attachmentIndex )
+{
+	VPROF_BUDGET( "MuzzleFlash_BlackMesa_Player", VPROF_BUDGETGROUP_PARTICLE_RENDERING );
+	CSmartPtr<CLocalSpaceEmitter> pSimple = CLocalSpaceEmitter::Create( "MuzzleFlash", hEntity, attachmentIndex, FLE_VIEWMODEL );
+
+	CacheMuzzleFlashes();
+
+	SimpleParticle *pParticle;
+	Vector			forward(1,0,0), offset; //NOTENOTE: All coords are in local space
+
+	float flScale = random->RandomFloat( 2.0f, 2.25f );
+
+	pSimple->SetDrawBeforeViewModel( true );
+
+	// Flash
+	for ( int i = 1; i < 6; i++ )
+	{
+		offset = (forward * (i*8.0f*flScale));
+
+		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), m_Material_BlackMesa_MuzzleFlash_Player[random->RandomInt(0,1)], offset );
+			
+		if ( pParticle == NULL )
+			return;
+
+		pParticle->m_flLifetime		= 0.0f;
+		pParticle->m_flDieTime		= 0.025f;
+
+		pParticle->m_vecVelocity.Init();
+
+		pParticle->m_uchColor[0]	= 255;
+		pParticle->m_uchColor[1]	= 255;
+		pParticle->m_uchColor[2]	= 200+random->RandomInt(0,55);
+
+		pParticle->m_uchStartAlpha	= 255;
+		pParticle->m_uchEndAlpha	= 255;
+
+		pParticle->m_uchStartSize	= ( (random->RandomFloat( 6.0f, 8.0f ) * (12-(i))/12) * flScale );
+		pParticle->m_uchEndSize		= pParticle->m_uchStartSize;
+		pParticle->m_flRoll			= random->RandomInt( 0, 360 );
+		pParticle->m_flRollDelta	= 0.0f;
+	}
+
+	// Tack on the smoke
+	pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), m_Material_BlackMesa_MuzzleFlash_Player[random->RandomInt(0,1)], vec3_origin );
+		
+	if ( pParticle == NULL )
+		return;
+
+	pParticle->m_flLifetime		= 0.0f;
+	pParticle->m_flDieTime		= 0.025f;
+
+	pParticle->m_vecVelocity.Init();
+
+	pParticle->m_uchColor[0]	= 255;
+	pParticle->m_uchColor[1]	= 255;
+	pParticle->m_uchColor[2]	= 255;
+
+	pParticle->m_uchStartAlpha	= random->RandomInt( 64, 128 );
+	pParticle->m_uchEndAlpha	= 32;
+
+	pParticle->m_uchStartSize	= random->RandomFloat( 10.0f, 16.0f );
+	pParticle->m_uchEndSize		= pParticle->m_uchStartSize;
+	
+	pParticle->m_flRoll			= random->RandomInt( 0, 360 );
+	pParticle->m_flRollDelta	= 0.0f;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : &origin - 
+//			&angles - 
+//			entityIndex - 
+//-----------------------------------------------------------------------------
+void CTempEnts::MuzzleFlash_BlackMesa_NPC( ClientEntityHandle_t hEntity, int attachmentIndex )
+{
+	VPROF_BUDGET( "MuzzleFlash_BlackMesa_NPC", VPROF_BUDGETGROUP_PARTICLE_RENDERING );
+
+	// If the material isn't available, let's not do anything.
+	if ( g_Mat_BlackMesa_Muzzleflash[0] == NULL )
+	{
+		return;
+	}
+
+	CSmartPtr<CLocalSpaceEmitter> pSimple = CLocalSpaceEmitter::Create( "MuzzleFlash_BlackMesa_NPC", hEntity, attachmentIndex );
+
+	SimpleParticle *pParticle;
+	Vector			forward(1,0,0), offset; //NOTENOTE: All coords are in local space
+
+	float flScale = random->RandomFloat( 1.0f, 1.5f );
+
+	float burstSpeed = random->RandomFloat( 50.0f, 150.0f );
+
+#define	FRONT_LENGTH 6
+
+	// Front flash
+	for ( int i = 1; i < FRONT_LENGTH; i++ )
+	{
+		offset = (forward * (i*2.0f*flScale));
+
+		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), g_Mat_BlackMesa_Muzzleflash[random->RandomInt(0,1)], offset );
+		if ( pParticle == NULL )
+			return;
+
+		pParticle->m_flLifetime		= 0.0f;
+		pParticle->m_flDieTime		= 0.1f;
+
+		pParticle->m_vecVelocity = forward * burstSpeed;
+
+		pParticle->m_uchColor[0]	= 255;
+		pParticle->m_uchColor[1]	= 255;
+		pParticle->m_uchColor[2]	= 255;
+
+		pParticle->m_uchStartAlpha	= 255.0f;
+		pParticle->m_uchEndAlpha	= 0;
+
+		pParticle->m_uchStartSize	= ( (random->RandomFloat( 6.0f, 8.0f ) * (FRONT_LENGTH*1.25f-(i))/(FRONT_LENGTH)) * flScale );
+		pParticle->m_uchEndSize		= pParticle->m_uchStartSize;
+		pParticle->m_flRoll			= random->RandomInt( 0, 360 );
+		pParticle->m_flRollDelta	= 0.0f;
+	}
+	
+	Vector right(0,1,0), up(0,0,1);
+	Vector dir = right - up;
+
+#define	SIDE_LENGTH	6
+
+	burstSpeed = random->RandomFloat( 50.0f, 150.0f );
+
+	// Diagonal flash
+	for ( int i = 1; i < SIDE_LENGTH; i++ )
+	{
+		offset = (dir * (i*flScale));
+
+		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), g_Mat_BlackMesa_Muzzleflash[random->RandomInt(0,1)], offset );
+			
+		if ( pParticle == NULL )
+			return;
+
+		pParticle->m_flLifetime		= 0.0f;
+		pParticle->m_flDieTime		= 0.2f;
+
+		pParticle->m_vecVelocity = dir * burstSpeed * 0.25f;
+
+		pParticle->m_uchColor[0]	= 255;
+		pParticle->m_uchColor[1]	= 255;
+		pParticle->m_uchColor[2]	= 255;
+
+		pParticle->m_uchStartAlpha	= 255;
+		pParticle->m_uchEndAlpha	= 0;
+
+		pParticle->m_uchStartSize	= ( (random->RandomFloat( 2.0f, 4.0f ) * (SIDE_LENGTH-(i))/(SIDE_LENGTH*0.5f)) * flScale );
+		pParticle->m_uchEndSize		= pParticle->m_uchStartSize;
+		pParticle->m_flRoll			= random->RandomInt( 0, 360 );
+		pParticle->m_flRollDelta	= 0.0f;
+	}
+
+	dir = right + up;
+	burstSpeed = random->RandomFloat( 50.0f, 150.0f );
+
+	// Diagonal flash
+	for ( int i = 1; i < SIDE_LENGTH; i++ )
+	{
+		offset = (-dir * (i*flScale));
+
+		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), g_Mat_BlackMesa_Muzzleflash[random->RandomInt(0,1)], offset );
+		if ( pParticle == NULL )
+			return;
+
+		pParticle->m_flLifetime		= 0.0f;
+		pParticle->m_flDieTime		= 0.2f;
+
+		pParticle->m_vecVelocity = dir * -burstSpeed * 0.25f;
+
+		pParticle->m_uchColor[0]	= 255;
+		pParticle->m_uchColor[1]	= 255;
+		pParticle->m_uchColor[2]	= 255;
+
+		pParticle->m_uchStartAlpha	= 255;
+		pParticle->m_uchEndAlpha	= 0;
+
+		pParticle->m_uchStartSize	= ( (random->RandomFloat( 2.0f, 4.0f ) * (SIDE_LENGTH-(i))/(SIDE_LENGTH*0.5f)) * flScale );
+		pParticle->m_uchEndSize		= pParticle->m_uchStartSize;
+		pParticle->m_flRoll			= random->RandomInt( 0, 360 );
+		pParticle->m_flRollDelta	= 0.0f;
+	}
+
+	dir = up;
+	burstSpeed = random->RandomFloat( 50.0f, 150.0f );
+
+	// Top flash
+	for ( int i = 1; i < SIDE_LENGTH; i++ )
+	{
+		offset = (dir * (i*flScale));
+
+		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), g_Mat_BlackMesa_Muzzleflash[random->RandomInt(0,1)], offset );
+		if ( pParticle == NULL )
+			return;
+
+		pParticle->m_flLifetime		= 0.0f;
+		pParticle->m_flDieTime		= 0.2f;
+
+		pParticle->m_vecVelocity = dir * burstSpeed * 0.25f;
+
+		pParticle->m_uchColor[0]	= 255;
+		pParticle->m_uchColor[1]	= 255;
+		pParticle->m_uchColor[2]	= 255;
+
+		pParticle->m_uchStartAlpha	= 255;
+		pParticle->m_uchEndAlpha	= 0;
+
+		pParticle->m_uchStartSize	= ( (random->RandomFloat( 2.0f, 4.0f ) * (SIDE_LENGTH-(i))/(SIDE_LENGTH*0.5f)) * flScale );
+		pParticle->m_uchEndSize		= pParticle->m_uchStartSize;
+		pParticle->m_flRoll			= random->RandomInt( 0, 360 );
+		pParticle->m_flRollDelta	= 0.0f;
+	}
+
+	pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), g_Mat_BlackMesa_Muzzleflash[2], vec3_origin );
+	if ( pParticle == NULL )
+		return;
+
+	pParticle->m_flLifetime		= 0.0f;
+	pParticle->m_flDieTime		= random->RandomFloat( 0.3f, 0.4f );
+
+	pParticle->m_vecVelocity.Init();
+
+	pParticle->m_uchColor[0]	= 255;
+	pParticle->m_uchColor[1]	= 255;
+	pParticle->m_uchColor[2]	= 255;
+
+	pParticle->m_uchStartAlpha	= 255;
+	pParticle->m_uchEndAlpha	= 0;
+
+	pParticle->m_uchStartSize	= flScale * random->RandomFloat( 12.0f, 16.0f );
+	pParticle->m_uchEndSize		= 0.0f;
+	pParticle->m_flRoll			= random->RandomInt( 0, 360 );
+	pParticle->m_flRollDelta	= 0.0f;
+
+	matrix3x4_t	matAttachment;
+	Vector		origin;
+	
+	// Grab the origin out of the transform for the attachment
+	if ( FX_GetAttachmentTransform( hEntity, attachmentIndex, matAttachment ) )
+	{
+		origin.x = matAttachment[0][3];
+		origin.y = matAttachment[1][3];
+		origin.z = matAttachment[2][3];
+	}
+	else
+	{
+		//NOTENOTE: If you're here, you've specified an entity or an attachment that is invalid
+		Assert(0);
+		return;
+	}
+
+	if ( muzzleflash_light.GetBool() )
+	{
+		C_BaseEntity *pEnt = ClientEntityList().GetBaseEntityFromHandle( hEntity );
+		if ( pEnt )
+		{
+			dlight_t *el = effects->CL_AllocElight( LIGHT_INDEX_MUZZLEFLASH + pEnt->entindex() );
+
+			el->origin	= origin;
+
+			el->color.r = 64;
+			el->color.g = 128;
+			el->color.b = 255;
+			el->color.exponent = 5;
+
+			el->radius	= random->RandomInt( 32, 128 );
+			el->decay	= el->radius / 0.05f;
+			el->die		= gpGlobals->curtime + 0.05f;
+		}
+	}
+}
+#endif
 
 //==================================================
 // Purpose: 

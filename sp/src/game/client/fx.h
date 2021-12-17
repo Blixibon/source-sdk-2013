@@ -106,4 +106,7 @@ extern PMaterialHandle g_Mat_BloodPuff[2];
 extern PMaterialHandle g_Mat_Fleck_Glass[2];
 extern PMaterialHandle g_Mat_SMG_Muzzleflash[4];
 extern PMaterialHandle g_Mat_Combine_Muzzleflash[3];
+#ifdef REVERSION_CATALYST
+extern PMaterialHandle g_Mat_BlackMesa_Muzzleflash[3];
+#endif
 #endif // FX_H

@@ -46,6 +46,9 @@ PMaterialHandle g_Mat_DustPuff[2] = { NULL, NULL };
 PMaterialHandle g_Mat_BloodPuff[2] = { NULL, NULL };
 PMaterialHandle g_Mat_SMG_Muzzleflash[4] = { NULL, NULL, NULL, NULL };
 PMaterialHandle g_Mat_Combine_Muzzleflash[3] = { NULL, NULL, NULL };
+#ifdef REVERSION_CATALYST
+PMaterialHandle g_Mat_BlackMesa_Muzzleflash[3] = { NULL, NULL, NULL };
+#endif
 
 static ConVar fx_drawimpactdebris( "fx_drawimpactdebris", "1", FCVAR_DEVELOPMENTONLY, "Draw impact debris effects." );
 static ConVar fx_drawimpactdust( "fx_drawimpactdust", "1", FCVAR_DEVELOPMENTONLY, "Draw impact dust effects." );
@@ -83,6 +86,12 @@ void FX_CacheMaterialHandles( void )
 	g_Mat_Combine_Muzzleflash[1] = ParticleMgr()->GetPMaterial( "effects/combinemuzzle2" );
 	g_Mat_Combine_Muzzleflash[2] = ParticleMgr()->GetPMaterial( "effects/strider_muzzle" );
 #endif
+#endif
+
+#ifdef REVERSION_CATALYST
+	g_Mat_BlackMesa_Muzzleflash[0] = ParticleMgr()->GetPMaterial( "effects/bmmuzzle1" );
+	g_Mat_BlackMesa_Muzzleflash[1] = ParticleMgr()->GetPMaterial( "effects/bmmuzzle2" );
+	g_Mat_BlackMesa_Muzzleflash[2] = ParticleMgr()->GetPMaterial( "effects/bmstrider_muzzle" );
 #endif
 }
 

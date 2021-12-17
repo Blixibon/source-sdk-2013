@@ -3873,6 +3873,12 @@ bool C_BaseAnimating::DispatchMuzzleEffect( const char *options, bool isFirstPer
 		{
 			weaponType = MUZZLEFLASH_RPG;
 		}
+#ifdef REVERSION_CATALYST
+		else if ( Q_stricmp( token, "BLACKMESA" ) == 0 )
+		{
+			weaponType = MUZZLEFLASH_BLACKMESA;
+		}
+#endif
 		else
 		{
 			//NOTENOTE: This means you specified an invalid muzzleflash type, check your spelling?
