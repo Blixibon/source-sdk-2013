@@ -170,6 +170,9 @@ public:
 	// Damage handling
 	//---------------------------------
 	int 			OnTakeDamage_Alive( const CTakeDamageInfo &info );
+#ifdef REVERSION_CATALYST
+	float			GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDamageInfo &info );
+#endif
 
 #ifdef MAPBASE
 	//---------------------------------

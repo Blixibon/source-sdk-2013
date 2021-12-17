@@ -2732,6 +2732,12 @@ WeaponProficiency_t CNPC_PlayerCompanion::CalcWeaponProficiency( CBaseCombatWeap
 	{
 		return WEAPON_PROFICIENCY_VERY_GOOD;
 	}
+#ifdef REVERSION_CATALYST
+	else if ( pWeapon->ClassMatches( "weapon_bm_mp5" ) )
+	{
+		return WEAPON_PROFICIENCY_VERY_GOOD;
+	}
+#endif
 
 	return WEAPON_PROFICIENCY_PERFECT;
 }

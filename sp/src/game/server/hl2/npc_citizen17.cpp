@@ -117,6 +117,10 @@ ConVar npc_citizen_resupplier_adjust_ammo("npc_citizen_resupplier_adjust_ammo", 
 ConVar npc_citizen_nocollide_player( "npc_citizen_nocollide_player", "0" );
 #endif
 
+#ifdef REVERSION_CATALYST
+ConVar sk_citizen_vest_multiplier( "sk_citizen_vest_multiplier", "0.5" );
+#endif
+
 #define ShouldAutosquad() (npc_citizen_auto_player_squad.GetBool())
 
 enum SquadSlot_T
@@ -2573,6 +2577,28 @@ int CNPC_Citizen::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 
 	return BaseClass::OnTakeDamage_Alive( newInfo );
 }
+
+#ifdef REVERSION_CATALYST
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+float CNPC_Citizen::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDamageInfo &info )
+{
+	switch( iHitGroup )
+	{
+	case HITGROUP_CHEST:
+		{
+			int iBody = FindBodygroupByName( "chest" );
+			if (iBody != -1 && (GetBodygroup( iBody ) == 1 || GetBodygroup( iBody ) == 2))
+			{
+				// For citizens with Black Mesa security guard vests, reduce damage taken in the chest
+				return BaseClass::GetHitgroupDamageMultiplier( iHitGroup, info ) * sk_citizen_vest_multiplier.GetFloat();
+			}
+		} break;
+	}
+
+	return BaseClass::GetHitgroupDamageMultiplier( iHitGroup, info );
+}
+#endif
 
 #ifdef MAPBASE
 //-----------------------------------------------------------------------------

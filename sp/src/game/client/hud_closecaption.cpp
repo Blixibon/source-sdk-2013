@@ -2549,6 +2549,14 @@ void CHudCloseCaption::MsgFunc_CloseCaption(bf_read &msg)
 	if ( warnonmissing && !IsX360() )
 	{
 		wchar_t *pcheck = g_pVGuiLocalize->Find( tokenname );
+#ifdef REVERSION_CATALYST
+		// HACKHACK: Black Mesa: Source's CC file uses forward slashes
+		if (Q_strnchr( tokenname, '\\', sizeof( tokenname ) ))
+		{
+			V_FixSlashes( tokenname, '/' );
+			pcheck = g_pVGuiLocalize->Find( tokenname );
+		}
+#endif
 		if ( !pcheck )
 		{
 			Warning( "No caption found for '%s'\n", tokenname );
