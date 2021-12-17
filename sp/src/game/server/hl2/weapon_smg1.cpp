@@ -690,7 +690,7 @@ void CWeapon_BM_MP5::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatC
 			break;
 
 		default:
-			CBaseCombatWeapon::Operator_HandleAnimEvent( pEvent, pOperator );
+			BaseClass::Operator_HandleAnimEvent( pEvent, pOperator );
 			break;
 	}
 }

@@ -380,6 +380,11 @@ bool CAI_GrenadeUser<BASE_NPC>::CanAltFireEnemy( bool bUseFreeKnowledge )
 	if (!EntIsClass(this->GetActiveWeapon(), gm_isz_class_AR2) && !EntIsClass(this->GetActiveWeapon(), gm_isz_class_SMG1))
 		return false;
 
+#ifdef REVERSION_CATALYST
+	if (this->GetActiveWeapon()->ClassMatches("weapon_bm_mp5"))
+		return false;
+#endif
+
 	CBaseEntity *pEnemy = this->GetEnemy();
 
 	Vector vecTarget;
@@ -646,7 +651,11 @@ void CAI_GrenadeUser<BASE_NPC>::DropGrenadeItemsOnDeath( const CTakeDamageInfo &
 	if( IsAltFireCapable() && ShouldDropAltFire() )
 	{
 		CBaseEntity *pItem;
+#ifdef REVERSION_CATALYST
+		if (this->GetActiveWeapon() && (FClassnameIs( this->GetActiveWeapon(), "weapon_smg1" ) || FClassnameIs( this->GetActiveWeapon(), "weapon_bm_mp5" )))
+#else
 		if (this->GetActiveWeapon() && FClassnameIs( this->GetActiveWeapon(), "weapon_smg1" ))
+#endif
 			pItem = this->DropItem( "item_ammo_smg1_grenade", this->WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		else
 			pItem = this->DropItem( "item_ammo_ar2_altfire", this->WorldSpaceCenter() + RandomVector( -4, 4 ), RandomAngle( 0, 360 ) );

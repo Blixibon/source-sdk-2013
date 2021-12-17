@@ -39,6 +39,10 @@ class CGrenadeFrag : public CBaseGrenade
 #if !defined( CLIENT_DLL )
 	DECLARE_DATADESC();
 #endif
+
+#ifdef REVERSION_CATALYST
+protected:
+#endif
 					
 	~CGrenadeFrag( void );
 
@@ -47,10 +51,16 @@ public:
 	void	OnRestore( void );
 	void	Precache( void );
 	bool	CreateVPhysics( void );
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	void	CreateEffects( void );
 	void	SetTimer( float detonateDelay, float warnDelay );
 	void	SetVelocity( const Vector &velocity, const AngularImpulse &angVelocity );
 	int		OnTakeDamage( const CTakeDamageInfo &inputInfo );
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	void	BlipSound() { EmitSound( "Grenade.Blip" ); }
 	void	DelayThink();
 	void	VPhysicsUpdate( IPhysicsObject *pPhysics );
@@ -442,10 +452,99 @@ void CGrenadeFrag::InputSetTimer( inputdata_t &inputdata )
 	SetTimer( inputdata.value.Float(), inputdata.value.Float() - FRAG_GRENADE_WARN_TIME );
 }
 
+#ifdef REVERSION_CATALYST
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+class CGrenade_BM_Frag : public CGrenadeFrag
+{
+	DECLARE_CLASS( CGrenade_BM_Frag, CGrenadeFrag );
+
+public:
+
+	~CGrenade_BM_Frag( void );
+
+	void	Precache( void );
+	void	Spawn( void );
+
+	void	BlipSound() {}
+	void	CreateEffects( void );
+};
+
+LINK_ENTITY_TO_CLASS( npc_bm_grenade_frag, CGrenade_BM_Frag );
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+CGrenade_BM_Frag::~CGrenade_BM_Frag( void )
+{
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CGrenade_BM_Frag::Precache( void )
+{
+	BaseClass::Precache();
+
+	PrecacheModel( "models/Weapons/w_grenade_bm.mdl" );
+
+	PrecacheModel( "particle/particle_smokegrenade1.vmt" );
+	PrecacheModel( "particle/beam_smoke_02.vmt" );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CGrenade_BM_Frag::Spawn( void )
+{
+	BaseClass::Spawn();
+
+	SetModel( "models/Weapons/w_grenade_bm.mdl" );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CGrenade_BM_Frag::CreateEffects( void )
+{
+	// Start up the eye glow
+	m_pMainGlow = CSprite::SpriteCreate( "particle/particle_smokegrenade1.vmt", GetLocalOrigin(), true );
+
+	int	nAttachment = LookupAttachment( "fuse" );
+
+	if ( m_pMainGlow != NULL )
+	{
+		m_pMainGlow->FollowEntity( this );
+		m_pMainGlow->SetAttachment( this, nAttachment );
+		m_pMainGlow->SetTransparency( kRenderGlow, 128, 128, 128, 200, kRenderFxNoDissipation );
+		m_pMainGlow->SetScale( 0.2f );
+		m_pMainGlow->SetGlowProxySize( 4.0f );
+	}
+
+	// Start up the eye trail
+	m_pGlowTrail	= CSpriteTrail::SpriteTrailCreate( "particle/beam_smoke_01.vmt", GetLocalOrigin(), true );
+
+	if ( m_pGlowTrail != NULL )
+	{
+		m_pGlowTrail->FollowEntity( this );
+		m_pGlowTrail->SetAttachment( this, nAttachment );
+		m_pGlowTrail->SetTransparency( kRenderTransAdd, 128, 128, 128, 255, kRenderFxNone );
+		m_pGlowTrail->SetStartWidth( 8.0f );
+		m_pGlowTrail->SetEndWidth( 1.0f );
+		m_pGlowTrail->SetLifeTime( 0.5f );
+	}
+}
+#endif
+
 CBaseGrenade *Fraggrenade_Create( const Vector &position, const QAngle &angles, const Vector &velocity, const AngularImpulse &angVelocity, CBaseEntity *pOwner, float timer, bool combineSpawned )
 {
 	// Don't set the owner here, or the player can't interact with grenades he's thrown
+#ifdef REVERSION_CATALYST
+	CGrenadeFrag *pGrenade = (CGrenadeFrag *)CBaseEntity::Create( (pOwner && pOwner->IsBlackMesa()) ? "npc_bm_grenade_frag" : "npc_grenade_frag", position, angles, pOwner );
+#else
 	CGrenadeFrag *pGrenade = (CGrenadeFrag *)CBaseEntity::Create( "npc_grenade_frag", position, angles, pOwner );
+#endif
 	
 	pGrenade->SetTimer( timer, timer - FRAG_GRENADE_WARN_TIME );
 	pGrenade->SetVelocity( velocity, angVelocity );

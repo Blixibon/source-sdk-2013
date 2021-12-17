@@ -2171,6 +2171,13 @@ int CNPC_Combine::SelectSchedule( void )
 		}
 	}
 
+#ifdef REVERSION_CATALYST
+	// For HECU medics
+	nSched = SelectSchedulePriorityAction();
+	if ( nSched != SCHED_NONE )
+		return nSched;
+#endif
+
 	switch	( m_NPCState )
 	{
 	case NPC_STATE_IDLE:
@@ -2437,6 +2444,14 @@ int CNPC_Combine::TranslateSchedule( int scheduleType )
 				{
 					if ( ShouldChargePlayer() && !IsUnreachable( GetEnemy() ) )
 						return SCHED_COMBINE_CHARGE_PLAYER;
+
+#ifdef REVERSION_CATALYST
+					if (IsBlackMesa() && CanGrenadeEnemy() && random->RandomInt(0,1))
+					{
+						// HECU marines have a chance of dropping a grenade before running to cover
+						return SCHED_COMBINE_GRENADE_COVER1;
+					}
+#endif
 
 					return SCHED_COMBINE_TAKE_COVER1;
 				}
@@ -3780,7 +3795,9 @@ WeaponProficiency_t CNPC_Combine::CalcWeaponProficiency( CBaseCombatWeapon *pWea
 			return WEAPON_PROFICIENCY_GOOD;
 		}
 	}
-#ifdef MAPBASE
+#ifdef REVERSION_CATALYST
+	else if( pWeapon->ClassMatches( gm_isz_class_Shotgun ) || pWeapon->ClassMatches( "weapon_bm_shotgun" ) )
+#elif defined(MAPBASE)
 	else if( pWeapon->ClassMatches( gm_isz_class_Shotgun ) )
 #else
 	else if( FClassnameIs( pWeapon, "weapon_shotgun" )	)
@@ -3804,9 +3821,19 @@ WeaponProficiency_t CNPC_Combine::CalcWeaponProficiency( CBaseCombatWeapon *pWea
 		return WEAPON_PROFICIENCY_GOOD;
 	}
 #ifdef MAPBASE
+#ifdef REVERSION_CATALYST
+	else if ( pWeapon->ClassMatches( gm_isz_class_Pistol ) || pWeapon->ClassMatches( "weapon_bm_glock" ) )
+#else
 	else if ( pWeapon->ClassMatches( gm_isz_class_Pistol ) )
+#endif
 	{
 		// Mods which need a lower soldier pistol accuracy can either change this value or use proficiency override in Hammer.
+		return WEAPON_PROFICIENCY_VERY_GOOD;
+	}
+#endif
+#ifdef REVERSION_CATALYST
+	else if ( pWeapon->ClassMatches( "weapon_bm_mp5" ) )
+	{
 		return WEAPON_PROFICIENCY_VERY_GOOD;
 	}
 #endif

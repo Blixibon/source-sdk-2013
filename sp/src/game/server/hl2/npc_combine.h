@@ -42,6 +42,10 @@
 #ifdef MAPBASE
 class CNPC_Combine : public CAI_GrenadeUser<CAI_BaseActor>
 {
+#ifdef REVERSION_CATALYST
+	// For HECU
+protected:
+#endif
 	DECLARE_DATADESC();
 	DEFINE_CUSTOM_AI;
 	DECLARE_CLASS( CNPC_Combine, CAI_GrenadeUser<CAI_BaseActor> );
@@ -150,6 +154,9 @@ public:
 	virtual int		SelectSchedule( void );
 	virtual int		SelectFailSchedule( int failedSchedule, int failedTask, AI_TaskFailureCode_t taskFailCode );
 	int				SelectScheduleAttack();
+#ifdef REVERSION_CATALYST
+	virtual int		SelectSchedulePriorityAction() { return SCHED_NONE; }
+#endif
 
 	bool			CreateBehaviors();
 
@@ -216,7 +223,12 @@ protected:
 	CAI_Sentence< CNPC_Combine > *GetSentences() { return &m_Sentences; }
 #endif
 
+#ifdef REVERSION_CATALYST
+	// HECU needs access to this
+protected:
+#else
 private:
+#endif
 	//=========================================================
 	// Combine S schedules
 	//=========================================================

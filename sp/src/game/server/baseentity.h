@@ -1131,6 +1131,11 @@ public:
 	virtual bool	IsWearable( void ) const { return false; }
 	virtual CBaseCombatWeapon *MyCombatWeaponPointer( void ) { return NULL; }
 
+#ifdef REVERSION_CATALYST
+	// Returns true if this is a NPC, weapon, etc. replicated from Black Mesa: Source.
+	virtual bool	IsBlackMesa() { return false; }
+#endif
+
 	// If this is a vehicle, returns the vehicle interface
 	virtual IServerVehicle*			GetServerVehicle() { return NULL; }
 

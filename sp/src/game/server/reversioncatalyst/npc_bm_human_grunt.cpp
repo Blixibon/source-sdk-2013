@@ -15,9 +15,33 @@
 
 ConVar	sk_human_grunt_health( "sk_human_grunt_health","50" );
 ConVar	sk_human_grunt_kick( "sk_human_grunt_kick", "10" );
+ConVar	sk_human_grunt_heal_player( "sk_human_grunt_heal_player", "25" );
+ConVar	sk_human_grunt_heal_player_delay( "sk_human_grunt_heal_player_delay", "25" );
+ConVar	sk_human_grunt_heal_player_min_pct( "sk_human_grunt_heal_player_min_pct", "0.60" );
+ConVar	sk_human_grunt_heal_player_min_forced( "sk_human_grunt_heal_player_min_forced", "10.0" );
+ConVar	sk_human_grunt_heal_ally( "sk_human_grunt_heal_ally", "30" );
+ConVar	sk_human_grunt_heal_ally_delay( "sk_human_grunt_heal_ally_delay", "20" );
+ConVar	sk_human_grunt_heal_ally_min_pct( "sk_human_grunt_heal_ally_min_pct", "0.90" );
+ConVar	sk_human_grunt_player_stare_time( "sk_human_grunt_player_stare_time", "1.0" );
+ConVar  sk_human_grunt_player_stare_dist( "sk_human_grunt_player_stare_dist", "72" );
+ConVar	sk_human_grunt_stare_heal_time( "sk_human_grunt_stare_heal_time", "5" );
+
+ConVar  npc_human_grunt_medic_emit_sound("npc_human_grunt_medic_emit_sound", "1" );
+ConVar	npc_human_grunt_heal_chuck_medkit("npc_human_grunt_heal_chuck_medkit" , "1" , FCVAR_ARCHIVE, "Set to 1 to use new experimental healthkit-throwing medic.");
+ConVar	npc_human_grunt_medic_throw_style( "npc_human_grunt_medic_throw_style", "1", FCVAR_ARCHIVE, "Set to 0 for a lobbier trajectory" );
+ConVar	npc_human_grunt_medic_throw_speed( "npc_human_grunt_medic_throw_speed", "650" );
+ConVar	sk_human_grunt_heal_toss_player_delay("sk_human_grunt_heal_toss_player_delay", "26", FCVAR_NONE, "how long between throwing healthkits" );
+
+#define MEDIC_THROW_SPEED npc_human_grunt_medic_throw_speed.GetFloat()
+#define USE_EXPERIMENTAL_MEDIC_CODE() (npc_human_grunt_heal_chuck_medkit.GetBool() /*&& m_bTossesMedkits*/)
 
 extern ConVar sk_plr_dmg_buckshot;	
 extern ConVar sk_plr_num_shotgun_pellets;
+
+const float HEAL_MOVE_RANGE = 30*12;
+const float HEAL_TARGET_RANGE = 120; // 10 feet
+const float HEAL_TOSS_TARGET_RANGE = 480; // 40 feet when we are throwing medkits 
+const float HEAL_TARGET_RANGE_Z = 72; // a second check that Gordon isn't too far above us -- 6 feet
 
 LINK_ENTITY_TO_CLASS( npc_bm_human_grunt, CNPC_BM_HumanGrunt );
 LINK_ENTITY_TO_CLASS( npc_human_grunt, CNPC_BM_HumanGrunt ); // For simplicity/ease of use/legacy support/etc.
@@ -25,10 +49,11 @@ LINK_ENTITY_TO_CLASS( npc_human_medic, CNPC_BM_HumanGrunt ); // For simplicity/e
 LINK_ENTITY_TO_CLASS( npc_human_commander, CNPC_BM_HumanGrunt ); // For simplicity/ease of use/legacy support/etc.
 LINK_ENTITY_TO_CLASS( npc_human_grenadier, CNPC_BM_HumanGrunt ); // For simplicity/ease of use/legacy support/etc.
 
-#define AE_SOLDIER_BLOCK_PHYSICS		20 // trying to block an incoming physics object
+extern int AE_CITIZEN_HEAL;
 
 extern Activity ACT_WALK_EASY;
 extern Activity ACT_WALK_MARCH;
+extern int ACT_CIT_HEAL;
 
 #define BODYGROUP_CIGAR 2
 #define BODYGROUP_GLOVES 3
@@ -40,6 +65,8 @@ extern Activity ACT_WALK_MARCH;
 #define BODYGROUP_PACKS_HIPS 9
 #define BODYGROUP_PACKS_THIGH 10
 
+#define BERET_MODEL "models/humans/props/marine_beret.mdl"
+
 //---------------------------------------------------------
 // Save/Restore
 //---------------------------------------------------------
@@ -48,13 +75,25 @@ BEGIN_DATADESC( CNPC_BM_HumanGrunt )
 	DEFINE_KEYFIELD( m_iUseMarch, FIELD_INTEGER, "usemarch" ),
 	DEFINE_KEYFIELD( m_SoldierType, FIELD_INTEGER, "SoldierType" ),
 
+	DEFINE_FIELD( m_flPlayerHealTime, FIELD_TIME ),
+	DEFINE_FIELD( m_flAllyHealTime, FIELD_TIME ),
+
+	DEFINE_OUTPUT(		m_OnHealedNPC,			"OnHealedNPC" ),
+	DEFINE_OUTPUT(		m_OnHealedPlayer,		"OnHealedPlayer" ),
+	DEFINE_OUTPUT(		m_OnThrowMedkit,		"OnTossMedkit" ),
+
+	DEFINE_INPUTFUNC( FIELD_VOID,   "ThrowHealthKit", InputForceHealthKitToss ),
+
 	DECLARE_BM_NPC_DATADESC()
+	DECLARE_BM_HUMAN_DATADESC()
 
 END_DATADESC()
 
-//IMPLEMENT_SERVERCLASS_ST( CNPC_BM_HumanGrunt, DT_NPC_BM_HumanGrunt )
-//	SendPropInt(SENDINFO(m_iUseMarch), 1), // Dummy
-//END_SEND_TABLE()
+IMPLEMENT_SERVERCLASS_ST( CNPC_BM_HumanGrunt, DT_NPC_BM_HumanGrunt )
+	//SendPropBool( SENDINFO( m_bHasCigar ) ),
+
+	SendPropInt( SENDINFO( m_iCharacterIndex ), 16, 0 ),
+END_SEND_TABLE()
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -70,47 +109,7 @@ void CNPC_BM_HumanGrunt::Spawn( void )
 
 	if (!m_bCustomBody)
 	{
-		if (GetModelPtr())
-			m_nSkin = RandomInt(0, GetModelPtr()->numskinfamilies());
-
-		// Always wear gloves for now
-		SetBodygroup( BODYGROUP_GLOVES, 1 );
-
-		// Looks weird without this
-		SetBodygroup( BODYGROUP_HOLSTER, RandomInt(1,2) );
-
-		if (m_SoldierType == ST_COMMANDER) // Is commander
-		{
-			// Occasionally have a cigar
-			SetBodygroup( BODYGROUP_CIGAR, RandomInt(0,1) );
-
-			// Occasionally have sunglasses
-			SetBodygroup( BODYGROUP_HEAD, (RandomInt(1,2) == 1) ? 0 : 3 );
-
-			// Come packed
-			SetBodygroup( BODYGROUP_PACKS_CHEST, 1 );
-			SetBodygroup( BODYGROUP_PACKS_HIPS, RandomInt(0,1) );
-			SetBodygroup( BODYGROUP_PACKS_THIGH, RandomInt(0,1) );
-		}
-		else if (m_SoldierType == ST_MEDIC) // Is medic
-		{
-			SetBodygroup( BODYGROUP_HELMET_MEDIC, 1 );
-
-			// Come packed
-			SetBodygroup( BODYGROUP_PACKS_CHEST, 0 );
-			SetBodygroup( BODYGROUP_PACKS_HIPS, RandomInt(0,1) );
-			SetBodygroup( BODYGROUP_PACKS_THIGH, RandomInt(0,1) );
-		}
-		else
-		{
-			// Almost always prefer gasmask
-			SetBodygroup( BODYGROUP_HEAD, (RandomInt(1,5) == 1) ? 1 : 2 );
-
-			// Come packed
-			SetBodygroup( BODYGROUP_PACKS_CHEST, RandomInt(0,1) );
-			SetBodygroup( BODYGROUP_PACKS_HIPS, RandomInt(0,1) );
-			SetBodygroup( BODYGROUP_PACKS_THIGH, RandomInt(0,1) );
-		}
+		SelectAndApplyCharacter();
 	}
 
 	CapabilitiesAdd( bits_CAP_ANIMATEDFACE );
@@ -125,6 +124,19 @@ void CNPC_BM_HumanGrunt::Spawn( void )
 		Msg( "Soldier %s is set to use march anim, but is not an efficient AI. The blended march anim can only be used for dead-ahead walks!\n", GetDebugName() );
 	}
 #endif
+
+	if (m_SoldierType == ST_COMMANDER)
+	{
+		m_fIsElite = true;
+
+		/*
+		if (GetSquad())
+		{
+			// Move commanders to the front of the squad so that they become leaders
+			GetSquad()->MoveToFront( this );
+		}
+		*/
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -149,9 +161,10 @@ void CNPC_BM_HumanGrunt::Precache()
 
 	PrecacheModel( STRING( GetModelName() ) );
 
-	UTIL_PrecacheOther( "item_healthvial" );
-	UTIL_PrecacheOther( "weapon_frag" );
-	UTIL_PrecacheOther( "item_ammo_ar2_altfire" );
+	PrecacheModel( BERET_MODEL );
+
+	UTIL_PrecacheOther( "npc_bm_grenade_frag" ); // weapon_bm_frag?
+	UTIL_PrecacheOther( "item_ammo_smg1_grenade" );
 
 	BaseClass::Precache();
 }
@@ -173,6 +186,27 @@ void CNPC_BM_HumanGrunt::ModifyOrAppendCriteria( AI_CriteriaSet& set )
 
 	//set.AppendCriteria( "young", entindex() % 2 == 1 ? "1" : "0" );
 	set.AppendCriteria( "young", m_SoldierType == ST_MEDIC ? "1" : "0" );
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+const char *CNPC_BM_HumanGrunt::GetCharacterClassname()
+{
+	switch (m_SoldierType)
+	{
+		default:
+		case ST_GRUNT:
+			Msg( "Character classname: npc_human_grunt\n" );
+			return "npc_human_grunt";
+
+		case ST_MEDIC:
+			Msg( "Character classname: npc_human_medic\n" );
+			return "npc_human_medic";
+
+		case ST_COMMANDER:
+			Msg( "Character classname: npc_human_commander\n" );
+			return "npc_human_commander";
+	}
 }
 
 
@@ -265,6 +299,478 @@ int CNPC_BM_HumanGrunt::SelectSchedule( void )
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+int CNPC_BM_HumanGrunt::SelectSchedulePriorityAction()
+{
+	int schedule = SelectScheduleHeal();
+	if ( schedule != SCHED_NONE )
+		return schedule;
+
+	return BaseClass::SelectSchedulePriorityAction();
+}
+
+//-----------------------------------------------------------------------------
+// Determine if human_grunt should perform heal action.
+//-----------------------------------------------------------------------------
+int CNPC_BM_HumanGrunt::SelectScheduleHeal()
+{
+	// episodic medics may toss the healthkits rather than poke you with them
+	if ( CanHeal() )
+	{
+		CBaseEntity *pEntity = PlayerInRange( GetLocalOrigin(), HEAL_TOSS_TARGET_RANGE );
+		if ( pEntity )
+		{
+			if ( USE_EXPERIMENTAL_MEDIC_CODE() && IsMedic() )
+			{
+				// use the new heal toss algorithm
+				if ( ShouldHealTossTarget( pEntity, HasCondition( COND_GRUNT_PLAYERHEALREQUEST ) ) )
+				{
+					SetTarget( pEntity );
+					return SCHED_GRUNT_HEAL_TOSS;
+				}
+			}
+			else if ( PlayerInRange( GetLocalOrigin(), HEAL_MOVE_RANGE ) )
+			{
+				// use old mechanism for ammo
+				if ( ShouldHealTarget( pEntity, HasCondition( COND_GRUNT_PLAYERHEALREQUEST ) ) )
+				{
+					SetTarget( pEntity );
+					return SCHED_GRUNT_HEAL;
+				}
+			}
+
+		}
+		
+		if ( m_pSquad )
+		{
+			pEntity = NULL;
+			float distClosestSq = HEAL_MOVE_RANGE*HEAL_MOVE_RANGE;
+			float distCurSq;
+			
+			AISquadIter_t iter;
+			CAI_BaseNPC *pSquadmate = m_pSquad->GetFirstMember( &iter );
+			while ( pSquadmate )
+			{
+				if ( pSquadmate != this )
+				{
+					distCurSq = ( GetAbsOrigin() - pSquadmate->GetAbsOrigin() ).LengthSqr();
+					if ( distCurSq < distClosestSq && ShouldHealTarget( pSquadmate ) )
+					{
+						distClosestSq = distCurSq;
+						pEntity = pSquadmate;
+					}
+				}
+
+				pSquadmate = m_pSquad->GetNextMember( &iter );
+			}
+			
+			if ( pEntity )
+			{
+				SetTarget( pEntity );
+				return SCHED_GRUNT_HEAL;
+			}
+		}
+	}
+	else
+	{
+		if ( HasCondition( COND_GRUNT_PLAYERHEALREQUEST ) )
+			DevMsg( "Would say: sorry, need to recharge\n" );
+	}
+	
+	return SCHED_NONE;
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void CNPC_BM_HumanGrunt::StartTask( const Task_t *pTask )
+{
+	switch( pTask->iTask )
+	{
+	case TASK_GRUNT_HEAL:
+	case TASK_GRUNT_HEAL_TOSS:
+		if ( IsMedic() )
+		{
+			if ( GetTarget() && GetTarget()->IsPlayer() && GetTarget()->m_iMaxHealth == GetTarget()->m_iHealth )
+			{
+				// Doesn't need us anymore
+				TaskComplete();
+				break;
+			}
+
+			Speak( "TLK_HEAL" );
+		}
+		SetIdealActivity( (Activity)ACT_CIT_HEAL );
+		break;
+
+	default:
+		BaseClass::StartTask( pTask );
+		break;
+	}
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void CNPC_BM_HumanGrunt::RunTask( const Task_t *pTask )
+{
+	switch( pTask->iTask )
+	{
+		case TASK_GRUNT_HEAL:
+			if ( IsSequenceFinished() )
+			{
+				TaskComplete();
+			}
+			else if (!GetTarget())
+			{
+				// Our heal target was killed or deleted somehow.
+				TaskFail(FAIL_NO_TARGET);
+			}
+			else
+			{
+				if ( ( GetTarget()->GetAbsOrigin() - GetAbsOrigin() ).Length2D() > HEAL_MOVE_RANGE/2 )
+					TaskComplete();
+
+				GetMotor()->SetIdealYawToTargetAndUpdate( GetTarget()->GetAbsOrigin() );
+			}
+			break;
+
+		case TASK_GRUNT_HEAL_TOSS:
+			if ( IsSequenceFinished() )
+			{
+				TaskComplete();
+			}
+			else if (!GetTarget())
+			{
+				// Our heal target was killed or deleted somehow.
+				TaskFail(FAIL_NO_TARGET);
+			}
+			else
+			{
+				GetMotor()->SetIdealYawToTargetAndUpdate( GetTarget()->GetAbsOrigin() );
+			}
+			break;
+
+		default:
+			BaseClass::RunTask( pTask );
+			break;
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : code - 
+//-----------------------------------------------------------------------------
+void CNPC_BM_HumanGrunt::TaskFail( AI_TaskFailureCode_t code )
+{
+	// If our heal task has failed, push out the heal time
+	if ( IsCurSchedule( SCHED_GRUNT_HEAL ) )
+	{
+		m_flPlayerHealTime 	= gpGlobals->curtime + sk_human_grunt_heal_ally_delay.GetFloat();
+	}
+
+	BaseClass::TaskFail( code );
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+bool CNPC_BM_HumanGrunt::CanHeal()
+{ 
+	if ( !IsMedic() )
+		return false;
+
+	if ( IsInAScript() || (m_NPCState == NPC_STATE_SCRIPT) )
+		return false;
+
+	return true;
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+bool CNPC_BM_HumanGrunt::ShouldHealTarget( CBaseEntity *pTarget, bool bActiveUse )
+{
+	Disposition_t disposition;
+	
+	if ( pTarget && ( ( disposition = IRelationType( pTarget ) ) != D_LI && disposition != D_NU ) )
+		return false;
+
+	// Don't heal if I'm in the middle of talking
+	if ( IsSpeaking() )
+		return false;
+
+	bool bTargetIsPlayer = pTarget->IsPlayer();
+
+	// Don't heal or give ammo to targets in vehicles
+	CBaseCombatCharacter *pCCTarget = pTarget->MyCombatCharacterPointer();
+	if ( pCCTarget != NULL && pCCTarget->IsInAVehicle() )
+		return false;
+
+	if ( IsMedic() )
+	{
+		Vector toPlayer = ( pTarget->GetAbsOrigin() - GetAbsOrigin() );
+	 	if (( bActiveUse /*|| !HaveCommandGoal()*/ || toPlayer.Length() < HEAL_TARGET_RANGE) 
+			&& fabs(toPlayer.z) < HEAL_TARGET_RANGE_Z
+			)
+	 	{
+			if ( pTarget->m_iHealth > 0 )
+			{
+	 			if ( bActiveUse )
+				{
+					// Ignore heal requests if we're going to heal a tiny amount
+					float timeFullHeal = m_flPlayerHealTime;
+					float timeRecharge = sk_human_grunt_heal_player_delay.GetFloat();
+					float maximumHealAmount = sk_human_grunt_heal_player.GetFloat();
+					float healAmt = ( maximumHealAmount * ( 1.0 - ( timeFullHeal - gpGlobals->curtime ) / timeRecharge ) );
+					if ( healAmt > pTarget->m_iMaxHealth - pTarget->m_iHealth )
+						healAmt = pTarget->m_iMaxHealth - pTarget->m_iHealth;
+					if ( healAmt < sk_human_grunt_heal_player_min_forced.GetFloat() )
+						return false;
+
+	 				return ( pTarget->m_iMaxHealth > pTarget->m_iHealth );
+				}
+	 				
+				// Are we ready to heal again?
+				bool bReadyToHeal = ( ( bTargetIsPlayer && m_flPlayerHealTime <= gpGlobals->curtime ) || 
+									  ( !bTargetIsPlayer && m_flAllyHealTime <= gpGlobals->curtime ) );
+
+				// Only heal if we're ready
+				if ( bReadyToHeal )
+				{
+					int requiredHealth;
+
+					if ( bTargetIsPlayer )
+						requiredHealth = pTarget->GetMaxHealth() - sk_human_grunt_heal_player.GetFloat();
+					else
+						requiredHealth = pTarget->GetMaxHealth() * sk_human_grunt_heal_player_min_pct.GetFloat();
+
+					if ( ( pTarget->m_iHealth <= requiredHealth ) && IRelationType( pTarget ) == D_LI )
+						return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+#ifdef HL2_EPISODIC
+//-----------------------------------------------------------------------------
+// Determine if the human_grunt is in a position to be throwing medkits
+//-----------------------------------------------------------------------------
+bool CNPC_BM_HumanGrunt::ShouldHealTossTarget( CBaseEntity *pTarget, bool bActiveUse )
+{
+	Disposition_t disposition;
+
+	Assert( IsMedic() );
+	if ( !IsMedic() )
+		return false;
+	
+	if ( pTarget && ( ( disposition = IRelationType( pTarget ) ) != D_LI && disposition != D_NU ) )
+		return false;
+
+	// Don't heal if I'm in the middle of talking
+	if ( IsSpeaking() )
+		return false;
+
+	// NPCs cannot be healed by throwing medkits at them.
+	// I don't think NPCs even pass through this function anyway, it's just the actual heal event that's the problem.
+	if (!pTarget->IsPlayer())
+		return false;
+
+	// Don't heal or give ammo to targets in vehicles
+	CBaseCombatCharacter *pCCTarget = pTarget->MyCombatCharacterPointer();
+	if ( pCCTarget != NULL && pCCTarget->IsInAVehicle() )
+		return false;
+
+	Vector toPlayer = ( pTarget->GetAbsOrigin() - GetAbsOrigin() );
+	if ( bActiveUse /*|| !HaveCommandGoal()*/ || toPlayer.Length() < HEAL_TOSS_TARGET_RANGE )
+	{
+		if ( pTarget->m_iHealth > 0 )
+		{
+			if ( bActiveUse )
+			{
+				// Ignore heal requests if we're going to heal a tiny amount
+				float timeFullHeal = m_flPlayerHealTime;
+				float timeRecharge = sk_human_grunt_heal_player_delay.GetFloat();
+				float maximumHealAmount = sk_human_grunt_heal_player.GetFloat();
+				float healAmt = ( maximumHealAmount * ( 1.0 - ( timeFullHeal - gpGlobals->curtime ) / timeRecharge ) );
+				if ( healAmt > pTarget->m_iMaxHealth - pTarget->m_iHealth )
+					healAmt = pTarget->m_iMaxHealth - pTarget->m_iHealth;
+				if ( healAmt < sk_human_grunt_heal_player_min_forced.GetFloat() )
+					return false;
+
+				return ( pTarget->m_iMaxHealth > pTarget->m_iHealth );
+			}
+
+			// Are we ready to heal again?
+#ifdef MAPBASE
+			bool bReadyToHeal = m_flPlayerHealTime <= gpGlobals->curtime;
+#else
+			bool bReadyToHeal = ( ( bTargetIsPlayer && m_flPlayerHealTime <= gpGlobals->curtime ) || 
+				( !bTargetIsPlayer && m_flAllyHealTime <= gpGlobals->curtime ) );
+#endif
+
+			// Only heal if we're ready
+			if ( bReadyToHeal )
+			{
+				int requiredHealth;
+
+#ifdef MAPBASE
+				requiredHealth = pTarget->GetMaxHealth() - sk_human_grunt_heal_player.GetFloat();
+#else
+				if ( bTargetIsPlayer )
+					requiredHealth = pTarget->GetMaxHealth() - sk_human_grunt_heal_player.GetFloat();
+				else
+					requiredHealth = pTarget->GetMaxHealth() * sk_human_grunt_heal_player_min_pct.GetFloat();
+#endif
+
+				if ( ( pTarget->m_iHealth <= requiredHealth ) && IRelationType( pTarget ) == D_LI )
+					return true;
+			}
+		}
+	}
+	
+	return false;
+}
+#endif
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void CNPC_BM_HumanGrunt::Heal()
+{
+	if ( !CanHeal() )
+		  return;
+
+	CBaseEntity *pTarget = GetTarget();
+	if ( !pTarget )
+		return;
+
+	Vector target = pTarget->GetAbsOrigin() - GetAbsOrigin();
+	if ( target.Length() > HEAL_TARGET_RANGE * 2 )
+		return;
+
+	if ( IsMedic() )
+	{
+		float timeFullHeal;
+		float timeRecharge;
+		float maximumHealAmount;
+		if ( pTarget->IsPlayer() )
+		{
+			timeFullHeal 		= m_flPlayerHealTime;
+			timeRecharge 		= sk_human_grunt_heal_player_delay.GetFloat();
+			maximumHealAmount 	= sk_human_grunt_heal_player.GetFloat();
+			m_flPlayerHealTime 	= gpGlobals->curtime + timeRecharge;
+		}
+		else
+		{
+			timeFullHeal 		= m_flAllyHealTime;
+			timeRecharge 		= sk_human_grunt_heal_ally_delay.GetFloat();
+			maximumHealAmount 	= sk_human_grunt_heal_ally.GetFloat();
+			m_flAllyHealTime 	= gpGlobals->curtime + timeRecharge;
+		}
+		
+		float healAmt = ( maximumHealAmount * ( 1.0 - ( timeFullHeal - gpGlobals->curtime ) / timeRecharge ) );
+		
+		if ( healAmt > maximumHealAmount )
+			healAmt = maximumHealAmount;
+		else
+			healAmt = RoundFloatToInt( healAmt );
+		
+		if ( healAmt > 0 )
+		{
+			if ( pTarget->IsPlayer() && npc_human_grunt_medic_emit_sound.GetBool() )
+			{
+				CPASAttenuationFilter filter( pTarget, "HealthKit.Touch" );
+				EmitSound( filter, pTarget->entindex(), "HealthKit.Touch" );
+			}
+
+			pTarget->IsPlayer() ? m_OnHealedPlayer.FireOutput(pTarget, this) : m_OnHealedNPC.FireOutput(pTarget, this);
+
+			pTarget->TakeHealth( healAmt, DMG_GENERIC );
+			pTarget->RemoveAllDecals();
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Like Heal(), but tosses a healthkit in front of the player rather than just juicing him up.
+//-----------------------------------------------------------------------------
+void CNPC_BM_HumanGrunt::TossHealthKit(CBaseCombatCharacter *pThrowAt, const Vector &offset)
+{
+	Assert( pThrowAt );
+
+	Vector forward, right, up;
+	GetVectors( &forward, &right, &up );
+	Vector medKitOriginPoint = WorldSpaceCenter() + ( forward * 20.0f );
+	Vector destinationPoint;
+	// this doesn't work without a moveparent: pThrowAt->ComputeAbsPosition( offset, &destinationPoint );
+	VectorTransform( offset, pThrowAt->EntityToWorldTransform(), destinationPoint );
+	// flatten out any z change due to player looking up/down
+	destinationPoint.z = pThrowAt->EyePosition().z;
+
+	Vector tossVelocity;
+
+	if (npc_human_grunt_medic_throw_style.GetInt() == 0)
+	{
+		CTraceFilterSkipTwoEntities tracefilter( this, pThrowAt, COLLISION_GROUP_NONE );
+		tossVelocity = VecCheckToss( this, &tracefilter, medKitOriginPoint, destinationPoint, 0.233f, 1.0f, false );
+	}
+	else
+	{
+		tossVelocity = VecCheckThrow( this, medKitOriginPoint, destinationPoint, MEDIC_THROW_SPEED, 1.0f );
+
+		if (vec3_origin == tossVelocity)
+		{
+			// if out of range, just throw it as close as I can
+			tossVelocity = destinationPoint - medKitOriginPoint;
+
+			// rotate upwards against gravity
+			float len = VectorLength(tossVelocity);
+			tossVelocity *= (MEDIC_THROW_SPEED / len);
+			tossVelocity.z += 0.57735026918962576450914878050196 * MEDIC_THROW_SPEED;
+		}
+	}
+
+	// create a healthkit and toss it into the world
+	CBaseEntity *pHealthKit = CreateEntityByName( "item_healthkit" );
+	Assert(pHealthKit);
+	if (pHealthKit)
+	{
+		pHealthKit->SetAbsOrigin( medKitOriginPoint );
+		pHealthKit->SetOwnerEntity( this );
+		// pHealthKit->SetAbsVelocity( tossVelocity );
+		DispatchSpawn( pHealthKit );
+
+		{
+			IPhysicsObject *pPhysicsObject = pHealthKit->VPhysicsGetObject();
+			Assert( pPhysicsObject );
+			if ( pPhysicsObject )
+			{
+				unsigned int cointoss = random->RandomInt(0,0xFF); // int bits used for bools
+
+				// some random precession
+				Vector angDummy(random->RandomFloat(-200,200), random->RandomFloat(-200,200), 
+					cointoss & 0x01 ? random->RandomFloat(200,600) : -1.0f * random->RandomFloat(200,600));
+				pPhysicsObject->SetVelocity( &tossVelocity, &angDummy );
+			}
+		}
+
+		m_OnThrowMedkit.Set(pHealthKit, pHealthKit, this);
+	}
+	else
+	{
+		Warning("Grunt tried to heal but could not spawn item_healthkit!\n");
+	}
+}
+
+//-----------------------------------------------------------------------------
+// cause an immediate call to TossHealthKit with some default numbers
+//-----------------------------------------------------------------------------
+void CNPC_BM_HumanGrunt::InputForceHealthKitToss( inputdata_t &inputdata )
+{
+	TossHealthKit( UTIL_GetLocalPlayer(), Vector(48.0f, 0.0f, 0.0f)  );
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 float CNPC_BM_HumanGrunt::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDamageInfo &info )
 {
 	switch( iHitGroup )
@@ -284,17 +790,32 @@ float CNPC_BM_HumanGrunt::GetHitgroupDamageMultiplier( int iHitGroup, const CTak
 //-----------------------------------------------------------------------------
 void CNPC_BM_HumanGrunt::HandleAnimEvent( animevent_t *pEvent )
 {
-	switch( pEvent->event )
+	if ( pEvent->event == AE_CITIZEN_HEAL )
 	{
-	case AE_SOLDIER_BLOCK_PHYSICS:
-		DevMsg( "BLOCKING!\n" );
-		m_fIsBlocking = true;
-		break;
-
-	default:
-		BaseClass::HandleAnimEvent( pEvent );
-		break;
+		// Heal my target (if within range)
+		if ( USE_EXPERIMENTAL_MEDIC_CODE() && IsMedic() && GetTarget() && !GetTarget()->IsNPC() )
+		{
+			CBaseCombatCharacter *pTarget = dynamic_cast<CBaseCombatCharacter *>( GetTarget() );
+			Assert(pTarget);
+			if ( pTarget )
+			{
+				m_flPlayerHealTime 	= gpGlobals->curtime + sk_human_grunt_heal_toss_player_delay.GetFloat();;
+				TossHealthKit( pTarget, Vector(48.0f, 0.0f, 0.0f)  );
+			}
+		}
+		else
+		{
+			Heal();
+		}
+		return;
 	}
+
+	//switch( pEvent->event )
+	//{
+	//default:
+		BaseClass::HandleAnimEvent( pEvent );
+	//	break;
+	//}
 }
 
 void CNPC_BM_HumanGrunt::OnChangeActivity( Activity eNewActivity )
@@ -342,6 +863,49 @@ void CNPC_BM_HumanGrunt::OnListened()
 //-----------------------------------------------------------------------------
 void CNPC_BM_HumanGrunt::Event_Killed( const CTakeDamageInfo &info )
 {
+	for (int i = 0; i < m_hBonemergeProps.Count(); i++)
+	{
+		if (CBaseEntity *pProp = m_hBonemergeProps[i])
+		{
+			Vector vecHeadPos;
+			QAngle vecHeadAng;
+			GetAttachment( "anim_attachment_head", vecHeadPos, vecHeadAng );
+
+			// Drop the beret
+			CBaseEntity *pGib = CreateNoSpawn( "prop_physics", vecHeadPos, vecHeadAng, this );
+			if (pGib)
+			{
+				pGib->SetModelName( pProp->GetModelName() );
+				pGib->AddSpawnFlags( SF_PHYSPROP_DEBRIS | SF_PHYSPROP_IS_GIB );
+				DispatchSpawn( pGib );
+
+				if (VPhysicsGetObject() && pGib->VPhysicsGetObject())
+				{
+					Vector velocity = info.GetDamageForce() * VPhysicsGetObject()->GetInvMass();
+
+					// Give the beret some extra velocity so it's easier to see
+					velocity.z += 20.0f;
+					velocity *= 3.0f;
+
+					pGib->VPhysicsGetObject()->AddVelocity(&velocity, NULL);
+				}
+
+				if (info.GetDamageType() & DMG_DISSOLVE)
+				{
+					pGib->GetBaseAnimating()->Dissolve( NULL, gpGlobals->curtime, false, ENTITY_DISSOLVE_NORMAL );
+				}
+				else
+				{
+					pGib->SUB_StartFadeOut( 10.0f, false );
+				}
+			}
+
+			UTIL_Remove( pProp );
+		}
+	}
+
+	// Disabled for now
+	/*
 	CBasePlayer *pPlayer = ToBasePlayer( info.GetAttacker() );
 
 	if ( !pPlayer )
@@ -374,6 +938,7 @@ void CNPC_BM_HumanGrunt::Event_Killed( const CTakeDamageInfo &info )
 			}
 		}
 	}
+	*/
 
 	BaseClass::Event_Killed( info );
 }
@@ -433,3 +998,63 @@ Activity CNPC_BM_HumanGrunt::NPC_TranslateActivity( Activity eNewActivity )
 
 	return BaseClass::NPC_TranslateActivity( eNewActivity );
 }
+
+//-----------------------------------------------------------------------------
+//
+// Schedules
+//
+//-----------------------------------------------------------------------------
+
+AI_BEGIN_CUSTOM_NPC( npc_bm_human_grunt, CNPC_BM_HumanGrunt )
+
+	DECLARE_TASK( TASK_GRUNT_HEAL )
+	DECLARE_TASK( TASK_GRUNT_HEAL_TOSS )
+
+	DECLARE_CONDITION( COND_GRUNT_PLAYERHEALREQUEST )
+	DECLARE_CONDITION( COND_GRUNT_COMMANDHEAL )
+
+	
+	//=========================================================
+	// > SCHED_SCI_HEAL
+	//=========================================================
+	DEFINE_SCHEDULE
+	(
+		SCHED_GRUNT_HEAL,
+
+		"	Tasks"
+		"		TASK_GET_PATH_TO_TARGET				0"
+		"		TASK_MOVE_TO_TARGET_RANGE			50"
+		"		TASK_STOP_MOVING					0"
+		"		TASK_FACE_IDEAL						0"
+//		"		TASK_SAY_HEAL						0"
+//		"		TASK_PLAY_SEQUENCE_FACE_TARGET		ACTIVITY:ACT_ARM"
+		"		TASK_GRUNT_HEAL						0"
+//		"		TASK_PLAY_SEQUENCE_FACE_TARGET		ACTIVITY:ACT_DISARM"
+		"	"
+		"	Interrupts"
+	)
+
+#if HL2_EPISODIC
+	//=========================================================
+	// > SCHED_GRUNT_HEAL_TOSS
+	// this is for the episodic behavior where the human_grunt hurls the medkit
+	//=========================================================
+	DEFINE_SCHEDULE
+	(
+		SCHED_GRUNT_HEAL_TOSS,
+
+	"	Tasks"
+//  "		TASK_GET_PATH_TO_TARGET				0"
+//  "		TASK_MOVE_TO_TARGET_RANGE			50"
+	"		TASK_STOP_MOVING					0"
+	"		TASK_FACE_IDEAL						0"
+//	"		TASK_SAY_HEAL						0"
+//	"		TASK_PLAY_SEQUENCE_FACE_TARGET		ACTIVITY:ACT_ARM"
+	"		TASK_GRUNT_HEAL_TOSS				0"
+//	"		TASK_PLAY_SEQUENCE_FACE_TARGET		ACTIVITY:ACT_DISARM"
+	"	"
+	"	Interrupts"
+	)
+#endif
+
+ AI_END_CUSTOM_NPC()
