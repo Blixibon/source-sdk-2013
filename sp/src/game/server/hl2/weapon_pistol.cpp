@@ -577,12 +577,15 @@ public:
 	DECLARE_CLASS( CWeapon_BM_Glock, CBase_BM_Weapon<CWeaponPistol> );
 	DECLARE_SERVERCLASS();
 
+	CWeapon_BM_Glock();
+
 	void	Precache();
 	Activity	GetPrimaryAttackActivity( void );
+	bool		Reload( void );
 
 	void	SecondaryAttack( void );
 
-	virtual float GetFireRate( void )
+	float GetFireRate( void )
 	{
 		return InSecondary( ToBasePlayer( GetOwner() ) ) ? 0.2f : 0.5f;
 	}
@@ -598,6 +601,14 @@ LINK_ENTITY_TO_CLASS( weapon_bm_glock, CWeapon_BM_Glock );
 LINK_ENTITY_TO_CLASS( weapon_glock, CWeapon_BM_Glock ); // For simplicity/ease of use/legacy support/etc.
 
 PRECACHE_WEAPON_REGISTER( weapon_bm_glock );
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+CWeapon_BM_Glock::CWeapon_BM_Glock()
+{
+	m_bAltFiresUnderwater = true;
+}
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -620,12 +631,26 @@ Activity CWeapon_BM_Glock::GetPrimaryAttackActivity( void )
 }
 
 //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+bool CWeapon_BM_Glock::Reload( void )
+{
+	bool fRet = DefaultReload( GetMaxClip1(), GetMaxClip2(), m_iClip1 > 0 ? ACT_VM_RELOAD : ACT_VM_RELOAD_EMPTY );
+	if ( fRet )
+	{
+		WeaponSound( RELOAD );
+		m_flAccuracyPenalty = 0.0f;
+	}
+	return fRet;
+}
+
+//-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 void CWeapon_BM_Glock::SecondaryAttack( void )
 {
 	if (m_flNextPrimaryAttack <= gpGlobals->curtime)
 	{
+		m_flNextPrimaryAttack = gpGlobals->curtime;
 		PrimaryAttack();
 	}
 }
