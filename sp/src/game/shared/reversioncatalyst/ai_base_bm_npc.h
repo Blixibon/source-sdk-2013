@@ -4,6 +4,12 @@
 // 
 //==============================================================================
 
+#ifndef AI_BASE_BM_NPC
+#define AI_BASE_BM_NPC
+#ifdef _WIN32
+#pragma once
+#endif
+
 #include "cbase.h"
 #include "reversioncatalyst/rc_bm_character_manifest.h"
 #ifdef CLIENT_DLL
@@ -11,6 +17,8 @@
 #else
 #include "saverestore_utlvector.h"
 #include "ai_basenpc.h"
+#include "props.h"
+#include "particle_parse.h"
 #endif
 
 template <class BASE_NPC>
@@ -41,6 +49,11 @@ public:
 	CUtlVector<LocalFlexController_t>	m_iCharacterFlexes;
 #else
 	void SelectAndApplyCharacter();
+
+	void	Precache();
+
+	bool	ShouldGib( const CTakeDamageInfo &info );
+	bool	CorpseGib( const CTakeDamageInfo &info );
 
 	CNetworkVar( int, m_iCharacterIndex ); // CNetworkVarForDerived
 #endif
@@ -145,4 +158,75 @@ void CAI_Base_BM_Human<BASE_NPC>::SelectAndApplyCharacter()
 		}
 	}
 }
+
+template <class BASE_NPC>
+void CAI_Base_BM_Human<BASE_NPC>::Precache()
+{
+	BaseClass::Precache();
+
+	PrecacheParticleSystem( "gib_human_spurt" );
+	this->PrecacheScriptSound( "BaseCombatCharacter.CorpseGib" );
+
+	PropBreakablePrecacheAll( this->GetModelName() );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : &info - 
+// Output : Returns true on success, false on failure.
+//-----------------------------------------------------------------------------
+template <class BASE_NPC>
+bool CAI_Base_BM_Human<BASE_NPC>::ShouldGib( const CTakeDamageInfo &info )
+{
+	if ( this->IsEFlagSet( EFL_IS_BEING_LIFTED_BY_BARNACLE ) )
+		return false;
+
+	if ( info.GetDamageType() & (DMG_NEVERGIB|DMG_DISSOLVE) )
+		return false;
+
+	if ( info.GetDamageType() & (DMG_ALWAYSGIB) )
+		return true;
+
+	if (info.GetDamageType() & DMG_BLAST)
+	{
+		if (this->m_iHealth < -20)
+			return true;
+	}
+	else if (info.GetDamageType() & DMG_BULLET)
+	{
+		if (this->m_iHealth < -80)
+			return true;
+	}
+	else
+	{
+		if (this->m_iHealth < -50)
+			return true;
+	}
+	
+	return false;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Output : Returns true on success, false on failure.
+//-----------------------------------------------------------------------------
+template <class BASE_NPC>
+bool CAI_Base_BM_Human<BASE_NPC>::CorpseGib( const CTakeDamageInfo &info )
+{
+	DispatchParticleEffect( "gib_human_spurt", this->WorldSpaceCenter(), QAngle( 0, 0, 0 ) );
+
+	EmitSound( "BaseCombatCharacter.CorpseGib" );
+
+	Vector velocity = (info.GetDamageForce() * 0.01f) + this->GetAbsVelocity(); // info.GetDamageForce().Normalized()
+	AngularImpulse	angVelocity = RandomAngularImpulse( -150, 150 );
+	breakablepropparams_t params( this->EyePosition(), this->GetAbsAngles(), velocity, angVelocity );
+	params.impactEnergyScale = 1.0f;
+	params.defBurstScale = 500.0f;
+	params.defCollisionGroup = COLLISION_GROUP_DEBRIS;
+	PropBreakableCreateAll( this->GetModelIndex(), NULL, params, this, -1, true, true );
+
+	return true;
+}
 #endif
+
+#endif // AI_BASE_BM_NPC
