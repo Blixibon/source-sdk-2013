@@ -223,6 +223,24 @@ public:
 				Q_strncpy(g_iszGameName, pszGameName, sizeof(g_iszGameName));
 			}
 
+#ifdef REVERSION_CATALYST
+			const char *pszRequiredGame = gameinfo->GetString( "required_adjacent_mod", "blackmesa" );
+			if (pszRequiredGame && pszRequiredGame[0] != '\0')
+			{
+				char szCurDirectory[MAX_PATH];
+				g_pFullFileSystem->GetCurrentDirectory( szCurDirectory, sizeof( szCurDirectory ) );
+
+				char *pszPathEnd = V_strstr( szCurDirectory, "common" );
+				Q_snprintf( pszPathEnd, (MAX_PATH - (pszPathEnd - szCurDirectory)), "sourcemods%c%s", CORRECT_PATH_SEPARATOR, pszRequiredGame );
+
+				if (!g_pFullFileSystem->IsDirectory( szCurDirectory, NULL ))
+				{
+					Error( "Unable to find \"%s\"\n\nThe free mod version of Black Mesa: Source must be in your 'sourcemods' folder in order to play Reversion Catalyst.\n\nSee gameinfo.txt to disable this restriction.", szCurDirectory );
+					return;
+				}
+			}
+#endif
+
 #ifdef GAME_DLL
 			Q_strncpy( g_szDefaultPlayerModel, gameinfo->GetString( "player_default_model", "models/player.mdl" ), sizeof( g_szDefaultPlayerModel ) );
 			g_bDefaultPlayerDrawExternally = gameinfo->GetBool( "player_default_draw_externally", false );
