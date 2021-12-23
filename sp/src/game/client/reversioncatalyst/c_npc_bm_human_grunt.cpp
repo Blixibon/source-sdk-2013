@@ -50,7 +50,7 @@ void C_NPC_BM_HumanGrunt::FireEvent( const Vector& origin, const QAngle& angles,
 			char pSoundName[256];
 			if ( !options || !options[0] || FStrEq(options, "NPC_CombineS") )
 			{
-				options = "NPC_HumanGrunt";
+				options = IsHumanAssassin() ? "NPC_MaleAssassin" : "NPC_HumanGrunt";
 			}
 
 			Vector vel;
@@ -76,7 +76,7 @@ void C_NPC_BM_HumanGrunt::FireEvent( const Vector& origin, const QAngle& angles,
 			char pSoundName[256];
 			if ( !options || !options[0] || FStrEq(options, "NPC_CombineS") )
 			{
-				options = "NPC_HumanGrunt";
+				options = IsHumanAssassin() ? "NPC_MaleAssassin" : "NPC_HumanGrunt";
 			}
 
 			Vector vel;

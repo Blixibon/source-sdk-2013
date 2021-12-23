@@ -26,6 +26,8 @@ $Project
 			$File	"reversioncatalyst\npc_bm_human_security.h"
 			$File	"reversioncatalyst\npc_bm_human_grunt.cpp"
 			$File	"reversioncatalyst\npc_bm_human_grunt.h"
+			$File	"reversioncatalyst\npc_bm_human_assassin.cpp"
+			$File	"reversioncatalyst\npc_bm_human_assassin.h"
 			$File	"reversioncatalyst\npc_bm_osprey.cpp"
 			$File	"reversioncatalyst\npc_bm_osprey.h"
 			$File	"reversioncatalyst\npc_bm_sentry_ground.cpp"

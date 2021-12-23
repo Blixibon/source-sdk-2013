@@ -146,22 +146,25 @@ void CNPC_BM_HumanGrunt::Spawn( void )
 //-----------------------------------------------------------------------------
 void CNPC_BM_HumanGrunt::Precache()
 {
-	if( !GetModelName() )
+	if (!IsHumanAssassin())
 	{
-		SetModelName( MAKE_STRING( "models/humans/marine.mdl" ) );
+		if( !GetModelName() )
+		{
+			SetModelName( MAKE_STRING( "models/humans/marine.mdl" ) );
+		}
+
+		if (FStrEq( GetClassname(), "npc_human_medic" ))
+			m_SoldierType = ST_MEDIC;
+		else if (FStrEq( GetClassname(), "npc_human_commander" ))
+			m_SoldierType = ST_COMMANDER;
+
+		if (!FStrEq( GetClassname(), "npc_bm_human_grunt" ))
+			SetClassname( "npc_bm_human_grunt" );
+
+		//PrecacheModel( BERET_MODEL );
 	}
 
-	if (FStrEq( GetClassname(), "npc_human_medic" ))
-		m_SoldierType = ST_MEDIC;
-	else if (FStrEq( GetClassname(), "npc_human_commander" ))
-		m_SoldierType = ST_COMMANDER;
-
-	if (!FStrEq( GetClassname(), "npc_bm_human_grunt" ))
-		SetClassname( "npc_bm_human_grunt" );
-
 	PrecacheModel( STRING( GetModelName() ) );
-
-	PrecacheModel( BERET_MODEL );
 
 	UTIL_PrecacheOther( "npc_bm_grenade_frag" ); // weapon_bm_frag?
 	UTIL_PrecacheOther( "item_ammo_smg1_grenade" );

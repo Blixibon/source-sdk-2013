@@ -20,6 +20,8 @@ $Project
 		{
 			$File	"$SRCDIR\game\shared\reversioncatalyst\ai_base_bm_npc.cpp"
 			$File	"$SRCDIR\game\shared\reversioncatalyst\ai_base_bm_npc.h"
+			$File	"reversioncatalyst\c_npc_bm_human_assassin.cpp"
+			$File	"reversioncatalyst\c_npc_bm_human_assassin.h"
 			$File	"reversioncatalyst\c_npc_bm_human_grunt.cpp"
 			$File	"reversioncatalyst\c_npc_bm_human_grunt.h"
 			$File	"reversioncatalyst\c_npc_bm_human_scientist.cpp"

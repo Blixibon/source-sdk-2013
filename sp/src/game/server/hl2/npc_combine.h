@@ -156,6 +156,8 @@ public:
 	int				SelectScheduleAttack();
 #ifdef REVERSION_CATALYST
 	virtual int		SelectSchedulePriorityAction() { return SCHED_NONE; }
+
+	virtual bool	IsHumanAssassin() { return false; }
 #endif
 
 	bool			CreateBehaviors();
@@ -226,6 +228,8 @@ protected:
 #ifdef REVERSION_CATALYST
 	// HECU needs access to this
 protected:
+	inline void SetUnderthrowGrenades( bool bToggle ) { m_bUnderthrow = bToggle; }
+	inline void SetAlternateCapable( bool bToggle ) { m_bAlternateCapable = bToggle; }
 #else
 private:
 #endif

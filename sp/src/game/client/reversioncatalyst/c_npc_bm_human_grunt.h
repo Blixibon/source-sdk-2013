@@ -28,6 +28,8 @@ public:
 
 	void	FireEvent( const Vector& origin, const QAngle& angles, int event, const char *options );
 
+	virtual bool IsHumanAssassin() { return false; }
+
 	//bool	m_bHasCigar;
 	//LocalFlexController_t		m_iCigarFlex;
 };

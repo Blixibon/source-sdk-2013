@@ -6,6 +6,12 @@
 // 
 //==============================================================================
 
+#ifndef RC_BM_CHARACTER_MANIFEST
+#define RC_BM_CHARACTER_MANIFEST
+#ifdef _WIN32
+#pragma once
+#endif
+
 #include "cbase.h"
 
 struct Character_t
@@ -83,3 +89,5 @@ private:
 };
 
 extern CCharacterManifestSystem	g_CharacterManifestSystem;
+
+#endif // RC_BM_CHARACTER_MANIFEST
