@@ -56,6 +56,9 @@ public:
 	void	DryFire( void );
 	void	Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
 #ifdef MAPBASE
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	void	FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir );
 	void	Operator_ForceNPCFire( CBaseCombatCharacter  *pOperator, bool bSecondary );
 #endif
@@ -575,6 +578,7 @@ class CWeapon_BM_Glock : public CBase_BM_Weapon<CWeaponPistol>
 {
 public:
 	DECLARE_CLASS( CWeapon_BM_Glock, CBase_BM_Weapon<CWeaponPistol> );
+	DECLARE_DATADESC();
 	DECLARE_SERVERCLASS();
 
 	CWeapon_BM_Glock();
@@ -585,14 +589,55 @@ public:
 
 	void	SecondaryAttack( void );
 
+	void	Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
+	void	FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir );
+	void	FireLeftHandPistol( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir );
+
+	int GetMaxClip1( void ) const
+	{
+		if (m_bDualWield)
+			return BaseClass::GetMaxClip1() * 2;
+		else
+			return BaseClass::GetMaxClip1();
+	}
+	int GetDefaultClip1( void ) const
+	{
+		if (m_bDualWield)
+			return BaseClass::GetDefaultClip1() * 2;
+		else
+			return BaseClass::GetDefaultClip1();
+	}
+
 	float GetFireRate( void )
 	{
+		GetMaxClip1();
+		if (m_bDualWield)
+			return 0.1f;
+
 		return InSecondary( ToBasePlayer( GetOwner() ) ) ? 0.2f : 0.5f;
 	}
 
 	// TODO: Something more efficient?
 	inline bool InSecondary( CBasePlayer *pOwner ) { return (pOwner && pOwner->m_nButtons & IN_ATTACK2); }
+
+	void InputSetSilenced( inputdata_t &inputdata ) { m_bSilenced = inputdata.value.Bool(); }
+	void InputSetDualWield( inputdata_t &inputdata ) { m_bDualWield = inputdata.value.Bool(); }
+
+private:
+
+	bool m_bSilenced;
+	bool m_bDualWield;
 };
+
+BEGIN_DATADESC(CWeapon_BM_Glock)
+
+	DEFINE_FIELD( m_bSilenced, FIELD_BOOLEAN ),
+	DEFINE_FIELD( m_bDualWield, FIELD_BOOLEAN ),
+
+	DEFINE_INPUTFUNC( FIELD_BOOLEAN, "SetSilenced", InputSetSilenced ),
+	DEFINE_INPUTFUNC( FIELD_BOOLEAN, "SetDualWield", InputSetDualWield ),
+
+END_DATADESC()
 
 IMPLEMENT_SERVERCLASS_ST( CWeapon_BM_Glock, DT_Weapon_BM_Glock )
 END_SEND_TABLE()
@@ -601,6 +646,10 @@ LINK_ENTITY_TO_CLASS( weapon_bm_glock, CWeapon_BM_Glock );
 LINK_ENTITY_TO_CLASS( weapon_glock, CWeapon_BM_Glock ); // For simplicity/ease of use/legacy support/etc.
 
 PRECACHE_WEAPON_REGISTER( weapon_bm_glock );
+
+// Assassin animation events
+extern int AE_PISTOL_FIRE_LEFT;
+extern int AE_PISTOL_FIRE_RIGHT;
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -653,5 +702,72 @@ void CWeapon_BM_Glock::SecondaryAttack( void )
 		m_flNextPrimaryAttack = gpGlobals->curtime;
 		PrimaryAttack();
 	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+// Input  :
+// Output :
+//-----------------------------------------------------------------------------
+void CWeapon_BM_Glock::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator )
+{
+	if (pEvent->event == AE_PISTOL_FIRE_RIGHT)
+	{
+		Vector vecShootOrigin, vecShootDir;
+		vecShootOrigin = pOperator->Weapon_ShootPosition();
+
+		CAI_BaseNPC *npc = pOperator->MyNPCPointer();
+		ASSERT( npc != NULL );
+
+		vecShootDir = npc->GetActualShootTrajectory( vecShootOrigin );
+
+		FireNPCPrimaryAttack( pOperator, vecShootOrigin, vecShootDir );
+	}
+	else if (pEvent->event == AE_PISTOL_FIRE_LEFT)
+	{
+		// TODO
+		Vector vecShootOrigin, vecShootDir;
+		vecShootOrigin = pOperator->Weapon_ShootPosition();
+
+		CAI_BaseNPC *npc = pOperator->MyNPCPointer();
+		ASSERT( npc != NULL );
+
+		vecShootDir = npc->GetActualShootTrajectory( vecShootOrigin );
+
+		FireLeftHandPistol( pOperator, vecShootOrigin, vecShootDir );
+	}
+
+	//switch( pEvent->event )
+	//{
+	//	default:
+			BaseClass::Operator_HandleAnimEvent( pEvent, pOperator );
+	//		break;
+	//}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_Glock::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir )
+{
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+
+	WeaponSound( m_bSilenced ? SPECIAL1 : SINGLE_NPC );
+	pOperator->FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED, MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 2 );
+	pOperator->DoMuzzleFlash();
+	m_iClip1 = m_iClip1 - 1;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_Glock::FireLeftHandPistol( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir )
+{
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+
+	WeaponSound( m_bSilenced ? SPECIAL1 : SINGLE_NPC );
+	pOperator->FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED, MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 2 );
+	pOperator->DoMuzzleFlash();
+	m_iClip1 = m_iClip1 - 1;
 }
 #endif
