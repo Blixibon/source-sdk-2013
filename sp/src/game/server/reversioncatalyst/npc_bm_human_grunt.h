@@ -23,6 +23,8 @@ class CNPC_BM_HumanGrunt : public CAI_Base_BM_Human<CNPC_Combine>
 	DECLARE_SERVERCLASS();
 	DEFINE_CUSTOM_AI;
 
+	CNPC_BM_HumanGrunt();
+
 public: 
 	void		Spawn( void );
 	void		Precache( void );

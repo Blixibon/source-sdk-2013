@@ -98,6 +98,14 @@ END_SEND_TABLE()
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
+CNPC_BM_HumanGrunt::CNPC_BM_HumanGrunt()
+{
+	SetUnderthrowGrenades( true );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
 void CNPC_BM_HumanGrunt::Spawn( void )
 {
 	Precache();
@@ -112,7 +120,7 @@ void CNPC_BM_HumanGrunt::Spawn( void )
 		SelectAndApplyCharacter();
 	}
 
-	CapabilitiesAdd( bits_CAP_ANIMATEDFACE );
+	CapabilitiesAdd( bits_CAP_ANIMATEDFACE | bits_CAP_TURN_HEAD );
 	CapabilitiesAdd( bits_CAP_MOVE_SHOOT );
 	CapabilitiesAdd( bits_CAP_DOORS_GROUP );
 
@@ -199,15 +207,12 @@ const char *CNPC_BM_HumanGrunt::GetCharacterClassname()
 	{
 		default:
 		case ST_GRUNT:
-			Msg( "Character classname: npc_human_grunt\n" );
 			return "npc_human_grunt";
 
 		case ST_MEDIC:
-			Msg( "Character classname: npc_human_medic\n" );
 			return "npc_human_medic";
 
 		case ST_COMMANDER:
-			Msg( "Character classname: npc_human_commander\n" );
 			return "npc_human_commander";
 	}
 }
@@ -997,6 +1002,12 @@ Activity CNPC_BM_HumanGrunt::NPC_TranslateActivity( Activity eNewActivity )
 	if ( m_iUseMarch && eNewActivity == ACT_WALK )
 	{
 		eNewActivity = ACT_WALK_MARCH;
+	}
+
+	// Use HL1-like activities
+	if ( eNewActivity == ACT_MELEE_ATTACK1 )
+	{
+		eNewActivity = ACT_MELEE_ATTACK2;
 	}
 
 	return BaseClass::NPC_TranslateActivity( eNewActivity );
