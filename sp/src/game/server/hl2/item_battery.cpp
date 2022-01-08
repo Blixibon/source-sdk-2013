@@ -11,6 +11,9 @@
 #include "gamerules.h"
 #include "items.h"
 #include "engine/IEngineSound.h"
+#ifdef REVERSION_CATALYST
+#include "weapon_bm_base.h" // TODO
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -61,5 +64,21 @@ BEGIN_DATADESC( CItemBattery )
 	DEFINE_INPUTFUNC( FIELD_FLOAT, "SetPowerMultiplier", InputSetPowerMultiplier ),
 
 END_DATADESC()
+#endif
+
+#ifdef REVERSION_CATALYST
+class CItem_BM_Battery : public CBase_BM_Item<CItemBattery>
+{
+public:
+	DECLARE_CLASS( CItem_BM_Battery, CBase_BM_Item<CItemBattery> );
+	CItem_BM_Battery();
+};
+
+CItem_BM_Battery::CItem_BM_Battery()
+{
+	SetModelName( AllocPooledString( "models/weapons/w_battery.mdl" ) );
+}
+
+LINK_ENTITY_TO_CLASS( item_bm_battery, CItem_BM_Battery );
 #endif
 

@@ -11,6 +11,9 @@
 #include "items.h"
 #include "in_buttons.h"
 #include "engine/IEngineSound.h"
+#ifdef REVERSION_CATALYST
+#include "weapon_bm_base.h" // TODO
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -295,6 +298,27 @@ bool CHealthKitCustom::MyTouch( CBasePlayer *pPlayer )
 
 	return false;
 }
+
+#ifdef REVERSION_CATALYST
+//-----------------------------------------------------------------------------
+// Black Mesa health kit
+//-----------------------------------------------------------------------------
+class CItem_BM_HealthKit : public CBase_BM_Item<CHealthKitCustom>
+{
+public:
+	DECLARE_CLASS( CItem_BM_HealthKit, CBase_BM_Item<CHealthKitCustom> );
+	CItem_BM_HealthKit();
+};
+
+CItem_BM_HealthKit::CItem_BM_HealthKit()
+{
+	SetModelName( AllocPooledString( "models/weapons/w_medkit.mdl" ) );
+	m_flHealthAmount = sk_healthkit.GetFloat();
+	m_iszTouchSound = AllocPooledString( "item.PickupMedkit" );
+}
+
+LINK_ENTITY_TO_CLASS( item_bm_healthkit, CItem_BM_HealthKit );
+#endif
 #endif
 
 //-----------------------------------------------------------------------------

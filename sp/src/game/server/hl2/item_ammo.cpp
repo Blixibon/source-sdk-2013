@@ -11,6 +11,9 @@
 #include "ammodef.h"
 #include "eventlist.h"
 #include "npcevent.h"
+#ifdef REVERSION_CATALYST
+#include "weapon_bm_base.h" // TODO
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -647,6 +650,159 @@ public:
 };
 
 LINK_ENTITY_TO_CLASS( item_ammo_ar2_altfire, CItem_AR2AltFireRound );
+
+#ifdef REVERSION_CATALYST
+// ========================================================================
+//	>> GlockAmmo
+// ========================================================================
+class CItem_BM_BaseAmmo : public CBase_BM_Item<CItemAmmo>
+{
+public:
+	DECLARE_CLASS( CItem_BM_BaseAmmo, CBase_BM_Item<CItemAmmo> );
+
+	virtual const char *GetAmmoModel() { return "models/weapons/w_9mmclip.mdl"; }
+	virtual const char *GetAmmoType() { return "Pistol"; }
+	virtual int GetAmmoCount() { return SIZE_AMMO_PISTOL; }
+
+	void Spawn( void )
+	{ 
+		Precache( );
+		SetModel( GetAmmoModel() );
+		BaseClass::Spawn( );
+	}
+	void Precache( void )
+	{
+		PrecacheModel( GetAmmoModel() );
+	}
+	bool MyTouch( CBasePlayer *pPlayer )
+	{
+		if (ITEM_GiveAmmo( pPlayer, GetAmmoCount(), GetAmmoType() ))
+		{
+			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
+			{
+				UTIL_Remove(this);	
+			}
+
+			return true;
+		}
+		return false;
+	}
+};
+
+// ========================================================================
+//	>> Glock
+// ========================================================================
+class CItem_BM_GlockAmmo : public CItem_BM_BaseAmmo
+{
+public:
+	DECLARE_CLASS( CItem_BM_GlockAmmo, CItem_BM_BaseAmmo );
+
+	virtual const char *GetAmmoModel() { return "models/weapons/w_9mmclip.mdl"; }
+	virtual const char *GetAmmoType() { return "Pistol"; }
+	virtual int GetAmmoCount() { return 17; }
+};
+LINK_ENTITY_TO_CLASS( item_bm_ammo_glock, CItem_BM_GlockAmmo );
+
+// ========================================================================
+//	>> MP5
+// ========================================================================
+class CItem_BM_MP5Ammo : public CItem_BM_BaseAmmo
+{
+public:
+	DECLARE_CLASS( CItem_BM_MP5Ammo, CItem_BM_BaseAmmo );
+
+	virtual const char *GetAmmoModel() { return "models/weapons/w_9mmARclip.mdl"; }
+	virtual const char *GetAmmoType() { return "Pistol"; }
+	virtual int GetAmmoCount() { return 30; }
+};
+LINK_ENTITY_TO_CLASS( item_bm_ammo_mp5, CItem_BM_MP5Ammo );
+
+// ========================================================================
+//	>> MP5 Grenade
+// ========================================================================
+class CItem_BM_MP5Grenade : public CItem_BM_BaseAmmo
+{
+public:
+	DECLARE_CLASS( CItem_BM_MP5Grenade, CItem_BM_BaseAmmo );
+
+	virtual const char *GetAmmoModel() { return "models/weapons/w_argrenade.mdl"; }
+	virtual const char *GetAmmoType() { return "SMG1_Grenade"; }
+	virtual int GetAmmoCount() { return SIZE_AMMO_SMG1_GRENADE; }
+};
+LINK_ENTITY_TO_CLASS( item_bm_grenade_mp5, CItem_BM_MP5Grenade );
+
+// ========================================================================
+//	>> Shotgun
+// ========================================================================
+class CItem_BM_ShotgunAmmo : public CItem_BM_BaseAmmo
+{
+public:
+	DECLARE_CLASS( CItem_BM_ShotgunAmmo, CItem_BM_BaseAmmo );
+
+	virtual const char *GetAmmoModel() { return "models/weapons/w_shotbox.mdl"; }
+	virtual const char *GetAmmoType() { return "Buckshot"; }
+	virtual int GetAmmoCount() { return SIZE_AMMO_BUCKSHOT; }
+};
+LINK_ENTITY_TO_CLASS( item_bm_ammo_shotgun, CItem_BM_ShotgunAmmo );
+
+// ========================================================================
+//	>> RPG
+// ========================================================================
+class CItem_BM_RPGAmmo : public CItem_BM_BaseAmmo
+{
+public:
+	DECLARE_CLASS( CItem_BM_ShotgunAmmo, CItem_BM_BaseAmmo );
+
+	virtual const char *GetAmmoModel() { return "models/weapons/w_rpgammo.mdl"; }
+	virtual const char *GetAmmoType() { return "RPG_Round"; }
+	virtual int GetAmmoCount() { return SIZE_AMMO_RPG_ROUND; }
+};
+LINK_ENTITY_TO_CLASS( item_bm_grenade_rpg, CItem_BM_RPGAmmo );
+
+// ========================================================================
+//	>> Crossbow
+// ========================================================================
+class CItem_BM_CrossbowAmmo : public CItem_BM_BaseAmmo
+{
+public:
+	DECLARE_CLASS( CItem_BM_CrossbowAmmo, CItem_BM_BaseAmmo );
+
+	virtual const char *GetAmmoModel() { return "models/weapons/w_crossbow_clip.mdl"; }
+	virtual const char *GetAmmoType() { return "XBowBolt"; }
+	virtual int GetAmmoCount() { return SIZE_AMMO_CROSSBOW; }
+};
+LINK_ENTITY_TO_CLASS( item_bm_ammo_crossbow, CItem_BM_CrossbowAmmo );
+
+// ========================================================================
+//	>> 357
+// ========================================================================
+class CItem_BM_357Ammo : public CItem_BM_BaseAmmo
+{
+public:
+	DECLARE_CLASS( CItem_BM_357Ammo, CItem_BM_BaseAmmo );
+
+	virtual const char *GetAmmoModel() { return "models/weapons/w_357ammobox.mdl"; }
+	virtual const char *GetAmmoType() { return "357"; }
+	virtual int GetAmmoCount() { return SIZE_AMMO_357; }
+};
+LINK_ENTITY_TO_CLASS( item_bm_ammo_357, CItem_BM_357Ammo );
+
+// ========================================================================
+//	>> Uranium
+// ========================================================================
+/*
+class CItem_BM_UraniumAmmo : public CItem_BM_BaseAmmo
+{
+public:
+	DECLARE_CLASS( CItem_BM_UraniumAmmo, CItem_BM_BaseAmmo );
+
+	virtual const char *GetAmmoModel() { return "models/weapons/w_gaussammo.mdl"; }
+	virtual const char *GetAmmoType() { return "TODO"; }
+	virtual int GetAmmoCount() { return SIZE_AMMO_TODO; }
+};
+LINK_ENTITY_TO_CLASS( item_bm_ammo_energy, CItem_BM_UraniumAmmo );
+*/
+#endif
 
 // ==================================================================
 // Ammo crate which will supply infinite ammo of the specified type
