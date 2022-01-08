@@ -18,6 +18,7 @@ void ToolFramework_RecordMaterialParams( IMaterial *pMaterial );
 
 IMPLEMENT_CLIENTCLASS_DT( C_NPC_BM_HumanFemaleAssassin, DT_NPC_BM_HumanFemaleAssassin, CNPC_BM_HumanFemaleAssassin )
 	RecvPropInt( RECVINFO( m_iCharacterIndex ) ),
+	RecvPropFloat( RECVINFO( m_flCloakFactor ) ),
 END_RECV_TABLE()
 
 //-----------------------------------------------------------------------------
@@ -40,7 +41,7 @@ void C_NPC_BM_HumanFemaleAssassin::OnDataChanged( DataUpdateType_t type )
 		DispatchParticleEffect( "npc_assassin_eyeglow", PATTACH_POINT_FOLLOW, this, LookupAttachment( "eye1" ) );
 		DispatchParticleEffect( "npc_assassin_eyeglow", PATTACH_POINT_FOLLOW, this, LookupAttachment( "eye2" ) );
 	}
-	else if (m_lifeState == LIFE_DEAD)
+	else if (m_lifeState != LIFE_ALIVE)
 	{
 		StopParticleEffects( this );
 	}
@@ -70,11 +71,11 @@ void C_NPC_BM_HumanMaleAssassin::OnDataChanged( DataUpdateType_t type )
 		// If we have the headset, turn on eye glows
 		if (GetBodygroup( FindBodygroupByName( "head" ) ) == 3)
 		{
-			DispatchParticleEffect( "npc_assassin_eyeglow", PATTACH_POINT_FOLLOW, this, LookupAttachment( "eye1" ) );
-			DispatchParticleEffect( "npc_assassin_eyeglow", PATTACH_POINT_FOLLOW, this, LookupAttachment( "eye2" ) );
+			DispatchParticleEffect( "npc_assassin_male_eyeglow", PATTACH_POINT_FOLLOW, this, LookupAttachment( "eye1" ) );
+			DispatchParticleEffect( "npc_assassin_male_eyeglow", PATTACH_POINT_FOLLOW, this, LookupAttachment( "eye2" ) );
 		}
 	}
-	else if (m_lifeState == LIFE_DEAD)
+	else if (m_lifeState != LIFE_ALIVE)
 	{
 		StopParticleEffects( this );
 	}
@@ -104,12 +105,17 @@ void CProxyAssassinCloak::OnBind( void *pC_BaseEntity )
 		return;
 
 	C_BaseEntity *pEntity = BindArgToEntity( pC_BaseEntity );
-	if ( pEntity && pEntity->IsNPC() )
+	if ( pEntity && pEntity->IsNPC() /*&& V_strstr( pEntity->GetClassname(), "Assassin" )*/ )
 	{
-		C_NPC_BM_HumanFemaleAssassin *pAssassin = assert_cast<C_NPC_BM_HumanFemaleAssassin *>( pEntity );
-		if ( pAssassin )
+		// TODO: Something more efficient?
+		C_CAI_AssassinSink *pAssassin = dynamic_cast<C_CAI_AssassinSink*>( pEntity );
+		if ( pAssassin && pAssassin->GetCloakFactor() > 0.0f )
 		{
-			SetFloatResult( pAssassin->m_flCloakFactor );
+			SetFloatResult( pAssassin->GetCloakFactor() + RandomFloat( 0.0f, 0.05f ) );
+		}
+		else
+		{
+			SetFloatResult( 0.0f );
 		}
 	}
 	else

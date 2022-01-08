@@ -17,36 +17,52 @@
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-class C_NPC_BM_HumanFemaleAssassin : public CAI_Base_BM_Human<C_AI_BaseNPC>
+abstract_class C_CAI_AssassinSink
 {
-	DECLARE_CLASS( C_NPC_BM_HumanFemaleAssassin, CAI_Base_BM_Human<C_AI_BaseNPC> );
 public:
-	DECLARE_CLIENTCLASS();
+	virtual float	GetCloakFactor() const = 0;
+};
 
-	C_NPC_BM_HumanFemaleAssassin();
+template <class BASE_NPC>
+class C_CAI_Base_BM_Assassin : public BASE_NPC, public C_CAI_AssassinSink
+{
+	DECLARE_CLASS_NOFRIEND( C_CAI_Base_BM_Assassin, BASE_NPC );
 
-	void	OnDataChanged( DataUpdateType_t type );
+public:
 
-	bool IsHumanAssassin() { return true; }
+	bool		IsHumanAssassin() { return true; }
 
-	// TODO
+	float		GetCloakFactor() const { return m_flCloakFactor; }
+
 	float m_flCloakFactor = 0.0f;
 };
 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-class C_NPC_BM_HumanMaleAssassin : public C_NPC_BM_HumanGrunt
+class C_NPC_BM_HumanFemaleAssassin : public C_CAI_Base_BM_Assassin<CAI_Base_BM_Human<C_AI_BaseNPC>>
 {
-	DECLARE_CLASS( C_NPC_BM_HumanMaleAssassin, C_NPC_BM_HumanGrunt );
+	DECLARE_CLASS( C_NPC_BM_HumanFemaleAssassin, C_CAI_Base_BM_Assassin<CAI_Base_BM_Human<C_AI_BaseNPC>> );
+public:
+	DECLARE_CLIENTCLASS();
+
+	C_NPC_BM_HumanFemaleAssassin();
+
+	void	OnDataChanged( DataUpdateType_t type );
+};
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+class C_NPC_BM_HumanMaleAssassin : public C_CAI_Base_BM_Assassin<C_NPC_BM_HumanGrunt>
+{
+	DECLARE_CLASS( C_NPC_BM_HumanMaleAssassin, C_CAI_Base_BM_Assassin<C_NPC_BM_HumanGrunt> );
 public:
 	DECLARE_CLIENTCLASS();
 
 	C_NPC_BM_HumanMaleAssassin();
 
 	void	OnDataChanged( DataUpdateType_t type );
-
-	bool IsHumanAssassin() { return true; }
 };
 
 #endif // C_NPC_BM_HUMAN_ASSASSIN_H
