@@ -285,6 +285,10 @@ public:
 	void			SetCitizenType( int iType ) { m_Type = (CitizenType_t)iType; }
 #endif
 
+#ifdef REVERSION_CATALYST
+	virtual bool	ShouldNPCAutosquad() { return true; }
+#endif
+
 private:
 	//-----------------------------------------------------
 	// Conditions, Schedules, Tasks
@@ -396,7 +400,7 @@ private:
 	DECLARE_ENT_SCRIPTDESC();
 #endif
 	DECLARE_DATADESC();
-#ifdef _XBOX
+#if defined(_XBOX) || defined(REVERSION_CATALYST)
 protected:
 #endif
 	DEFINE_CUSTOM_AI;

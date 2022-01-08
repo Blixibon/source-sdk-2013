@@ -23,6 +23,8 @@ LINK_ENTITY_TO_CLASS( npc_human_security, CNPC_BM_HumanSecurity ); // For simpli
 
 BEGIN_DATADESC( CNPC_BM_HumanSecurity )
 
+	DEFINE_INPUT( m_bAutosquad, FIELD_BOOLEAN, "SetAutosquad" ),
+
 	DEFINE_KEYFIELD( m_fWeaponDrawn, FIELD_BOOLEAN, "weapondrawn" ),
 	DECLARE_BM_NPC_DATADESC()
 	DECLARE_BM_HUMAN_DATADESC()
@@ -38,6 +40,7 @@ END_SEND_TABLE()
 //-----------------------------------------------------------------------------
 CNPC_BM_HumanSecurity::CNPC_BM_HumanSecurity()
 {
+	SetCitizenType( CT_UNIQUE );
 	m_fWeaponDrawn = false;
 }
 
@@ -57,15 +60,10 @@ void CNPC_BM_HumanSecurity::Spawn()
 {
 	BaseClass::Spawn();
 
-	AddEFlags( EFL_NO_DISSOLVE | EFL_NO_MEGAPHYSCANNON_RAGDOLL | EFL_NO_PHYSCANNON_INTERACTION );
+	RemoveEFlags( EFL_NO_DISSOLVE | EFL_NO_MEGAPHYSCANNON_RAGDOLL | EFL_NO_PHYSCANNON_INTERACTION );
 
 	m_iHealth = sk_human_security_health.GetFloat();
 	m_iMaxHealth = sk_human_security_health.GetFloat();
-
-	if (!m_bCustomBody)
-	{
-		SelectAndApplyCharacter();
-	}
 
 	if (GetActiveWeapon() && GetActiveWeapon()->WeaponClassify() == WEPCLASS_HANDGUN)
 	{
@@ -79,8 +77,6 @@ void CNPC_BM_HumanSecurity::Spawn()
 			SetBodygroup( BODYGROUP_HOLSTER, 2 );
 		}
 	}
-
-	NPCInit();
 }
 
 //=========================================================
@@ -95,6 +91,11 @@ void CNPC_BM_HumanSecurity::Precache()
 
 	if (!FStrEq( GetClassname(), "npc_bm_human_security" ))
 		SetClassname( "npc_bm_human_security" );
+
+	if (!m_bCustomBody)
+	{
+		SelectAndApplyCharacter();
+	}
 
 	PrecacheModel( STRING( GetModelName() ) );
 

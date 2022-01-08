@@ -119,9 +119,11 @@ ConVar npc_citizen_nocollide_player( "npc_citizen_nocollide_player", "0" );
 
 #ifdef REVERSION_CATALYST
 ConVar sk_citizen_vest_multiplier( "sk_citizen_vest_multiplier", "0.5" );
-#endif
 
+#define ShouldAutosquad() (npc_citizen_auto_player_squad.GetBool() && ShouldNPCAutosquad())
+#else
 #define ShouldAutosquad() (npc_citizen_auto_player_squad.GetBool())
+#endif
 
 enum SquadSlot_T
 {
@@ -3029,6 +3031,12 @@ inline bool CNPC_Citizen::ShouldAllowSquadToggleUse( CBasePlayer *pPlayer )
 {
 	if (HasSpawnFlags( SF_CITIZEN_NOT_COMMANDABLE ))
 		return false;
+
+#ifdef REVERSION_CATALYST
+	// Black Mesa NPCs always use +USE
+	if (IsBlackMesa() && !m_bNeverLeavePlayerSquad)
+		return true;
+#endif
 
 	//if (!HL2GameRules() || !HL2GameRules()->AllowSquadToggleUse())
 	if (!HasSpawnFlags( SF_CITIZEN_PLAYER_TOGGLE_SQUAD ))
