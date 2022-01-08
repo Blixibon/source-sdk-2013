@@ -499,21 +499,11 @@ void CWeaponPistol::ItemPostFrame( void )
 		return;
 
 	//Allow a refire as fast as the player can click
-#ifdef REVERSION_CATALYST
-	// Note that holding down secondary counts now
-	if ( ( ( pOwner->m_nButtons & IN_ATTACK | IN_ATTACK2 ) == false ) && ( m_flSoonestPrimaryAttack < gpGlobals->curtime ) )
-#else
 	if ( ( ( pOwner->m_nButtons & IN_ATTACK ) == false ) && ( m_flSoonestPrimaryAttack < gpGlobals->curtime ) )
-#endif
 	{
 		m_flNextPrimaryAttack = gpGlobals->curtime - 0.1f;
 	}
-#ifdef REVERSION_CATALYST
-	// Note that holding down secondary counts now
-	else if ( ( pOwner->m_nButtons & IN_ATTACK | IN_ATTACK2 ) && ( m_flNextPrimaryAttack < gpGlobals->curtime ) && ( m_iClip1 <= 0 ) )
-#else
 	else if ( ( pOwner->m_nButtons & IN_ATTACK ) && ( m_flNextPrimaryAttack < gpGlobals->curtime ) && ( m_iClip1 <= 0 ) )
-#endif
 	{
 		DryFire();
 	}
@@ -585,7 +575,8 @@ public:
 
 	void	Precache();
 	Activity	GetPrimaryAttackActivity( void );
-	bool		Reload( void );
+	void	ItemPostFrame( void );
+	bool	Reload( void );
 
 	void	SecondaryAttack( void );
 
@@ -595,14 +586,14 @@ public:
 
 	int GetMaxClip1( void ) const
 	{
-		if (m_bDualWield)
+		if (m_hDualWield != NULL)
 			return BaseClass::GetMaxClip1() * 2;
 		else
 			return BaseClass::GetMaxClip1();
 	}
 	int GetDefaultClip1( void ) const
 	{
-		if (m_bDualWield)
+		if (m_hDualWield != NULL)
 			return BaseClass::GetDefaultClip1() * 2;
 		else
 			return BaseClass::GetDefaultClip1();
@@ -610,32 +601,34 @@ public:
 
 	float GetFireRate( void )
 	{
-		GetMaxClip1();
-		if (m_bDualWield)
+		if (m_hDualWield != NULL)
 			return 0.1f;
 
-		return InSecondary( ToBasePlayer( GetOwner() ) ) ? 0.2f : 0.5f;
+		if (GetOwner() && GetOwner()->IsNPC())
+			return 0.5f;
+
+		return InSecondary( ToBasePlayer( GetOwner() ) ) ? 0.2f : 0.3f;
 	}
 
 	// TODO: Something more efficient?
 	inline bool InSecondary( CBasePlayer *pOwner ) { return (pOwner && pOwner->m_nButtons & IN_ATTACK2); }
 
 	void InputSetSilenced( inputdata_t &inputdata ) { m_bSilenced = inputdata.value.Bool(); }
-	void InputSetDualWield( inputdata_t &inputdata ) { m_bDualWield = inputdata.value.Bool(); }
+	void InputSetDualWield( inputdata_t &inputdata ) { m_hDualWield = inputdata.value.Entity(); }
 
-private:
+public:
 
 	bool m_bSilenced;
-	bool m_bDualWield;
+	CHandle<CBaseAnimating> m_hDualWield;
 };
 
 BEGIN_DATADESC(CWeapon_BM_Glock)
 
 	DEFINE_FIELD( m_bSilenced, FIELD_BOOLEAN ),
-	DEFINE_FIELD( m_bDualWield, FIELD_BOOLEAN ),
+	DEFINE_FIELD( m_hDualWield, FIELD_EHANDLE ),
 
 	DEFINE_INPUTFUNC( FIELD_BOOLEAN, "SetSilenced", InputSetSilenced ),
-	DEFINE_INPUTFUNC( FIELD_BOOLEAN, "SetDualWield", InputSetDualWield ),
+	DEFINE_INPUTFUNC( FIELD_EHANDLE, "SetDualWield", InputSetDualWield ),
 
 END_DATADESC()
 
@@ -677,6 +670,14 @@ void CWeapon_BM_Glock::Precache( void )
 Activity CWeapon_BM_Glock::GetPrimaryAttackActivity( void )
 {
 	return ACT_VM_PRIMARYATTACK;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Skips the pistol's fast firing behavior
+//-----------------------------------------------------------------------------
+void CWeapon_BM_Glock::ItemPostFrame( void )
+{
+	CBaseHLCombatWeapon::ItemPostFrame();
 }
 
 //-----------------------------------------------------------------------------
@@ -725,9 +726,14 @@ void CWeapon_BM_Glock::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseComba
 	}
 	else if (pEvent->event == AE_PISTOL_FIRE_LEFT)
 	{
-		// TODO
 		Vector vecShootOrigin, vecShootDir;
-		vecShootOrigin = pOperator->Weapon_ShootPosition();
+		//vecShootOrigin = pOperator->Weapon_ShootPosition();
+
+		// Is this a hack?
+		if (m_hDualWield)
+		{
+			m_hDualWield->GetAttachment( m_hDualWield->LookupAttachment( "muzzle" ), vecShootOrigin );
+		}
 
 		CAI_BaseNPC *npc = pOperator->MyNPCPointer();
 		ASSERT( npc != NULL );
@@ -745,12 +751,14 @@ void CWeapon_BM_Glock::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseComba
 	//}
 }
 
+#define SOUNDENT_VOLUME_GLOCK		m_bSilenced ? 500.0 : 1500.0
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 void CWeapon_BM_Glock::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir )
 {
-	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_GLOCK, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
 
 	WeaponSound( m_bSilenced ? SPECIAL1 : SINGLE_NPC );
 	pOperator->FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED, MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 2 );
@@ -763,11 +771,25 @@ void CWeapon_BM_Glock::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Ve
 //-----------------------------------------------------------------------------
 void CWeapon_BM_Glock::FireLeftHandPistol( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir )
 {
-	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_GLOCK, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
 
 	WeaponSound( m_bSilenced ? SPECIAL1 : SINGLE_NPC );
 	pOperator->FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED, MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 2 );
 	pOperator->DoMuzzleFlash();
 	m_iClip1 = m_iClip1 - 1;
+}
+
+
+
+//-----------------------------------------------------------------------------
+// Purpose: Makes a glock ready to be used by human assassins
+//-----------------------------------------------------------------------------
+void BM_AssassinizeGlock( CBaseEntity *pEntGlock, CBaseAnimating *pLeftGlock )
+{
+	CWeapon_BM_Glock *pGlock = assert_cast<CWeapon_BM_Glock*>(pEntGlock);
+	Assert( pGlock != NULL );
+
+	pGlock->m_bSilenced = true;
+	pGlock->m_hDualWield = pLeftGlock;
 }
 #endif
