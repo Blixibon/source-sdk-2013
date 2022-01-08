@@ -6507,7 +6507,7 @@ Vector CNPC_BM_Apache::GetShootEnemyDir( const Vector &shootOrigin, bool bNoisy 
 	{
 		Vector vecEnemyPredictedPos = GetEnemyLKP();
 		float flTargetDist = (vecEnemyPredictedPos - shootOrigin).Length();
-		float flTargetTime = flTargetDist / APACHE_ROCKET_SPEED;
+		float flTargetTime = flTargetDist / (APACHE_ROCKET_SPEED * 3.25f);
 
 		UTIL_PredictedPosition( pEnemy, vecEnemyPredictedPos, flTargetTime, &vecEnemyPredictedPos );
 
@@ -6571,7 +6571,7 @@ void CNPC_BM_Apache::AimRocketGun( void )
 
 	SetContextThink( &CNPC_BM_Apache::FireRockets, gpGlobals->curtime + APACHE_ROCKET_WARN_TIME, s_pRocketThinkContext );
 
-	m_flNextRocketAttack = gpGlobals->curtime += APACHE_ROCKET_COOLDOWN;
+	m_flNextRocketAttack = gpGlobals->curtime + APACHE_ROCKET_COOLDOWN;
 }
 
 //------------------------------------------------------------------------------
@@ -6637,9 +6637,9 @@ void CNPC_BM_Apache::FireRocket( Vector vLaunchPos, Vector vLaunchDir )
 	QAngle vecAngles;
 	VectorAngles( vLaunchDir, vecAngles );
 
-	CMissile *pMissile = CMissile::Create( vLaunchPos, vecAngles, edict() );
+	CBM_Missile *pMissile = CBM_Missile::Create( vLaunchPos, vecAngles, edict() );
 
-	pMissile->SetAbsVelocity( vLaunchDir * APACHE_ROCKET_SPEED + Vector( 0, 0, 128 ) );
+	//pMissile->SetAbsVelocity( vLaunchDir * APACHE_ROCKET_SPEED + Vector( 0, 0, 128 ) );
 
 	// Needs a grace period
 	pMissile->SetGracePeriod( 1.0f );
