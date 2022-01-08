@@ -31,9 +31,28 @@ public:
 };
 
 template <class BASE_NPC>
-class CAI_Base_BM_Human : public CAI_Base_BM_NPC<BASE_NPC>
+class CAI_Base_BM_Gibbable : public CAI_Base_BM_NPC<BASE_NPC>
 {
-	DECLARE_CLASS_NOFRIEND( CAI_Base_BM_Human, CAI_Base_BM_NPC<BASE_NPC> );
+	DECLARE_CLASS_NOFRIEND( CAI_Base_BM_Gibbable, CAI_Base_BM_NPC<BASE_NPC> );
+
+public:
+
+#ifndef CLIENT_DLL
+	void SelectAndApplyCharacter();
+
+	void	Precache();
+
+	bool	ShouldGib( const CTakeDamageInfo &info );
+	bool	CorpseGib( const CTakeDamageInfo &info );
+
+	const char *GetGibParticle();
+#endif
+};
+
+template <class BASE_NPC>
+class CAI_Base_BM_Human : public CAI_Base_BM_Gibbable<BASE_NPC>
+{
+	DECLARE_CLASS_NOFRIEND( CAI_Base_BM_Human, CAI_Base_BM_Gibbable<BASE_NPC> );
 
 public:
 
@@ -49,11 +68,6 @@ public:
 	CUtlVector<LocalFlexController_t>	m_iCharacterFlexes;
 #else
 	void SelectAndApplyCharacter();
-
-	void	Precache();
-
-	bool	ShouldGib( const CTakeDamageInfo &info );
-	bool	CorpseGib( const CTakeDamageInfo &info );
 
 	CNetworkVar( int, m_iCharacterIndex ); // CNetworkVarForDerived
 #endif
@@ -159,12 +173,18 @@ void CAI_Base_BM_Human<BASE_NPC>::SelectAndApplyCharacter()
 	}
 }
 
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
 template <class BASE_NPC>
-void CAI_Base_BM_Human<BASE_NPC>::Precache()
+void CAI_Base_BM_Gibbable<BASE_NPC>::Precache()
 {
 	BaseClass::Precache();
+	
+	const char *pszGibParticle = this->GetGibParticle();
+	if ( pszGibParticle != NULL )
+		PrecacheParticleSystem( pszGibParticle );
 
-	PrecacheParticleSystem( "gib_human_spurt" );
 	this->PrecacheScriptSound( "BaseCombatCharacter.CorpseGib" );
 
 	PropBreakablePrecacheAll( this->GetModelName() );
@@ -176,16 +196,16 @@ void CAI_Base_BM_Human<BASE_NPC>::Precache()
 // Output : Returns true on success, false on failure.
 //-----------------------------------------------------------------------------
 template <class BASE_NPC>
-bool CAI_Base_BM_Human<BASE_NPC>::ShouldGib( const CTakeDamageInfo &info )
+bool CAI_Base_BM_Gibbable<BASE_NPC>::ShouldGib( const CTakeDamageInfo &info )
 {
 	if ( this->IsEFlagSet( EFL_IS_BEING_LIFTED_BY_BARNACLE ) )
 		return false;
 
-	if ( info.GetDamageType() & (DMG_NEVERGIB|DMG_DISSOLVE) )
-		return false;
-
 	if ( info.GetDamageType() & (DMG_ALWAYSGIB) )
 		return true;
+
+	if ( info.GetDamageType() & (DMG_NEVERGIB|DMG_PREVENT_PHYSICS_FORCE|DMG_DISSOLVE) )
+		return false;
 
 	if (info.GetDamageType() & DMG_BLAST)
 	{
@@ -211,9 +231,11 @@ bool CAI_Base_BM_Human<BASE_NPC>::ShouldGib( const CTakeDamageInfo &info )
 // Output : Returns true on success, false on failure.
 //-----------------------------------------------------------------------------
 template <class BASE_NPC>
-bool CAI_Base_BM_Human<BASE_NPC>::CorpseGib( const CTakeDamageInfo &info )
+bool CAI_Base_BM_Gibbable<BASE_NPC>::CorpseGib( const CTakeDamageInfo &info )
 {
-	DispatchParticleEffect( "gib_human_spurt", this->WorldSpaceCenter(), QAngle( 0, 0, 0 ) );
+	const char *pszGibParticle = this->GetGibParticle();
+	if ( pszGibParticle != NULL )
+		DispatchParticleEffect( pszGibParticle, this->WorldSpaceCenter(), QAngle( 0, 0, 0 ) );
 
 	EmitSound( "BaseCombatCharacter.CorpseGib" );
 
@@ -226,6 +248,24 @@ bool CAI_Base_BM_Human<BASE_NPC>::CorpseGib( const CTakeDamageInfo &info )
 	PropBreakableCreateAll( this->GetModelIndex(), NULL, params, this, -1, true, true );
 
 	return true;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+template <class BASE_NPC>
+const char *CAI_Base_BM_Gibbable<BASE_NPC>::GetGibParticle()
+{
+	switch (this->BloodColor())
+	{
+		case BLOOD_COLOR_RED:		return "gib_human_spurt";
+
+		case BLOOD_COLOR_ZOMBIE:
+		case BLOOD_COLOR_YELLOW:
+		case BLOOD_COLOR_GREEN:		return "gib_alien_spurt";
+
+		default:					return NULL;
+	}
 }
 #endif
 

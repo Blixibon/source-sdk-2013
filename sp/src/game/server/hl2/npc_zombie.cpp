@@ -22,6 +22,10 @@
 #include "ai_speech.h"
 #endif
 
+#ifdef REVERSION_CATALYST
+#include "ai_base_bm_npc.h"
+#endif
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -1304,4 +1308,241 @@ void CZombieCustom::PostConstructor(const char *szClassname)
 	BaseClass::PostConstructor(szClassname);
 	CreateExpresser();
 }
+#endif
+
+#ifdef REVERSION_CATALYST
+class CNPC_BM_BaseZombie : public CAI_Base_BM_Gibbable<CZombie>
+{
+public:
+	DECLARE_CLASS( CNPC_BM_BaseZombie, CAI_Base_BM_Gibbable<CZombie> );
+
+	void Precache( void );
+
+	void PainSound( const CTakeDamageInfo &info );
+	void DeathSound( const CTakeDamageInfo &info );
+	void AlertSound( void );
+	void IdleSound( void );
+	void AttackSound( void );
+	void AttackHitSound( void );
+	void AttackMissSound( void );
+	void FootstepSound( bool fRightFoot );
+	void FootscuffSound( bool fRightFoot );
+
+	const char *GetMoanSound( int nSound );
+
+	void SetZombieModel( void );
+
+	virtual const char *GetZombieModel() { return "models/zombie/classic.mdl"; }
+};
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CNPC_BM_BaseZombie::Precache( void )
+{
+	// Set the blood color now for gib particle to precache properly
+	SetBloodColor( BLOOD_COLOR_ZOMBIE );
+
+	BaseClass::Precache();
+
+	PrecacheScriptSound( "npc_zombie.FootstepRight" );
+	PrecacheScriptSound( "npc_zombie.FootstepLeft" );
+	PrecacheScriptSound( "npc_zombie.FootstepLeft" );
+	PrecacheScriptSound( "npc_zombie.ScuffRight" );
+	PrecacheScriptSound( "npc_zombie.ScuffLeft" );
+	PrecacheScriptSound( "npc_zombie.AttackHit" );
+	PrecacheScriptSound( "npc_zombie.AttackMiss" );
+	PrecacheScriptSound( "npc_zombie.Pain" );
+	PrecacheScriptSound( "npc_zombie.Die" );
+	PrecacheScriptSound( "npc_zombie.Alert" );
+	PrecacheScriptSound( "npc_zombie.Idle" );
+	PrecacheScriptSound( "npc_zombie.Attack" );
+}
+
+//---------------------------------------------------------
+//---------------------------------------------------------
+void CNPC_BM_BaseZombie::SetZombieModel( void )
+{
+	Hull_t lastHull = GetHullType();
+
+	if ( m_fIsTorso )
+	{
+		SetModel( GetTorsoModel() );
+		SetHullType( HULL_TINY );
+	}
+	else
+	{
+		SetModel( GetZombieModel() );
+		SetHullType( HULL_HUMAN );
+	}
+
+	SetBodygroup( ZOMBIE_BODYGROUP_HEADCRAB, m_fIsHeadless ); //SetBodygroup( ZOMBIE_BODYGROUP_HEADCRAB, !m_fIsHeadless );
+
+	SetHullSizeNormal( true );
+	SetDefaultEyeOffset();
+	SetActivity( ACT_IDLE );
+
+	// hull changed size, notify vphysics
+	// UNDONE: Solve this generally, systematically so other
+	// NPCs can change size
+	if ( lastHull != GetHullType() )
+	{
+		if ( VPhysicsGetObject() )
+		{
+			SetupVPhysicsHull();
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Sound of a footstep
+//-----------------------------------------------------------------------------
+void CNPC_BM_BaseZombie::FootstepSound( bool fRightFoot )
+{
+	if( fRightFoot )
+	{
+		EmitSound(  "npc_zombie.FootstepRight" );
+	}
+	else
+	{
+		EmitSound( "npc_zombie.FootstepLeft" );
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Sound of a foot sliding/scraping
+//-----------------------------------------------------------------------------
+void CNPC_BM_BaseZombie::FootscuffSound( bool fRightFoot )
+{
+	if( fRightFoot )
+	{
+		EmitSound( "npc_zombie.ScuffRight" );
+	}
+	else
+	{
+		EmitSound( "npc_zombie.ScuffLeft" );
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Play a random attack hit sound
+//-----------------------------------------------------------------------------
+void CNPC_BM_BaseZombie::AttackHitSound( void )
+{
+	EmitSound( "npc_zombie.AttackHit" );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Play a random attack miss sound
+//-----------------------------------------------------------------------------
+void CNPC_BM_BaseZombie::AttackMissSound( void )
+{
+	// Play a random attack miss sound
+	EmitSound( "npc_zombie.AttackMiss" );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CNPC_BM_BaseZombie::PainSound( const CTakeDamageInfo &info )
+{
+	// We're constantly taking damage when we are on fire. Don't make all those noises!
+	if ( IsOnFire() )
+	{
+		return;
+	}
+
+	EmitSound( "npc_zombie.Pain" );
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void CNPC_BM_BaseZombie::DeathSound( const CTakeDamageInfo &info )
+{
+	EmitSound( "npc_zombie.Die" );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CNPC_BM_BaseZombie::AlertSound( void )
+{
+	EmitSound( "npc_zombie.Alert" );
+
+	// Don't let a moan sound cut off the alert sound.
+	m_flNextMoanSound += random->RandomFloat( 2.0, 4.0 );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Returns a moan sound for this class of zombie.
+//-----------------------------------------------------------------------------
+const char *CNPC_BM_BaseZombie::GetMoanSound( int nSound )
+{
+	return pMoanSounds[ nSound % ARRAYSIZE( pMoanSounds ) ];
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Play a random idle sound.
+//-----------------------------------------------------------------------------
+void CNPC_BM_BaseZombie::IdleSound( void )
+{
+	if( GetState() == NPC_STATE_IDLE && random->RandomFloat( 0, 1 ) == 0 )
+	{
+		// Moan infrequently in IDLE state.
+		return;
+	}
+
+	if( IsSlumped() )
+	{
+		// Sleeping zombies are quiet.
+		return;
+	}
+
+	EmitSound( "npc_zombie.Idle" );
+	MakeAISpookySound( 360.0f );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Play a random attack sound.
+//-----------------------------------------------------------------------------
+void CNPC_BM_BaseZombie::AttackSound( void )
+{
+	EmitSound( "npc_zombie.Attack" );
+}
+
+//-----------------------------------------------------------------------------
+
+class CNPC_BM_ZombieScientist : public CNPC_BM_BaseZombie
+{
+public:
+	DECLARE_CLASS( CNPC_BM_ZombieScientist, CNPC_BM_BaseZombie );
+	//DECLARE_DATADESC();
+
+	//CNPC_BM_ZombieScientist();
+
+	virtual const char *GetLegsModel( void ) { return "models/gibs/zombies/zombie_sci/legs.mdl"; }
+	virtual const char *GetTorsoModel( void ) { return "models/zombies/zombie_sci_torso.mdl"; }
+	virtual const char *GetZombieModel() { return "models/zombies/zombie_sci.mdl"; }
+};
+
+LINK_ENTITY_TO_CLASS( npc_bm_zombie_scientist, CNPC_BM_ZombieScientist );
+LINK_ENTITY_TO_CLASS( npc_bm_zombie_scientist_torso, CNPC_BM_ZombieScientist );
+
+//-----------------------------------------------------------------------------
+
+class CNPC_BM_ZombieSecurity : public CNPC_BM_BaseZombie
+{
+public:
+	DECLARE_CLASS( CNPC_BM_ZombieSecurity, CNPC_BM_BaseZombie );
+	//DECLARE_DATADESC();
+
+	//CNPC_BM_ZombieSecurity();
+
+	virtual const char *GetLegsModel( void ) { return "models/gibs/zombies/zombie_guard/legs.mdl"; }
+	virtual const char *GetTorsoModel( void ) { return "models/zombies/zombie_guard_torso.mdl"; }
+	virtual const char *GetZombieModel() { return "models/zombies/zombie_guard.mdl"; }
+};
+
+LINK_ENTITY_TO_CLASS( npc_bm_zombie_security, CNPC_BM_ZombieSecurity );
+LINK_ENTITY_TO_CLASS( npc_bm_zombie_security_torso, CNPC_BM_ZombieSecurity );
 #endif
