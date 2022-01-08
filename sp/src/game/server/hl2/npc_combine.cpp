@@ -961,11 +961,21 @@ void CNPC_Combine::StartTask( const Task_t *pTask )
 					if( DotProduct( right, tosound ) > 0 )
 					{
 						// Right
+#ifdef REVERSION_CATALYST
+						if (IsHumanAssassin())
+							AddGesture( ACT_SIGNAL_RIGHT );
+						else
+#endif
 						SetIdealActivity( ACT_SIGNAL_RIGHT );
 					}
 					else
 					{
 						// Left
+#ifdef REVERSION_CATALYST
+						if (IsHumanAssassin())
+							AddGesture( ACT_SIGNAL_LEFT );
+						else
+#endif
 						SetIdealActivity( ACT_SIGNAL_LEFT );
 					}
 
@@ -2446,7 +2456,7 @@ int CNPC_Combine::TranslateSchedule( int scheduleType )
 						return SCHED_COMBINE_CHARGE_PLAYER;
 
 #ifdef REVERSION_CATALYST
-					if (IsBlackMesa() && CanGrenadeEnemy() && random->RandomInt(0,1))
+					if (IsHumanGrunt() && random->RandomInt(0,1) && GetSquad()->NumMembers() <= 3 && CanGrenadeEnemy() && (GetAbsOrigin() - GetEnemy()->GetAbsOrigin()).LengthSqr() <= Square(128))
 					{
 						// HECU marines have a chance of dropping a grenade before running to cover
 						return SCHED_COMBINE_GRENADE_COVER1;
@@ -2672,6 +2682,11 @@ int CNPC_Combine::TranslateSchedule( int scheduleType )
 				if( flDistToEnemy >= MIN_SIGNAL_DIST )
 				{
 					m_bFirstEncounter = false;// after first encounter, leader won't issue handsigns anymore when he has a new enemy
+#ifdef REVERSION_CATALYST
+					if (IsHumanAssassin())
+						AddGesture( ACT_SIGNAL_GROUP );
+					else
+#endif
 					return SCHED_COMBINE_SIGNAL_SUPPRESS;
 				}
 			}

@@ -156,7 +156,8 @@ public:
 	int				SelectScheduleAttack();
 #ifdef REVERSION_CATALYST
 	virtual int		SelectSchedulePriorityAction() { return SCHED_NONE; }
-
+	
+	virtual bool	IsHumanGrunt() { return false; }
 	virtual bool	IsHumanAssassin() { return false; }
 #endif
 

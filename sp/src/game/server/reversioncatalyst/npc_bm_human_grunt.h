@@ -25,7 +25,10 @@ class CNPC_BM_HumanGrunt : public CAI_Base_BM_Human<CNPC_Combine>
 
 	CNPC_BM_HumanGrunt();
 
-public: 
+public:
+
+	bool		IsHumanGrunt() { return true; }
+
 	void		Spawn( void );
 	void		Precache( void );
 	Class_T		Classify( void );

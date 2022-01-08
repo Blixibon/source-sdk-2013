@@ -115,11 +115,6 @@ void CNPC_BM_HumanGrunt::Spawn( void )
 	SetMaxHealth( sk_human_grunt_health.GetFloat() );
 	SetKickDamage( sk_human_grunt_kick.GetFloat() );
 
-	if (!m_bCustomBody)
-	{
-		SelectAndApplyCharacter();
-	}
-
 	CapabilitiesAdd( bits_CAP_ANIMATEDFACE | bits_CAP_TURN_HEAD );
 	CapabilitiesAdd( bits_CAP_MOVE_SHOOT );
 	CapabilitiesAdd( bits_CAP_DOORS_GROUP );
@@ -170,6 +165,11 @@ void CNPC_BM_HumanGrunt::Precache()
 			SetClassname( "npc_bm_human_grunt" );
 
 		//PrecacheModel( BERET_MODEL );
+	}
+
+	if (!m_bCustomBody)
+	{
+		SelectAndApplyCharacter();
 	}
 
 	PrecacheModel( STRING( GetModelName() ) );
