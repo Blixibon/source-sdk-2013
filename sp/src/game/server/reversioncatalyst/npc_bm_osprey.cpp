@@ -98,6 +98,9 @@ void CNPC_BM_Osprey::Spawn( void )
 	SetActivity( ACT_IDLE );
 	SetPoseParameter( m_poseSideDoor, 100.0f );
 	SetPoseParameter( m_poseGear, 100.0f );
+
+	SetBodygroup( FindBodygroupByName( OSPREY_BODY_PROPS_BLUR ), 1 );
+	SetBodygroup( FindBodygroupByName( OSPREY_BODY_PROPS_NORMAL ), 1 );
 }
 
 //------------------------------------------------------------------------------

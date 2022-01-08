@@ -23,6 +23,10 @@
 #define OSPREY_DEFAULT_SOLDIERS		4
 #define OSPREY_MAX_SOLDIERS			6
 
+// Bodygroups
+#define OSPREY_BODY_PROPS_BLUR		"props_2d"
+#define OSPREY_BODY_PROPS_NORMAL	"props_3d"
+
 //-----------------------------------------------------------------------------
 // A custom helicopter 
 //-----------------------------------------------------------------------------
