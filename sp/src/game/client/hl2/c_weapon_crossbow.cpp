@@ -157,3 +157,49 @@ void CrosshairLoadCallback( const CEffectData &data )
 }
 
 DECLARE_CLIENT_EFFECT( "CrossbowLoad", CrosshairLoadCallback );
+
+#ifdef REVERSION_CATALYST
+//
+// BM:S Crossbow bolt
+//
+class C_BM_CrossbowBolt : public C_CrossbowBolt
+{
+	DECLARE_CLASS( C_BM_CrossbowBolt, C_CrossbowBolt );
+	DECLARE_CLIENTCLASS();
+public:
+	 
+	C_BM_CrossbowBolt( void );
+
+	virtual void	OnDataChanged( DataUpdateType_t updateType );
+	virtual int		DrawModel( int flags );
+};
+
+IMPLEMENT_CLIENTCLASS_DT( C_BM_CrossbowBolt, DT_BM_CrossbowBolt, CBM_CrossbowBolt )
+END_RECV_TABLE()
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+C_BM_CrossbowBolt::C_BM_CrossbowBolt( void )
+{
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : updateType - 
+//-----------------------------------------------------------------------------
+void C_BM_CrossbowBolt::OnDataChanged( DataUpdateType_t updateType )
+{
+	BaseClass::OnDataChanged( updateType );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : flags - 
+// Output : int
+//-----------------------------------------------------------------------------
+int C_BM_CrossbowBolt::DrawModel( int flags )
+{
+	return BaseClass::DrawModel( flags );
+}
+#endif

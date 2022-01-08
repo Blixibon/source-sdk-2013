@@ -16,6 +16,9 @@
 #include "Sprite.h"
 #include "npcevent.h"
 #include "beam_shared.h"
+#ifdef REVERSION_CATALYST
+#include "weapon_bm_base.h"
+#endif
 
 class CWeaponRPG;
 class CLaserDot;
@@ -79,6 +82,10 @@ protected:
 
 	// Gets the shooting position 
 	void GetShootPosition( CLaserDot *pLaserDot, Vector *pShootPosition );
+
+#ifdef REVERSION_CATALYST
+	virtual const char *GetIgniteSound() { return "Missile.Ignite"; }
+#endif
 
 	CHandle<RocketTrail>	m_hRocketTrail;
 	float					m_flAugerTime;		// Amount of time to auger before blowing up anyway
@@ -252,6 +259,10 @@ public:
 	
 	CBaseEntity *GetMissile( void ) { return m_hMissile; }
 
+#ifdef REVERSION_CATALYST
+	virtual CMissile *CreateMissile( const Vector &vecOrigin, const QAngle &vecAngles, edict_t *pentOwner = NULL ) { return CMissile::Create( vecOrigin, vecAngles, pentOwner ); }
+#endif
+
 	DECLARE_ACTTABLE();
 	DECLARE_DATADESC();
 	
@@ -266,5 +277,42 @@ protected:
 	CHandle<CSprite>	m_hLaserMuzzleSprite;
 	CHandle<CBeam>		m_hLaserBeam;
 };
+
+#ifdef REVERSION_CATALYST
+//-----------------------------------------------------------------------------
+// HECU mizzizzile
+//-----------------------------------------------------------------------------
+class CBM_Missile : public CMissile
+{
+	DECLARE_CLASS( CBM_Missile, CMissile );
+	DECLARE_DATADESC();
+
+public:
+	static CBM_Missile *Create( const Vector &vecOrigin, const QAngle &vecAngles, edict_t *pentOwner );
+
+	virtual Class_T Classify ( void ) { return CLASS_MILITARY; }
+
+	virtual const char *GetIgniteSound() { return "grenade_bm_rpg.TrailLoop"; }
+};
+
+//-----------------------------------------------------------------------------
+// RPG
+//-----------------------------------------------------------------------------
+class CWeapon_BM_RPG : public CBase_BM_Weapon<CWeaponRPG>
+{
+	DECLARE_CLASS( CWeapon_BM_RPG, CBase_BM_Weapon<CWeaponRPG> );
+public:
+
+	DECLARE_SERVERCLASS();
+
+	void	Precache( void );
+
+	void	SecondaryAttack( void );
+
+	CMissile *CreateMissile( const Vector &vecOrigin, const QAngle &vecAngles, edict_t *pentOwner = NULL ) { return CBM_Missile::Create( vecOrigin, vecAngles, pentOwner ); }
+
+	DECLARE_DATADESC();
+};
+#endif
 
 #endif // WEAPON_RPG_H

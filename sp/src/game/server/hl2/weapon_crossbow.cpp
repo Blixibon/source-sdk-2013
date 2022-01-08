@@ -29,6 +29,10 @@
 	#include "portal_util_shared.h"
 #endif
 
+#ifdef REVERSION_CATALYST
+#include "weapon_bm_base.h"
+#endif
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -584,7 +588,11 @@ public:
 	DECLARE_ACTTABLE();
 #endif
 
+#ifdef REVERSION_CATALYST
+protected:
+#else
 private:
+#endif
 	
 	void	StopEffects( void );
 	void	SetSkin( int skinNum );
@@ -593,6 +601,9 @@ private:
 #ifdef MAPBASE
 	void	SetBolt( int iSetting );
 	void	FireNPCBolt( CAI_BaseNPC *pOwner, Vector &vecShootOrigin, Vector &vecShootDir );
+#endif
+#ifdef REVERSION_CATALYST
+	virtual
 #endif
 	void	ToggleZoom( void );
 	
@@ -607,10 +618,17 @@ private:
 	};
 
 	void	CreateChargerEffects( void );
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	void	SetChargerState( ChargerState_t state );
 	void	DoLoadEffect( void );
 
+#ifdef REVERSION_CATALYST
+protected:
+#else
 private:
+#endif
 	
 	// Charger effects
 	ChargerState_t		m_nChargeState;
@@ -1376,3 +1394,349 @@ void CWeaponCrossbow::Drop( const Vector &vecVelocity )
 	StopEffects();
 	BaseClass::Drop( vecVelocity );
 }
+
+#ifdef REVERSION_CATALYST
+//-----------------------------------------------------------------------------
+// Crossbow Bolt
+//-----------------------------------------------------------------------------
+class CBM_CrossbowBolt : public CCrossbowBolt
+{
+	DECLARE_CLASS( CBM_CrossbowBolt, CCrossbowBolt );
+
+public:
+	void Spawn( void );
+	void Precache( void );
+
+	static CBM_CrossbowBolt *BoltCreate( const Vector &vecOrigin, const QAngle &angAngles, CBaseCombatCharacter *pentOwner = NULL );
+
+	DECLARE_DATADESC();
+	DECLARE_SERVERCLASS();
+};
+LINK_ENTITY_TO_CLASS( bm_crossbow_bolt, CBM_CrossbowBolt );
+
+BEGIN_DATADESC( CBM_CrossbowBolt )
+END_DATADESC()
+
+IMPLEMENT_SERVERCLASS_ST( CBM_CrossbowBolt, DT_BM_CrossbowBolt )
+END_SEND_TABLE()
+
+CBM_CrossbowBolt *CBM_CrossbowBolt::BoltCreate( const Vector &vecOrigin, const QAngle &angAngles, CBaseCombatCharacter *pentOwner )
+{
+	// Create a new entity with CCrossbowBolt private data
+	CBM_CrossbowBolt *pBolt = (CBM_CrossbowBolt *)CreateEntityByName( "bm_crossbow_bolt" );
+	UTIL_SetOrigin( pBolt, vecOrigin );
+	pBolt->SetAbsAngles( angAngles );
+	pBolt->Spawn();
+	pBolt->SetOwnerEntity( pentOwner );
+	if (pentOwner && pentOwner->IsNPC())
+		pBolt->m_flDamage = sk_npc_dmg_crossbow.GetFloat();
+
+	return pBolt;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CBM_CrossbowBolt::Spawn( void )
+{
+	BaseClass::Spawn();
+
+	SetModel( "models/weapons/crossbow_bolt.mdl" );
+}
+
+void CBM_CrossbowBolt::Precache( void )
+{
+	BaseClass::Precache();
+
+	PrecacheModel( "models/weapons/crossbow_bolt.mdl" );
+}
+
+//-----------------------------------------------------------------------------
+// CWeapon_BM_Crossbow
+//-----------------------------------------------------------------------------
+class CWeapon_BM_Crossbow : public CBase_BM_Weapon<CWeaponCrossbow>
+{
+public:
+	DECLARE_CLASS( CWeapon_BM_Crossbow, CBase_BM_Weapon<CWeaponCrossbow> );
+	DECLARE_SERVERCLASS();
+
+	CWeapon_BM_Crossbow( void );
+
+	void	Precache( void );
+	void	RegisterPrivateActivities( void );
+
+	void	FireBolt( void );
+
+	void	ItemPostFrame( void );
+	void	ItemBusyFrame( void );
+	bool	SendWeaponAnim( int iActivity );
+
+	void	PrimaryAttack( void );
+
+	void	ToggleZoom( void );
+
+	// No electricity for this crossbow
+	void	SetChargerState( ChargerState_t state ) {}
+};
+
+IMPLEMENT_SERVERCLASS_ST( CWeapon_BM_Crossbow, DT_Weapon_BM_Crossbow )
+END_SEND_TABLE()
+
+LINK_ENTITY_TO_CLASS( weapon_bm_crossbow, CWeapon_BM_Crossbow );
+
+PRECACHE_WEAPON_REGISTER( weapon_bm_crossbow );
+
+Activity ACT_CROSSBOW_BOLT_BACK;
+Activity ACT_CROSSBOW_BOLT_BACK_UNLOADED;
+//Activity ACT_CROSSBOW_IDLE_UNLOADED;
+//Activity ACT_CROSSBOW_FIDGET_UNLOADED;
+//Activity ACT_CROSSBOW_DRAW_UNLOADED;
+Activity ACT_CROSSBOW_HOLSTER_UNLOADED;
+Activity ACT_VM_IS_IDLE;
+Activity ACT_VM_PRIMARYATTACK_IS;
+
+//-----------------------------------------------------------------------------
+// Purpose: Constructor
+//-----------------------------------------------------------------------------
+CWeapon_BM_Crossbow::CWeapon_BM_Crossbow( void )
+{
+	m_bReloadsSingly = false;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_Crossbow::Precache( void )
+{
+	BaseClass::Precache();
+
+	UTIL_PrecacheOther( "bm_crossbow_bolt" );
+
+	RegisterPrivateActivities();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_Crossbow::RegisterPrivateActivities( void )
+{
+	static bool bRegistered = false;
+
+	if (bRegistered)
+		return;
+
+	REGISTER_PRIVATE_ACTIVITY( ACT_CROSSBOW_BOLT_BACK );
+	REGISTER_PRIVATE_ACTIVITY( ACT_CROSSBOW_BOLT_BACK_UNLOADED );
+	//REGISTER_PRIVATE_ACTIVITY( ACT_CROSSBOW_IDLE_UNLOADED );
+	//REGISTER_PRIVATE_ACTIVITY( ACT_CROSSBOW_FIDGET_UNLOADED );
+	//REGISTER_PRIVATE_ACTIVITY( ACT_CROSSBOW_DRAW_UNLOADED );
+	REGISTER_PRIVATE_ACTIVITY( ACT_CROSSBOW_HOLSTER_UNLOADED );
+	REGISTER_PRIVATE_ACTIVITY( ACT_VM_IS_IDLE );
+	REGISTER_PRIVATE_ACTIVITY( ACT_VM_PRIMARYATTACK_IS );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_Crossbow::ItemBusyFrame( void )
+{
+	// DO NOT allow zoom toggling even when we're reloading
+	//CheckZoomToggle();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_Crossbow::ItemPostFrame( void )
+{
+	// Allow zoom toggling
+	CheckZoomToggle();
+
+	if ( m_bMustReload && HasWeaponIdleTimeElapsed() )
+	{
+		if (m_iClip1 > 0)
+		{
+			// Instead of reloading, pull the next bolt back
+			SendWeaponAnim( ACT_CROSSBOW_BOLT_BACK );
+		}
+		/*
+		else
+		{
+			Reload();
+		}
+		*/
+	}
+
+	// Override regular crossbow's ItemPostFrame()
+	CBaseCombatWeapon::ItemPostFrame();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Set the desired activity for the weapon and its viewmodel counterpart
+// Input  : iActivity - activity to play
+//-----------------------------------------------------------------------------
+bool CWeapon_BM_Crossbow::SendWeaponAnim( int iActivity )
+{
+	if (m_iClip1 <= 0)
+	{
+		switch (iActivity)
+		{
+			case ACT_VM_IDLE:		iActivity = ACT_CROSSBOW_IDLE_UNLOADED; break;
+			case ACT_VM_FIDGET:		iActivity = ACT_CROSSBOW_FIDGET_UNLOADED; break;
+			case ACT_VM_DRAW:		iActivity = ACT_CROSSBOW_DRAW_UNLOADED; break;
+			case ACT_VM_HOLSTER:	iActivity = ACT_CROSSBOW_HOLSTER_UNLOADED; break;
+		}
+	}
+	else if (m_bInZoom)
+	{
+		switch (iActivity)
+		{
+			case ACT_VM_IDLE:			iActivity = ACT_VM_IS_IDLE; break;
+			case ACT_VM_PRIMARYATTACK:	iActivity = ACT_VM_PRIMARYATTACK_IS; break;
+		}
+	}
+
+	return BaseClass::SendWeaponAnim( iActivity );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CWeapon_BM_Crossbow::PrimaryAttack( void )
+{
+	if ( m_bInZoom && g_pGameRules->IsMultiplayer() )
+	{
+//		FireSniperBolt();
+		FireBolt();
+	}
+	else
+	{
+		FireBolt();
+	}
+
+	// Signal a reload
+	//m_bMustReload = true;
+
+	SetWeaponIdleTime( gpGlobals->curtime + SequenceDuration( ACT_VM_PRIMARYATTACK ) );
+
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+	if ( pPlayer )
+	{
+		m_iPrimaryAttacks++;
+		gamestats->Event_WeaponFired( pPlayer, true, GetClassname() );
+
+#ifdef MAPBASE
+		pPlayer->SetAnimation( PLAYER_ATTACK1 );
+#endif
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_Crossbow::FireBolt( void )
+{
+	if ( m_iClip1 <= 0 )
+	{
+		if ( !m_bFireOnEmpty )
+		{
+			Reload();
+		}
+		else
+		{
+			WeaponSound( EMPTY );
+			m_flNextPrimaryAttack = 0.15;
+		}
+
+		return;
+	}
+
+	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+	
+	if ( pOwner == NULL )
+		return;
+
+	pOwner->RumbleEffect( RUMBLE_357, 0, RUMBLE_FLAG_RESTART );
+
+	Vector vecAiming	= pOwner->GetAutoaimVector( 0 );
+	Vector vecSrc		= pOwner->Weapon_ShootPosition();
+
+	QAngle angAiming;
+	VectorAngles( vecAiming, angAiming );
+
+#if defined(HL2_EPISODIC)
+	// !!!HACK - the other piece of the Alyx crossbow bolt hack for Outland_10 (see ::BoltTouch() for more detail)
+	if( FStrEq(STRING(gpGlobals->mapname), "ep2_outland_10") )
+	{
+		trace_t tr;
+		UTIL_TraceLine( vecSrc, vecSrc + vecAiming * 24.0f, MASK_SOLID, pOwner, COLLISION_GROUP_NONE, &tr );
+
+		if( tr.m_pEnt != NULL && tr.m_pEnt->Classify() == CLASS_PLAYER_ALLY_VITAL )
+		{
+			// If Alyx is right in front of the player, make sure the bolt starts outside of the player's BBOX, or the bolt
+			// will instantly collide with the player after the owner of the bolt is switched to Alyx in ::BoltTouch(). We 
+			// avoid this altogether by making it impossible for the bolt to collide with the player.
+			vecSrc += vecAiming * 24.0f;
+		}
+	}
+#endif
+
+	CBM_CrossbowBolt *pBolt = CBM_CrossbowBolt::BoltCreate( vecSrc, angAiming, pOwner );
+
+	if ( pOwner->GetWaterLevel() == 3 )
+	{
+		pBolt->SetAbsVelocity( vecAiming * BOLT_WATER_VELOCITY );
+	}
+	else
+	{
+		pBolt->SetAbsVelocity( vecAiming * BOLT_AIR_VELOCITY );
+	}
+
+	m_iClip1--;
+
+	pOwner->ViewPunch( QAngle( -2, 0, 0 ) );
+
+	WeaponSound( SINGLE );
+	WeaponSound( SPECIAL2 );
+
+	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), 200, 0.2 );
+
+	SendWeaponAnim( ACT_VM_PRIMARYATTACK );
+
+	if ( !m_iClip1 && pOwner->GetAmmoCount( m_iPrimaryAmmoType ) <= 0 )
+	{
+		// HEV suit - indicate out of ammo condition
+		pOwner->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
+	}
+
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack	= gpGlobals->curtime + 0.75;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_Crossbow::ToggleZoom( void )
+{
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+	
+	if ( pPlayer == NULL )
+		return;
+
+	if ( m_bInZoom )
+	{
+		if ( pPlayer->SetFOV( this, 0, 0.4f ) )
+		{
+			m_bInZoom = false;
+			SendWeaponAnim( ACT_VM_IDLE );
+		}
+	}
+	else
+	{
+		if ( pPlayer->SetFOV( this, 40, 0.5f ) )
+		{
+			m_bInZoom = true;
+			SendWeaponAnim( ACT_VM_IS_IDLE );
+		}
+	}
+}
+#endif

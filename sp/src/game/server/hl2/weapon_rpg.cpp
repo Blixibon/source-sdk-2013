@@ -148,6 +148,10 @@ void CMissile::Precache( void )
 	PrecacheModel( "models/weapons/w_missile.mdl" );
 	PrecacheModel( "models/weapons/w_missile_launch.mdl" );
 	PrecacheModel( "models/weapons/w_missile_closed.mdl" );
+
+#ifdef REVERSION_CATALYST
+	PrecacheScriptSound( GetIgniteSound() );
+#endif
 }
 
 
@@ -383,7 +387,11 @@ void CMissile::Explode( void )
 		m_hOwner = NULL;
 	}
 
+#ifdef REVERSION_CATALYST
+	StopSound( GetIgniteSound() );
+#else
 	StopSound( "Missile.Ignite" );
+#endif
 	UTIL_Remove( this );
 }
 
@@ -448,7 +456,11 @@ void CMissile::IgniteThink( void )
 
 	Vector vecForward;
 
+#ifdef REVERSION_CATALYST
+	EmitSound( GetIgniteSound() );
+#else
 	EmitSound( "Missile.Ignite" );
+#endif
 
 	AngleVectors( GetLocalAngles(), &vecForward );
 	SetAbsVelocity( vecForward * RPG_SPEED );
@@ -1563,7 +1575,11 @@ void CWeaponRPG::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatChara
 
 			VectorAngles( vecShootDir, vecAngles );
 
+#ifdef REVERSION_CATALYST
+			m_hMissile = CreateMissile( muzzlePoint, vecAngles, GetOwner()->edict() );
+#else
 			m_hMissile = CMissile::Create( muzzlePoint, vecAngles, GetOwner()->edict() );		
+#endif
 			m_hMissile->m_hOwner = this;
 
 			// NPCs always get a grace period
@@ -1617,7 +1633,11 @@ void CWeaponRPG::Operator_ForceNPCFire( CBaseCombatCharacter *pOperator, bool bS
 		}
 	}
 
+#ifdef REVERSION_CATALYST
+	m_hMissile = CreateMissile( muzzlePoint, angShootDir, pOperator->edict() );
+#else
 	m_hMissile = CMissile::Create( muzzlePoint, angShootDir, pOperator->edict() );
+#endif
 	m_hMissile->m_hOwner = this;
 
 	// NPCs always get a grace period
@@ -1692,7 +1712,11 @@ void CWeaponRPG::PrimaryAttack( void )
 
 	QAngle vecAngles;
 	VectorAngles( vForward, vecAngles );
+#ifdef REVERSION_CATALYST
+	m_hMissile = CreateMissile( muzzlePoint, vecAngles, GetOwner()->edict() );
+#else
 	m_hMissile = CMissile::Create( muzzlePoint, vecAngles, GetOwner()->edict() );
+#endif
 
 	m_hMissile->m_hOwner = this;
 
@@ -1834,7 +1858,11 @@ void CWeaponRPG::ItemPostFrame( void )
 
 	//Player has toggled guidance state
 	//Adrian: Players are not allowed to remove the laser guide in single player anymore, bye!
+#ifdef REVERSION_CATALYST
+	if ( g_pGameRules->IsMultiplayer() == true && !IsBlackMesa() )
+#else
 	if ( g_pGameRules->IsMultiplayer() == true )
+#endif
 	{
 		if ( pPlayer->m_afButtonPressed & IN_ATTACK2 )
 		{
@@ -2503,3 +2531,79 @@ void CLaserDot::MakeInvisible( void )
 {
 	BaseClass::TurnOff();
 }
+
+
+
+#ifdef REVERSION_CATALYST
+//=============================================================================
+// BM Missile
+//=============================================================================
+BEGIN_DATADESC( CBM_Missile )
+
+	DEFINE_FIELD( m_hOwner,					FIELD_EHANDLE ),
+	DEFINE_FIELD( m_hRocketTrail,			FIELD_EHANDLE ),
+	DEFINE_FIELD( m_flAugerTime,			FIELD_TIME ),
+	DEFINE_FIELD( m_flMarkDeadTime,			FIELD_TIME ),
+	DEFINE_FIELD( m_flGracePeriodEndsAt,	FIELD_TIME ),
+	DEFINE_FIELD( m_flDamage,				FIELD_FLOAT ),
+	DEFINE_FIELD( m_bCreateDangerSounds,	FIELD_BOOLEAN ),
+	
+	// Function Pointers
+	DEFINE_FUNCTION( MissileTouch ),
+	DEFINE_FUNCTION( AccelerateThink ),
+	DEFINE_FUNCTION( AugerThink ),
+	DEFINE_FUNCTION( IgniteThink ),
+	DEFINE_FUNCTION( SeekThink ),
+
+END_DATADESC()
+
+LINK_ENTITY_TO_CLASS( rpg_bm_missile, CBM_Missile );
+
+CBM_Missile *CBM_Missile::Create( const Vector &vecOrigin, const QAngle &vecAngles, edict_t *pentOwner )
+{
+	CBM_Missile *pMissile = (CBM_Missile*)CBaseEntity::Create( "rpg_bm_missile", vecOrigin, vecAngles, CBaseEntity::Instance( pentOwner ) );
+	pMissile->SetOwnerEntity( Instance( pentOwner ) );
+	pMissile->Spawn();
+	pMissile->AddEffects( EF_NOSHADOW );
+	
+	Vector vecForward;
+	AngleVectors( vecAngles, &vecForward );
+
+	pMissile->SetAbsVelocity( vecForward * 500 + Vector( 0,0, 128 ) );
+
+	return pMissile;
+}
+
+//=============================================================================
+// RPG
+//=============================================================================
+
+BEGIN_DATADESC( CWeapon_BM_RPG )
+END_DATADESC()
+
+IMPLEMENT_SERVERCLASS_ST( CWeapon_BM_RPG, DT_Weapon_BM_RPG )
+END_SEND_TABLE()
+
+LINK_ENTITY_TO_CLASS( weapon_bm_rpg, CWeapon_BM_RPG );
+PRECACHE_WEAPON_REGISTER( weapon_bm_rpg );
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_RPG::Precache( void )
+{
+	BaseClass::Precache();
+
+	UTIL_PrecacheOther( "rpg_bm_missile" );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_RPG::SecondaryAttack( void )
+{
+	ToggleGuiding();
+
+	m_flNextSecondaryAttack = gpGlobals->curtime + 0.25f;
+}
+#endif

@@ -48,6 +48,8 @@ STUB_WEAPON_CLASS( weapon_oldmanharpoon, WeaponOldManHarpoon, C_WeaponCitizenPac
 STUB_WEAPON_CLASS( weapon_bm_glock, Weapon_BM_Glock, C_WeaponPistol );
 STUB_WEAPON_CLASS( weapon_bm_mp5, Weapon_BM_MP5, C_WeaponSMG1 );
 STUB_WEAPON_CLASS( weapon_bm_shotgun, Weapon_BM_Shotgun, C_WeaponShotgun );
+STUB_WEAPON_CLASS( weapon_bm_crossbow, Weapon_BM_Crossbow, C_WeaponCrossbow );
+STUB_WEAPON_CLASS( weapon_bm_rpg, Weapon_BM_RPG, C_WeaponRPG );
 #endif
 #endif
 
