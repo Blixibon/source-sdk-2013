@@ -2560,8 +2560,16 @@ bool CHL2_Player::ApplyBattery( float powerMultiplier )
 	
 		Q_snprintf( szcharge,sizeof(szcharge),"!HEV_%1dP", pct );
 		
+#ifdef REVERSION_CATALYST
+		if (GlobalEntity_GetState("hev_talkative") == GLOBAL_ON)
+		{
+			UTIL_EmitSoundSuit( edict(), szcharge );
+			SetSuitUpdate( szcharge, false, SUIT_NEXT_IN_30SEC );
+		}
+#else
 		//UTIL_EmitSoundSuit(edict(), szcharge);
 		//SetSuitUpdate(szcharge, FALSE, SUIT_NEXT_IN_30SEC);
+#endif
 		return true;		
 	}
 	return false;
