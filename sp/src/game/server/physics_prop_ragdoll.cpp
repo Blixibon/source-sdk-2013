@@ -23,6 +23,9 @@
 #ifdef MAPBASE
 #include "decals.h"
 #endif
+#ifdef REVERSION_CATALYST
+#include "reversioncatalyst/rc_bm_character_manifest.h"
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -329,6 +332,35 @@ CRagdollProp::~CRagdollProp( void )
 void CRagdollProp::Precache( void )
 {
 	PrecacheModel( STRING( GetModelName() ) );
+
+#ifdef REVERSION_CATALYST
+	int iCharacterIndex = g_CharacterManifestSystem.SelectCharacterFromEntity( STRING(GetEntityName()), GetClassname() );
+
+	if (iCharacterIndex != -1)
+	{
+		const Character_t &pCharacter = g_CharacterManifestSystem.GetCharacter( iCharacterIndex );
+
+		if (pCharacter.pszModel[0])
+		{
+			SetModelName( AllocPooledString( pCharacter.pszModel ) );
+			SetModel( pCharacter.pszModel );
+		}
+
+		m_nSkin = pCharacter.skins[RandomInt( 0, pCharacter.skins.Count()-1 )];
+
+		// Bodygroups
+		for (unsigned int i = 0; i < pCharacter.bodygroupData.Count(); i++)
+		{
+			int iBody = FindBodygroupByName( pCharacter.bodygroupData.GetElementName( i ) );
+			if (iBody != -1)
+			{
+				// Select one of the random bodygroup indices
+				SetBodygroup( iBody, pCharacter.bodygroupData[i][ RandomInt(0, pCharacter.bodygroupData[i].Count()-1 ) ] );
+			}
+		}
+	}
+#endif
+
 	BaseClass::Precache();
 }
 
