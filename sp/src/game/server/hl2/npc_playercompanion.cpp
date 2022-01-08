@@ -3225,7 +3225,12 @@ bool CNPC_PlayerCompanion::IsSniper( CBaseEntity *pEntity )
 {
 	if ( !pEntity )
 		return false;
+#ifdef REVERSION_CATALYST
+	// BM:S snipers are CLASS_MILITARY, so just do a catch-all
+	return ( pEntity->ClassMatches( "*sniper" ) );
+#else
 	return ( pEntity->Classify() == CLASS_PROTOSNIPER );
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -3345,7 +3350,12 @@ bool CNPC_PlayerCompanion::IsValidMoveAwayDest( const Vector &vecDest )
 		return true;
 	}
 
+#ifdef REVERSION_CATALYST
+	// BM:S snipers are CLASS_MILITARY, so just do a catch-all
+	if ( GetEnemy()->ClassMatches( "*sniper" ) )
+#else
 	if( GetEnemy()->Classify() != CLASS_PROTOSNIPER )
+#endif
 	{
 		return true;
 	}

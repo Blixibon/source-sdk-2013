@@ -40,6 +40,9 @@
 #include "mapbase/expandedrs_combine.h"
 #include "ai_speech.h"
 #endif
+#ifdef REVERSION_CATALYST
+#include "ai_base_bm_npc.h"
+#endif
 
 #include "effect_dispatch_data.h"
 #include "te_effect_dispatch.h"
@@ -241,7 +244,13 @@ public:
 	void StartTask( const Task_t *pTask );
 	void RunTask( const Task_t *pTask );
 	int RangeAttack1Conditions ( float flDot, float flDist );
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	bool FireBullet( const Vector &vecTarget, bool bDirectShot );
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	float GetBulletSpeed();
 	Vector  DesiredBodyTarget( CBaseEntity *pTarget );
 	Vector	LeadTarget( CBaseEntity *pTarget );
@@ -342,7 +351,11 @@ private:
 	const Vector &GetPaintCursor() { return m_vecPaintCursor; }
 #endif
 
+#ifdef REVERSION_CATALYST
+protected:
+#else
 private:
+#endif
 
 	/// This is the variable from which m_flPaintTime gets set.
 	/// How long to aim at someone before shooting them.
@@ -3791,4 +3804,173 @@ bool CSniperTarget::KeyValue( const char *szKeyName, const char *szValue )
 
 LINK_ENTITY_TO_CLASS( info_snipertarget, CSniperTarget );
 
+#ifdef REVERSION_CATALYST
+ConVar sk_sniper_bm_bulletspeed( "sk_sniper_bm_bulletspeed", "50000" );
 
+//=========================================================
+//=========================================================
+class CNPC_BM_Sniper : public CAI_Base_BM_NPC<CProtoSniper>
+{
+	DECLARE_CLASS( CNPC_BM_Sniper, CAI_Base_BM_NPC<CProtoSniper> );
+
+public:
+	CNPC_BM_Sniper();
+
+	void	Precache( void );
+	void	Spawn( void );
+	Class_T Classify( void );
+
+	bool FireBullet( const Vector &vecTarget, bool bDirectShot );
+	float GetBulletSpeed();
+
+	void StartTask( const Task_t *pTask );
+};
+
+CNPC_BM_Sniper::CNPC_BM_Sniper()
+{
+	m_iszBeamName = AllocPooledString( "effects/laser1.vmt" );
+
+	color32 color;
+	color.r = 224;
+	color.g = 16;
+	color.b = 16;
+	m_BeamColor = color;
+}
+
+LINK_ENTITY_TO_CLASS( npc_bm_sniper, CNPC_BM_Sniper );
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//
+//
+//-----------------------------------------------------------------------------
+void CNPC_BM_Sniper::Precache( void )
+{
+	if (GetModelName() == NULL_STRING)
+		SetModelName(AllocPooledString("models/humans/marine.mdl"));
+
+	PrecacheScriptSound( "NPC_BM_Sniper.FireBullet" );
+	PrecacheScriptSound( "NPC_BM_Sniper.Reload" );
+
+	BaseClass::Precache();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//
+//
+//-----------------------------------------------------------------------------
+void CNPC_BM_Sniper::Spawn( void )
+{
+	BaseClass::Spawn();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//
+//
+// Output : 
+//-----------------------------------------------------------------------------
+Class_T	CNPC_BM_Sniper::Classify( void )
+{
+	if ( m_fEnabled )
+	{
+		return CLASS_MILITARY;
+	}
+	else
+	{
+		return CLASS_NONE;
+	}
+}
+
+//---------------------------------------------------------
+// Much simpler.
+//---------------------------------------------------------
+bool CNPC_BM_Sniper::FireBullet( const Vector &vecTarget, bool bDirectShot )
+{
+	FireBulletsInfo_t info;
+
+	info.m_iShots = 1;
+	info.m_vecSrc = GetBulletOrigin();
+	info.m_vecDirShooting = (vecTarget - info.m_vecSrc);
+	info.m_vecSpread = VECTOR_CONE_3DEGREES;
+	info.m_flDistance = MAX_TRACE_LENGTH;
+	info.m_iAmmoType = GetAmmoDef()->Index( "SniperRound" );
+	info.m_iTracerFreq = 0; // We handle this ourselves
+	info.m_pAttacker = this;
+
+	FireBullets( info );
+
+	// Start the tracer here, and tell it to end at the end of the last trace
+	trace_t tr;
+	UTIL_TraceLine( GetAbsOrigin(), GetAbsOrigin() + info.m_vecDirShooting * 8192, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );
+	UTIL_Tracer( info.m_vecSrc, tr.endpos, 0, TRACER_DONT_USE_ATTACHMENT, GetBulletSpeed(), true, "ApacheTracer" );
+
+	CPASAttenuationFilter filternoatten( this, ATTN_NONE );
+	EmitSound( filternoatten, entindex(), "NPC_BM_Sniper.FireBullet" );
+
+	CPVSFilter filter( info.m_vecSrc );
+	te->Sprite( filter, 0.0, &info.m_vecSrc, sFlashSprite, 0.3, 255 );
+	
+	// force a reload when we're done
+	 m_fWeaponLoaded = false;
+
+	// Once the sniper takes a shot, turn the patience off!
+	m_fIsPatient = false;
+
+	// Alleviate frustration, too!
+	m_flFrustration = gpGlobals->curtime;
+
+	// This may have been a snap shot.
+	// Don't allow subsequent snap shots.
+	m_fSnapShot = false;
+
+	// Return to normal priority
+	m_bSweepHighestPriority = false;
+
+	// Sniper had to be aiming here to fire here.
+	// Make it the cursor.
+	m_vecPaintCursor = vecTarget;
+
+	m_hDecoyObject.Set( NULL );
+
+	m_OnShotFired.FireOutput( GetEnemy(), this );
+
+	return true;
+}
+
+//---------------------------------------------------------
+//---------------------------------------------------------
+float CNPC_BM_Sniper::GetBulletSpeed()
+{
+	float speed = sk_sniper_bm_bulletspeed.GetFloat();
+
+	if( IsFastSniper() )
+	{
+		speed *= 2.5f;
+	}
+
+	return speed;
+}
+
+//---------------------------------------------------------
+//---------------------------------------------------------
+void CNPC_BM_Sniper::StartTask( const Task_t *pTask )
+{
+	switch( pTask->iTask )
+	{
+	case TASK_RELOAD:
+		{
+			CPASAttenuationFilter filter( this );
+			EmitSound( filter, entindex(), "NPC_BM_Sniper.Reload" );
+			m_fWeaponLoaded = true;
+			TaskComplete();
+		}
+		break;
+
+	default:
+		BaseClass::StartTask( pTask );
+		break;
+	}
+}
+#endif
