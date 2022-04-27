@@ -220,6 +220,11 @@ public:
 	void	GetBonePosition( int iBone, Vector &origin, QAngle &angles );
 	void	GetBoneTransform( int iBone, matrix3x4_t &pBoneToWorld );
 
+#ifdef MAPBASE
+	float	GetBonemergeWeight() const { return m_flBonemergeWeight; }
+	void	SetBonemergeWeight( float flWeight ) { m_flBonemergeWeight = flWeight; }
+#endif
+
 	//=============================================================================
 	// HPE_BEGIN:
 	// [menglish] Finds the bone associated with the given hitbox
@@ -656,6 +661,10 @@ private:
 	memhandle_t						m_hitboxBoneCacheHandle;
 	float							m_flLastBoneSetupTime;
 	CJiggleBones					*m_pJiggleBones;
+
+#ifdef MAPBASE
+	float							m_flBonemergeWeight;
+#endif
 
 	// Calculated attachment points
 	CUtlVector<CAttachmentData>		m_Attachments;

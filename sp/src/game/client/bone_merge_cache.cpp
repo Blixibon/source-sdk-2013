@@ -177,6 +177,22 @@ void CBoneMergeCache::MergeMatchingBones( int boneMask )
 			if ( !( m_pOwnerHdr->boneFlags( iOwnerBone ) & boneMask ) )
 				continue;
 
+#ifdef MAPBASE
+			if (m_pOwner->GetBonemergeWeight() != 1.0f)
+			{
+				float weight = m_pOwner->GetBonemergeWeight();
+				Vector p1, p2;
+				Quaternion q1, q2;
+				MatrixAngles( m_pOwner->GetBone( iOwnerBone ), q1, p1 );
+				MatrixAngles( m_pFollow->GetBone( iParentBone ), q2, p2 );
+
+				Quaternion qResult;
+				QuaternionSlerp( q1, q2, weight, qResult );
+
+				AngleMatrix( qResult, Lerp( weight, p1, p2 ), m_pOwner->GetBoneForWrite( iOwnerBone ) );
+			}
+			else
+#endif
 			MatrixCopy( m_pFollow->GetBone( iParentBone ), m_pOwner->GetBoneForWrite( iOwnerBone ) );
 		}
 	}
@@ -204,6 +220,17 @@ void CBoneMergeCache::CopyParentToChild( const Vector parentPos[], const Quatern
 		// Only update bones reference by the bone mask.
 		if ( !( m_pOwnerHdr->boneFlags( iOwnerBone ) & boneMask ) )
 			continue;
+
+#ifdef MAPBASE
+		if (m_pOwner->GetBonemergeWeight() != 1.0f)
+		{
+			float weight = m_pOwner->GetBonemergeWeight();
+		
+			childPos[ iOwnerBone ] = Lerp(weight, childPos[ iOwnerBone ], parentPos[ iParentBone ]);
+			QuaternionSlerp( childQ[ iOwnerBone ], parentQ[ iParentBone ], weight, childQ[ iOwnerBone ] );
+			continue;
+		}
+#endif
 
 		childPos[ iOwnerBone ] = parentPos[ iParentBone ];
 		childQ[ iOwnerBone ] = parentQ[ iParentBone ];
@@ -282,6 +309,22 @@ bool CBoneMergeCache::GetRootBone( matrix3x4_t &rootBone )
 	// Get mFollowBone.
 	m_pFollow->SetupBones( NULL, -1, m_nFollowBoneSetupMask, gpGlobals->curtime );
 	rootBone = m_pFollow->GetBone( m_MergedBones[0].m_iParentBone );
+#ifdef MAPBASE
+	if (m_pOwner->GetBonemergeWeight() != 1.0f)
+	{
+		float weight = m_pOwner->GetBonemergeWeight();
+		Vector p1, p2;
+		Quaternion q1, q2;
+		MatrixAngles( m_pOwner->GetBone( m_MergedBones[0].m_iMyBone ), q1, p1 );
+		MatrixAngles( rootBone, q2, p2 );
+
+		Quaternion qResult;
+		QuaternionSlerp( q1, q2, weight, qResult );
+
+		AngleMatrix( qResult, Lerp( weight, p1, p2 ), rootBone );
+		return true;
+	}
+#endif
 	return true;
 }
 

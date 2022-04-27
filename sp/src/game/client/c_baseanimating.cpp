@@ -204,6 +204,10 @@ IMPLEMENT_CLIENTCLASS_DT(C_BaseAnimating, DT_BaseAnimating, CBaseAnimating)
 	RecvPropFloat( RECVINFO( m_fadeMaxDist ) ), 
 	RecvPropFloat( RECVINFO( m_flFadeScale ) ), 
 
+#ifdef MAPBASE
+	RecvPropFloat( RECVINFO( m_flBonemergeWeight ) ),
+#endif
+
 END_RECV_TABLE()
 
 BEGIN_PREDICTION_DATA( C_BaseAnimating )
@@ -355,6 +359,9 @@ BEGIN_ENT_SCRIPTDESC( C_BaseAnimating, C_BaseEntity, "Animating models client-si
 
 	DEFINE_SCRIPTFUNC_NAMED( ScriptBecomeRagdollOnClient, "BecomeRagdollOnClient", "" )
 	DEFINE_SCRIPTFUNC( IsRagdoll, "" )
+
+	DEFINE_SCRIPTFUNC( GetBonemergeWeight, "" )
+	DEFINE_SCRIPTFUNC( SetBonemergeWeight, "" )
 
 	BEGIN_SCRIPTHOOK( C_BaseAnimating::g_Hook_OnClientRagdoll, "OnClientRagdoll", FIELD_VOID, "Called when this entity turns into a client-side ragdoll." )
 		DEFINE_SCRIPTHOOK_PARAM( "ragdoll", FIELD_HSCRIPT )
@@ -797,6 +804,7 @@ C_BaseAnimating::C_BaseAnimating() :
 	m_pClientsideRagdoll = NULL;
 #ifdef MAPBASE
 	m_pServerRagdoll = NULL;
+	m_flBonemergeWeight = 1.0f;
 #endif
 	m_builtRagdoll = false;
 	m_hitboxBoneCacheHandle = 0;

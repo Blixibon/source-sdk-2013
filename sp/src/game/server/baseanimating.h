@@ -367,6 +367,11 @@ public:
 		const Quaternion q[MAXSTUDIOBONES], matrix3x4_t bonetoworld[MAXSTUDIOBONES],
 		CBaseAnimating *pParent, CBoneCache *pParentCache );
 
+#ifdef MAPBASE
+	float	GetBonemergeWeight() const { return m_flBonemergeWeight; }
+	void	SetBonemergeWeight( float flWeight ) { m_flBonemergeWeight = flWeight; }
+#endif
+
 	void	SetFadeDistance( float minFadeDist, float maxFadeDist );
 
 	int		GetBoneCacheFlags( void ) { return m_fBoneCacheFlags; }
@@ -464,6 +469,10 @@ protected:
 	CNetworkVar( float, m_fadeMinDist );	// Point at which fading is absolute
 	CNetworkVar( float, m_fadeMaxDist );	// Point at which fading is inactive
 	CNetworkVar( float, m_flFadeScale );	// Scale applied to min / max
+
+#ifdef MAPBASE
+	CNetworkVar( float, m_flBonemergeWeight );
+#endif
 
 public:
 	COutputEvent m_OnIgnite;

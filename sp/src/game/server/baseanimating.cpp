@@ -226,6 +226,10 @@ BEGIN_DATADESC( CBaseAnimating )
 	DEFINE_INPUT( m_fadeMaxDist, FIELD_FLOAT, "fademaxdist" ),
 	DEFINE_KEYFIELD( m_flFadeScale, FIELD_FLOAT, "fadescale" ),
 
+#ifdef MAPBASE
+	DEFINE_INPUT( m_flBonemergeWeight, FIELD_FLOAT, "SetBonemergeWeight" ),
+#endif
+
 	DEFINE_KEYFIELD( m_flModelScale, FIELD_FLOAT, "modelscale" ),
 	DEFINE_INPUTFUNC( FIELD_VECTOR, "SetModelScale", InputSetModelScale ),
 #ifdef MAPBASE
@@ -282,6 +286,10 @@ IMPLEMENT_SERVERCLASS_ST(CBaseAnimating, DT_BaseAnimating)
 	SendPropFloat( SENDINFO( m_fadeMinDist ), 0, SPROP_NOSCALE ),
 	SendPropFloat( SENDINFO( m_fadeMaxDist ), 0, SPROP_NOSCALE ),
 	SendPropFloat( SENDINFO( m_flFadeScale ), 0, SPROP_NOSCALE ),
+
+#ifdef MAPBASE
+	SendPropFloat( SENDINFO( m_flBonemergeWeight ), 0, SPROP_NOSCALE ),
+#endif
 
 END_SEND_TABLE()
 
@@ -377,6 +385,9 @@ CBaseAnimating::CBaseAnimating()
 	m_fadeMaxDist = 0;
 	m_flFadeScale = 0.0f;
 	m_fBoneCacheFlags = 0;
+#ifdef MAPBASE
+	m_flBonemergeWeight = 1.0f;
+#endif
 }
 
 CBaseAnimating::~CBaseAnimating()
@@ -3504,6 +3515,7 @@ void CBaseAnimating::CopyAnimationDataFrom( CBaseAnimating *pSource )
 	this->m_fadeMinDist = pSource->m_fadeMinDist;
 	this->m_fadeMaxDist = pSource->m_fadeMaxDist;
 	this->m_flFadeScale = pSource->m_flFadeScale;
+	this->m_flBonemergeWeight = pSource->m_flBonemergeWeight;
 
 	if (this->GetModelScale() != pSource->GetModelScale())
 		this->SetModelScale( pSource->GetModelScale() );
