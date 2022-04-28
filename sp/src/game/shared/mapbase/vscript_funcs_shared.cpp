@@ -861,6 +861,17 @@ static HSCRIPT ScriptCreateRope( HSCRIPT hStart, HSCRIPT hEnd, int iStartAttachm
 	return ToHScript( pRope );
 }
 
+#ifndef CLIENT_DLL
+static HSCRIPT ScriptCreateRopeWithSecondPointDetached( HSCRIPT hStart, int iStartAttachment, int ropeLength, float ropeWidth, const char *pMaterialName, int numSegments, bool initialHang, int ropeFlags )
+{
+	CRopeKeyframe *pRope = CRopeKeyframe::CreateWithSecondPointDetached( ToEnt( hStart ), iStartAttachment, ropeLength, ropeWidth, pMaterialName, numSegments, initialHang );
+	if (pRope)
+		pRope->m_RopeFlags |= ropeFlags; // HACKHACK
+
+	return ToHScript( pRope );
+}
+#endif
+
 static void EmitSoundParamsOn( HSCRIPT hParams, HSCRIPT hEnt )
 {
 	CBaseEntity *pEnt = ToEnt( hEnt );
@@ -929,7 +940,7 @@ bool ScriptIsClient()
 // Notification printing on the right edge of the screen
 void NPrint( int pos, const char* fmt )
 {
-	engine->Con_NPrintf(pos, fmt);
+	engine->Con_NPrintf( pos, "%s", fmt );
 }
 
 void NXPrint( int pos, int r, int g, int b, bool fixed, float ftime, const char* fmt )
@@ -943,7 +954,7 @@ void NXPrint( int pos, int r, int g, int b, bool fixed, float ftime, const char*
 	info.color[2] = b / 255.f;
 	info.fixed_width_font = fixed;
 
-	engine->Con_NXPrintf( &info, fmt );
+	engine->Con_NXPrintf( &info, "%s", fmt );
 }
 
 static float IntervalPerTick()
@@ -1042,6 +1053,9 @@ void RegisterSharedScriptFunctions()
 	ScriptRegisterFunctionNamed( g_pScriptVM, ScriptDispatchParticleEffect, "DoDispatchParticleEffect", SCRIPT_ALIAS( "DispatchParticleEffect", "Dispatches a one-off particle system" ) );
 
 	ScriptRegisterFunctionNamed( g_pScriptVM, ScriptCreateRope, "CreateRope", "Creates a single rope between two entities. Can optionally follow specific attachments." );
+#ifndef CLIENT_DLL
+	ScriptRegisterFunctionNamed( g_pScriptVM, ScriptCreateRopeWithSecondPointDetached, "CreateRopeWithSecondPointDetached", "Creates a single detached rope hanging from a point. Can optionally follow a specific start attachment." );
+#endif
 
 	ScriptRegisterFunction( g_pScriptVM, EmitSoundParamsOn, "Play EmitSound_t params on an entity." );
 

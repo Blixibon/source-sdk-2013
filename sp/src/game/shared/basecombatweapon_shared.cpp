@@ -186,7 +186,11 @@ void CBaseCombatWeapon::Spawn( void )
 
 	if ( GetWorldModel() )
 	{
+#ifdef MAPBASE
+		SetModel( (GetDroppedModel() && GetDroppedModel()[0]) ? GetDroppedModel() : GetWorldModel() );
+#else
 		SetModel( GetWorldModel() );
+#endif
 	}
 
 #if !defined( CLIENT_DLL )
@@ -291,6 +295,18 @@ void CBaseCombatWeapon::Precache( void )
 		{
 			m_iWorldModelIndex = CBaseEntity::PrecacheModel( GetWorldModel() );
 		}
+#ifdef MAPBASE
+		m_iDroppedModelIndex = 0;
+		if ( GetDroppedModel() && GetDroppedModel()[0] )
+		{
+			m_iDroppedModelIndex = CBaseEntity::PrecacheModel( GetDroppedModel() );
+		}
+		else
+		{
+			// Use the world model index
+			m_iDroppedModelIndex = m_iWorldModelIndex;
+		}
+#endif
 
 		// Precache sounds, too
 		for ( int i = 0; i < NUM_SHOOT_SOUND_TYPES; ++i )
@@ -460,6 +476,38 @@ bool CBaseCombatWeapon::IsMeleeWeapon() const
 {
 	return GetWpnData().m_bMeleeWeapon;
 }
+
+#ifdef MAPBASE
+float CBaseCombatWeapon::GetViewmodelFOVOverride() const
+{
+	return GetWpnData().m_flViewmodelFOV;
+}
+
+float CBaseCombatWeapon::GetBobScale() const
+{
+	return GetWpnData().m_flBobScale;
+}
+
+float CBaseCombatWeapon::GetSwayScale() const
+{
+	return GetWpnData().m_flSwayScale;
+}
+
+float CBaseCombatWeapon::GetSwaySpeedScale() const
+{
+	return GetWpnData().m_flSwaySpeedScale;
+}
+
+const char *CBaseCombatWeapon::GetDroppedModel() const
+{
+	return GetWpnData().szDroppedModel;
+}
+
+bool CBaseCombatWeapon::UsesHands() const
+{
+	return GetWpnData().m_bUsesHands;
+}
+#endif
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -1053,6 +1101,11 @@ WeaponClass_t CBaseCombatWeapon::WeaponClassify()
 #if EXPANDED_HL2_WEAPON_ACTIVITIES
 	case ACT_IDLE_ANGRY_CROSSBOW:	// For now, crossbows are rifles
 #endif
+#if EXPANDED_HL2_UNUSED_WEAPON_ACTIVITIES
+	case ACT_IDLE_ANGRY_AR1:
+	case ACT_IDLE_ANGRY_SMG2:
+	case ACT_IDLE_ANGRY_SNIPER_RIFLE:
+#endif
 	case ACT_IDLE_ANGRY_SMG1:
 	case ACT_IDLE_ANGRY_AR2:		return WEPCLASS_RIFLE;
 	case ACT_IDLE_ANGRY_SHOTGUN:	return WEPCLASS_SHOTGUN;
@@ -1086,6 +1139,18 @@ WeaponClass_t CBaseCombatWeapon::WeaponClassFromString(const char *str)
 #ifdef HL2_DLL
 extern acttable_t *GetSMG1Acttable();
 extern int GetSMG1ActtableCount();
+
+extern acttable_t *GetAR2Acttable();
+extern int GetAR2ActtableCount();
+
+extern acttable_t *GetShotgunActtable();
+extern int GetShotgunActtableCount();
+
+extern acttable_t *GetPistolActtable();
+extern int GetPistolActtableCount();
+
+extern acttable_t *Get357Acttable();
+extern int Get357ActtableCount();
 #endif
 
 //-----------------------------------------------------------------------------
@@ -1106,20 +1171,69 @@ bool CBaseCombatWeapon::SupportsBackupActivity(Activity activity)
 
 acttable_t *CBaseCombatWeapon::GetBackupActivityList()
 {
-#ifdef HL2_DLL
-	return GetSMG1Acttable();
-#else
 	return NULL;
-#endif
 }
 
 int CBaseCombatWeapon::GetBackupActivityListCount()
 {
-#ifdef HL2_DLL
-	return GetSMG1ActtableCount();
-#else
 	return 0;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+acttable_t *CBaseCombatWeapon::GetDefaultBackupActivityList( acttable_t *pTable, int &actCount )
+{
+#ifdef HL2_DLL
+	// Ensure this isn't already a default backup activity list
+	if (pTable == GetSMG1Acttable() || pTable == GetPistolActtable())
+		return NULL;
+
+	// Use a backup table based on what ACT_IDLE_ANGRY is translated to
+	Activity actTranslated = ACT_INVALID;
+	for ( int i = 0; i < actCount; i++, pTable++ )
+	{
+		if ( pTable->baseAct == ACT_IDLE_ANGRY )
+		{
+			actTranslated = (Activity)pTable->weaponAct;
+			break;
+		}
+	}
+
+	if (actTranslated == ACT_INVALID)
+		return NULL;
+
+	switch (actTranslated)
+	{
+#if EXPANDED_HL2_WEAPON_ACTIVITIES
+		case ACT_IDLE_ANGRY_REVOLVER:
 #endif
+		case ACT_IDLE_ANGRY_PISTOL:
+			{
+				actCount = GetPistolActtableCount();
+				return GetPistolActtable();
+			}
+#if EXPANDED_HL2_WEAPON_ACTIVITIES
+		case ACT_IDLE_ANGRY_CROSSBOW:	// For now, crossbows are rifles
+#endif
+#if EXPANDED_HL2_UNUSED_WEAPON_ACTIVITIES
+		case ACT_IDLE_ANGRY_AR1:
+		case ACT_IDLE_ANGRY_SMG2:
+		case ACT_IDLE_ANGRY_SNIPER_RIFLE:
+#endif
+		case ACT_IDLE_ANGRY_SMG1:
+		case ACT_IDLE_ANGRY_AR2:
+		case ACT_IDLE_ANGRY_SHOTGUN:
+		case ACT_IDLE_ANGRY_RPG:
+			{
+				actCount = GetSMG1ActtableCount();
+				return GetSMG1Acttable();
+			}
+	}
+#endif
+
+	actCount = 0;
+	return NULL;
 }
 #endif
 
@@ -2986,6 +3100,7 @@ BEGIN_ENT_SCRIPTDESC( CBaseCombatWeapon, CBaseAnimating, "The base class for all
 
 	DEFINE_SCRIPTFUNC( GetWorldModel, "Get the weapon's world model." )
 	DEFINE_SCRIPTFUNC( GetViewModel, "Get the weapon's view model." )
+	DEFINE_SCRIPTFUNC( GetDroppedModel, "Get the weapon's unique dropped model if it has one." )
 
 	DEFINE_SCRIPTFUNC( GetWeight, "Get the weapon's weight." )
 
@@ -3280,6 +3395,9 @@ BEGIN_NETWORK_TABLE(CBaseCombatWeapon, DT_BaseCombatWeapon)
 	SendPropDataTable("LocalActiveWeaponData", 0, &REFERENCE_SEND_TABLE(DT_LocalActiveWeaponData), SendProxy_SendActiveLocalWeaponDataTable ),
 	SendPropModelIndex( SENDINFO(m_iViewModelIndex) ),
 	SendPropModelIndex( SENDINFO(m_iWorldModelIndex) ),
+#ifdef MAPBASE
+	SendPropModelIndex( SENDINFO(m_iDroppedModelIndex) ),
+#endif
 	SendPropInt( SENDINFO(m_iState ), 8, SPROP_UNSIGNED ),
 	SendPropEHandle( SENDINFO(m_hOwner) ),
 
@@ -3292,6 +3410,9 @@ BEGIN_NETWORK_TABLE(CBaseCombatWeapon, DT_BaseCombatWeapon)
 	RecvPropDataTable("LocalActiveWeaponData", 0, 0, &REFERENCE_RECV_TABLE(DT_LocalActiveWeaponData)),
 	RecvPropInt( RECVINFO(m_iViewModelIndex)),
 	RecvPropInt( RECVINFO(m_iWorldModelIndex)),
+#ifdef MAPBASE
+	RecvPropInt( RECVINFO(m_iDroppedModelIndex) ),
+#endif
 	RecvPropInt( RECVINFO(m_iState )),
 	RecvPropEHandle( RECVINFO(m_hOwner ) ),
 

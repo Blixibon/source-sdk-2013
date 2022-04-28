@@ -551,6 +551,8 @@ BEGIN_ENT_SCRIPTDESC( CBasePlayer, CBaseCombatCharacter, "The player entity." )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptGetEyeRight, "GetEyeRight", "Gets the player's right eye vector." )
 	DEFINE_SCRIPTFUNC_NAMED( ScriptGetEyeUp, "GetEyeUp", "Gets the player's up eye vector." )
 
+	DEFINE_SCRIPTFUNC_NAMED( ScriptGetViewModel, "GetViewModel", "Returns the viewmodel of the specified index." )
+
 	// 
 	// Hooks
 	// 
@@ -632,6 +634,10 @@ void CBasePlayer::DestroyViewModels( void )
 }
 
 #ifdef MAPBASE
+extern char g_szDefaultHandsModel[MAX_PATH];
+extern int g_iDefaultHandsSkin;
+extern int g_iDefaultHandsBody;
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -648,9 +654,15 @@ void CBasePlayer::CreateHandModel(int index, int iOtherVm)
 		vm->SetAbsOrigin(GetAbsOrigin());
 		vm->SetOwner(this);
 		vm->SetIndex(index);
+
+		vm->SetModel( g_szDefaultHandsModel );
+		vm->m_nSkin = g_iDefaultHandsSkin;
+		vm->m_nBody = g_iDefaultHandsBody;
+
 		DispatchSpawn(vm);
 		vm->FollowEntity(GetViewModel(iOtherVm), true);
 		m_hViewModel.Set(index, vm);
+		vm->AddEffects( EF_NODRAW );
 	}
 }
 #endif
@@ -5418,6 +5430,10 @@ void CBasePlayer::Precache( void )
 	m_iTrain = TRAIN_NEW;
 #endif
 
+#ifdef MAPBASE
+	PrecacheModel( g_szDefaultHandsModel );
+#endif
+
 	m_iClientBattery = -1;
 
 	m_iUpdateTime = 5;  // won't update for 1/2 a second
@@ -7134,6 +7150,19 @@ HSCRIPT CBasePlayer::VScriptGetExpresser()
 	}
 
 	return hScript;
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+HSCRIPT CBasePlayer::ScriptGetViewModel( int viewmodelindex )
+{
+	if (viewmodelindex < 0 || viewmodelindex >= MAX_VIEWMODELS)
+	{
+		Warning( "GetViewModel: Invalid index '%i'\n", viewmodelindex );
+		return NULL;
+	}
+
+	return ToHScript( GetViewModel( viewmodelindex ) );
 }
 #endif
 

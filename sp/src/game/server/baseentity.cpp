@@ -4674,6 +4674,11 @@ bool CBaseEntity::AcceptInput( const char *szInputName, CBaseEntity *pActivator,
 						{
 							(this->*pfnInput)( data );
 						}
+
+						if ( m_ScriptScope.IsInitialized() )
+						{
+							ScriptInputHookClearParams();
+						}
 					}
 					else if ( dmap->dataDesc[i].flags & FTYPEDESC_KEY )
 					{
@@ -4707,6 +4712,8 @@ bool CBaseEntity::AcceptInput( const char *szInputName, CBaseEntity *pActivator,
 			if (functionReturn.m_bool)
 				return true;
 		}
+
+		ScriptInputHookClearParams();
 	}
 #endif
 
@@ -4750,13 +4757,19 @@ bool CBaseEntity::ScriptInputHook( const char *szInputName, CBaseEntity *pActiva
 		bHandled = true;
 	}
 
+	return bHandled;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CBaseEntity::ScriptInputHookClearParams()
+{
 	g_pScriptVM->ClearValue( "activator" );
 	g_pScriptVM->ClearValue( "caller" );
 #ifdef MAPBASE_VSCRIPT
 	g_pScriptVM->ClearValue( "parameter" );
 #endif
-
-	return bHandled;
 }
 
 #ifdef MAPBASE_VSCRIPT
@@ -7694,7 +7707,7 @@ bool CBaseEntity::HasContext( const char *name, const char *value ) const
 			if (value == NULL)
 				return true;
 			else
-				return Matcher_Match(STRING(m_ResponseContexts[i].m_iszValue), value);
+				return Matcher_Match( value, STRING(m_ResponseContexts[i].m_iszValue) );
 		}
 	}
 

@@ -232,6 +232,7 @@ public:
 	virtual bool			SupportsBackupActivity(Activity activity);
 	virtual acttable_t		*GetBackupActivityList();
 	virtual int				GetBackupActivityListCount();
+	static acttable_t		*GetDefaultBackupActivityList( acttable_t *pTable, int &actCount );
 #endif
 
 	virtual void			Equip( CBaseCombatCharacter *pOwner );
@@ -417,6 +418,14 @@ public:
 	virtual bool			UsesClipsForAmmo1( void ) const;
 	virtual bool			UsesClipsForAmmo2( void ) const;
 	bool					IsMeleeWeapon() const;
+#ifdef MAPBASE
+	float					GetViewmodelFOVOverride() const;
+	float					GetBobScale() const;
+	float					GetSwayScale() const;
+	float					GetSwaySpeedScale() const;
+	virtual const char		*GetDroppedModel( void ) const;
+	bool					UsesHands( void ) const;
+#endif
 
 	// derive this function if you mod uses encrypted weapon info files
 	virtual const unsigned char *GetEncryptionKey( void );
@@ -675,6 +684,9 @@ public:
 	// Weapon art
 	CNetworkVar( int, m_iViewModelIndex );
 	CNetworkVar( int, m_iWorldModelIndex );
+#ifdef MAPBASE
+	CNetworkVar( int, m_iDroppedModelIndex );
+#endif
 	// Sounds
 	float					m_flNextEmptySoundTime;				// delay on empty sound playing
 
