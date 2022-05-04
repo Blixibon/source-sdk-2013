@@ -20,7 +20,7 @@
 #include "basehlcombatweapon_shared.h"
 #include "iservervehicle.h"
 #ifdef REVERSION_CATALYST
-#include "reversioncatalyst/ai_base_bm_npc.h"
+#include "reversioncatalyst/npc_bm_sentry_ground.h"
 #include "beam_shared.h"
 #include "particle_parse.h"
 #endif
@@ -74,6 +74,7 @@ int ACT_CEILING_TURRET_CLOSED_IDLE;
 int ACT_CEILING_TURRET_FIRE;
 int ACT_CEILING_TURRET_DRYFIRE;
 
+#ifndef REVERSION_CATALYST // Using ground turret definitions now
 //Turret states
 enum turretState_e
 {
@@ -94,6 +95,7 @@ enum eyeState_t
 	TURRET_EYE_DEAD,				//Completely invisible
 	TURRET_EYE_DISABLED,			//Turned off, must be reactivated before it'll deploy again (completely invisible)
 };
+#endif
 
 //
 // Ceiling Turret
@@ -790,7 +792,11 @@ void CNPC_CeilingTurret::ActiveThink( void )
 	if ( m_flShotTime < gpGlobals->curtime )
 	{
 		//Fire the gun
+#ifdef REVERSION_CATALYST
+		if ( DotProduct( vecDirToEnemy, vecMuzzleDir ) >= (IsBlackMesa() ? 0.9 : 0.9848) ) // 10 degree slop
+#else
 		if ( DotProduct( vecDirToEnemy, vecMuzzleDir ) >= 0.9848 ) // 10 degree slop
+#endif
 		{
 #ifdef MAPBASE
 			if ( m_spawnflags & SF_CEILING_TURRET_OUT_OF_AMMO )
@@ -1772,9 +1778,9 @@ ConVar sk_sentry_ceiling_health( "sk_sentry_ceiling_health", "50" );
 ConVar sk_sentry_ceiling_motorspeed( "sk_sentry_ceiling_motorspeed", "350" );
 ConVar sk_sentry_ceiling_scan_pitch( "sk_sentry_ceiling_scan_pitch", "22.5" );
 
-class CNPC_BM_CeilingSentry : public CAI_Base_BM_NPC<CNPC_CeilingTurret>
+class CNPC_BM_CeilingSentry : public CAI_Base_BM_Sentry<CNPC_CeilingTurret>
 {
-	DECLARE_CLASS( CNPC_BM_CeilingSentry, CAI_Base_BM_NPC<CNPC_CeilingTurret> );
+	DECLARE_CLASS( CNPC_BM_CeilingSentry, CAI_Base_BM_Sentry<CNPC_CeilingTurret> );
 public:
 	CNPC_BM_CeilingSentry();
 
@@ -1787,7 +1793,6 @@ public:
 	}
 
 	const char *GetTracerType( void ) { return "Tracer"; }
-	void		DoMuzzleFlash();
 
 	bool		PreThink( turretState_e state );
 
@@ -1801,7 +1806,18 @@ public:
 	float		GetScanPitch() { return sk_sentry_ceiling_scan_pitch.GetFloat(); }
 
 	void		SetEyeState( eyeState_t state );
-	void		UpdateLaser();
+
+	virtual CBeam *GetLaser() { return m_pBeam; }
+	virtual void RemoveLaser() { UTIL_Remove( m_pBeam ); m_pBeam = NULL; }
+	virtual int GetLaserAttachment() { return m_poseLaser; }
+
+	virtual const char *GetMuzzleFlashParticle() { return "npc_sentry_ceiling_muzzleflash"; }
+	virtual int GetMuzzleAttachment() { return m_poseMuzzle; }
+
+	Vector	GetAttackSpread( CBaseCombatWeapon *pWeapon, CBaseEntity *pTarget ) 
+	{
+		return VECTOR_CONE_5DEGREES * ((CBaseHLCombatWeapon::GetDefaultProficiencyValues())[ WEAPON_PROFICIENCY_VERY_GOOD ].spreadscale);
+	}
 
 protected:
 
@@ -1810,6 +1826,7 @@ protected:
 	const char *GetRetireSound()	{ return "npc_sentry_ceiling.Retire"; }
 	const char *GetDeploySound()	{ return "npc_sentry_ceiling.Deploy"; }
 	const char *GetMoveSound()		{ return "npc_sentry_ceiling.MotorLoop"; }
+	const char *GetMoveStopSound()	{ return "npc_sentry_ceiling.MotorStop"; }
 	const char *GetActiveSound()	{ return "npc_sentry_ceiling.Active"; }
 	const char *GetAlertSound()		{ return "npc_sentry_ceiling.Alert"; }
 	const char *GetShootSound()		{ return "npc_sentry_ceiling.Shoot"; }
@@ -1833,6 +1850,8 @@ BEGIN_DATADESC( CNPC_BM_CeilingSentry )
 
 	DEFINE_FIELD( m_pBeam, FIELD_CLASSPTR ),
 
+	DECLARE_BM_SENTRY_DATADESC()
+
 END_DATADESC()
 
 LINK_ENTITY_TO_CLASS( npc_bm_sentry_ceiling, CNPC_BM_CeilingSentry );
@@ -1851,7 +1870,7 @@ CNPC_BM_CeilingSentry::CNPC_BM_CeilingSentry()
 	m_iHealth = sk_sentry_ceiling_health.GetInt();
 }
 
-short sSentryHaloSprite;
+extern short sSentryHaloSprite;
 
 //-----------------------------------------------------------------------------
 // Purpose: Precache
@@ -1884,13 +1903,13 @@ void CNPC_BM_CeilingSentry::Spawn( void )
 	}
 
 	m_pBeam = CBeam::BeamCreate( "sprites/laserbeam.vmt", 1.0f );
-	m_pBeam->SetColor( 255, 55, 52 );
+	m_pBeam->SetColor( 255, 24, 24 );
 	m_pBeam->SetBrightness( 0 ); // Start off
 
 	m_pBeam->PointEntInit( GetAbsOrigin(), this );
 	m_pBeam->SetEndAttachment( m_poseLaser );
 	m_pBeam->SetNoise( 0 );
-	m_pBeam->SetWidth( 0.75f );
+	m_pBeam->SetWidth( 0.5f );
 	m_pBeam->SetEndWidth( 0 );
 	m_pBeam->SetScrollRate( 0 );
 	m_pBeam->SetFadeLength( 0 );
@@ -1914,16 +1933,7 @@ void CNPC_BM_CeilingSentry::Activate( void )
 //-----------------------------------------------------------------------------
 bool CNPC_BM_CeilingSentry::PreThink( turretState_e state )
 {
-	Msg( "Ceiling sentry PreThink: %i\n", state );
-	
-	if (m_pBeam)
-	{
-		UpdateLaser();
-	}
-
-	// HACKHACK (removes muzzle flash)
-	if (GetActivity() != (Activity)ACT_CEILING_TURRET_FIRE)
-		StopParticleEffects( this );
+	//Msg( "Ceiling sentry PreThink: %i\n", state );
 
 	if (state == TURRET_DEAD)
 	{
@@ -1948,14 +1958,10 @@ bool CNPC_BM_CeilingSentry::PreThink( turretState_e state )
 
 			m_lifeState = LIFE_DEAD;
 
-			if ( m_pBeam )
-			{
-				UTIL_Remove( m_pBeam );
-				m_pBeam = NULL;
-			}
+			SetEyeState( TURRET_EYE_DEAD );
 		}
 		
-		if ( IsActivityFinished() && ( UpdateFacing() == false ) )
+		if ( IsActivityFinished() /*&& ( UpdateFacing() == false )*/ )
 		{
 			SetHeight( CEILING_TURRET_RETRACT_HEIGHT );
 
@@ -1966,6 +1972,8 @@ bool CNPC_BM_CeilingSentry::PreThink( turretState_e state )
 		{
 			StudioFrameAdvance();
 		}
+
+		SentryPreThink( state );
 
 		return true;
 	}
@@ -2054,29 +2062,5 @@ void CNPC_BM_CeilingSentry::SetEyeState( eyeState_t state )
 			m_pBeam->SetBrightness( 0 );
 		break;
 	}
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CNPC_BM_CeilingSentry::UpdateLaser()
-{
-	// Update laser
-	Vector vecLaserOrigin, vecLaserForward;
-	GetAttachment( m_poseLaser, vecLaserOrigin, &vecLaserForward );
-
-	trace_t tr;
-	UTIL_TraceLine( vecLaserOrigin, vecLaserOrigin + (vecLaserForward * 2048.0f), MASK_BLOCKLOS_AND_NPCS, this, COLLISION_GROUP_NONE, &tr );
-
-	m_pBeam->PointEntInit( tr.endpos, this );
-	m_pBeam->SetEndAttachment( m_poseLaser );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Overload our muzzle flash and send it to any actively held weapon
-//-----------------------------------------------------------------------------
-void CNPC_BM_CeilingSentry::DoMuzzleFlash()
-{
-	DispatchParticleEffect( "npc_sentry_ceiling_muzzleflash", PATTACH_POINT_FOLLOW, this, m_poseMuzzle );
 }
 #endif

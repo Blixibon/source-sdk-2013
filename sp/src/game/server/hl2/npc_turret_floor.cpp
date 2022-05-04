@@ -256,6 +256,21 @@ void CNPC_FloorTurret::Precache( void )
 	ADD_CUSTOM_ACTIVITY( CNPC_FloorTurret, ACT_FLOOR_TURRET_OPEN_IDLE );
 	ADD_CUSTOM_ACTIVITY( CNPC_FloorTurret, ACT_FLOOR_TURRET_FIRE );
 	
+#ifdef REVERSION_CATALYST
+	PrecacheScriptSound( GetRetireSound() );
+	PrecacheScriptSound( GetDeploySound() );
+	PrecacheScriptSound( GetMoveSound() );
+	PrecacheScriptSound( "NPC_Combine.WeaponBash" );
+	PrecacheScriptSound( GetActivateSound() );
+	PrecacheScriptSound( GetAlertSound() );
+	m_ShotSounds = PrecacheScriptSound( GetShootSound() );
+	PrecacheScriptSound( GetDieSound() );
+	PrecacheScriptSound( GetRetractSound() );
+	PrecacheScriptSound( GetAlarmSound() );
+	PrecacheScriptSound( GetPingSound() );
+	PrecacheScriptSound( "NPC_FloorTurret.DryFire" );
+	PrecacheScriptSound( "NPC_FloorTurret.Destruct" );
+#else
 	PrecacheScriptSound( "NPC_FloorTurret.Retire" );
 	PrecacheScriptSound( "NPC_FloorTurret.Deploy" );
 	PrecacheScriptSound( "NPC_FloorTurret.Move" );
@@ -269,6 +284,7 @@ void CNPC_FloorTurret::Precache( void )
 	PrecacheScriptSound( "NPC_FloorTurret.Ping");
 	PrecacheScriptSound( "NPC_FloorTurret.DryFire");
 	PrecacheScriptSound( "NPC_FloorTurret.Destruct" );
+#endif
 
 #ifdef HL2_EPISODIC
 	PrecacheParticleSystem( "explosion_turret_break" );
@@ -429,7 +445,11 @@ void CNPC_FloorTurret::Retire( void )
 		if ( UpdateFacing() == false )
 		{
 			SetActivity( (Activity) ACT_FLOOR_TURRET_CLOSE );
+#ifdef REVERSION_CATALYST
+			EmitSound( GetRetireSound() );
+#else
 			EmitSound( "NPC_FloorTurret.Retire" );
+#endif
 
 			//Notify of the retraction
 			m_OnRetire.FireOutput( NULL, this );
@@ -477,7 +497,11 @@ void CNPC_FloorTurret::Deploy( void )
 	{
 		m_bActive = true;
 		SetActivity( (Activity) ACT_FLOOR_TURRET_OPEN );
+#ifdef REVERSION_CATALYST
+		EmitSound( GetDeploySound() );
+#else
 		EmitSound( "NPC_FloorTurret.Deploy" );
+#endif
 
 		//Notify we're deploying
 		m_OnDeploy.FireOutput( NULL, this );
@@ -493,7 +517,11 @@ void CNPC_FloorTurret::Deploy( void )
 		m_flPlaybackRate = 0;
 		SetThink( &CNPC_FloorTurret::SearchThink );
 
+#ifdef REVERSION_CATALYST
+		EmitSound( GetMoveSound() );
+#else
 		EmitSound( "NPC_FloorTurret.Move" );
+#endif
 	}
 
 	m_flLastSight = gpGlobals->curtime + FLOOR_TURRET_MAX_WAIT;	
@@ -713,8 +741,13 @@ bool CNPC_FloorTurret::UpdateFacing( void )
 
 void CNPC_FloorTurret::DryFire( void )
 {
+#ifdef REVERSION_CATALYST
+	EmitSound( "NPC_FloorTurret.DryFire" );
+	EmitSound( GetActivateSound() );
+#else
 	EmitSound( "NPC_FloorTurret.DryFire");
 	EmitSound( "NPC_FloorTurret.Activate" );
+#endif
 
  	if ( RandomFloat( 0, 1 ) > 0.5 )
 	{
@@ -1083,7 +1116,11 @@ void CNPC_FloorTurret::SearchThink( void )
  
 		if ( gpGlobals->curtime > m_flNextActivateSoundTime )
 		{
+#ifdef REVERSION_CATALYST
+			EmitSound( GetActivateSound() );
+#else
 			EmitSound( "NPC_FloorTurret.Activate" );
+#endif
 			m_flNextActivateSoundTime = gpGlobals->curtime + 3.0;
 		}
 		return;
@@ -1137,7 +1174,11 @@ void CNPC_FloorTurret::AutoSearchThink( void )
 		SetThink( &CNPC_FloorTurret::Deploy );
 		if ( !m_bNoAlarmSounds )
 		{
+#ifdef REVERSION_CATALYST
+			EmitSound( GetAlertSound() );
+#else
 			EmitSound( "NPC_FloorTurret.Alert" );
+#endif
 		}
 	}
 }
@@ -1175,7 +1216,11 @@ void CNPC_FloorTurret::Shoot( const Vector &vecSrc, const Vector &vecDirToEnemy,
 	}
 
 	FireBullets( info );
+#ifdef REVERSION_CATALYST
+	EmitSound( GetShootSound() );
+#else
 	EmitSound( "NPC_FloorTurret.ShotSounds", m_ShotSounds );
+#endif
 	DoMuzzleFlash();
 }
 
@@ -1251,6 +1296,12 @@ bool CNPC_FloorTurret::CanBeAnEnemyOf( CBaseEntity *pEnemy )
 //-----------------------------------------------------------------------------
 void CNPC_FloorTurret::TippedThink( void )
 {
+#ifdef REVERSION_CATALYST
+	//Allow descended classes a chance to do something before the think function
+	if ( PreThink( TURRET_TIPPED ) )
+		return; 
+#endif
+
 	// Update our PVS state
 	CheckPVSCondition();
 
@@ -1313,11 +1364,19 @@ void CNPC_FloorTurret::TippedThink( void )
 			if ( UpdateFacing() == false )
 			{
 				//Make any last death noises and anims
+#ifdef REVERSION_CATALYST
+				EmitSound( GetDieSound() );
+#else
 				EmitSound( "NPC_FloorTurret.Die" );
+#endif
 				SpinDown();
 
 				SetActivity( (Activity) ACT_FLOOR_TURRET_CLOSE );
+#ifdef REVERSION_CATALYST
+				EmitSound( GetRetractSound() );
+#else
 				EmitSound( "NPC_FloorTurret.Retract" );
+#endif
 
 				CTakeDamageInfo	info;
 				info.SetDamage( 1 );
@@ -1379,7 +1438,11 @@ void CNPC_FloorTurret::InactiveThink( void )
 			if ( m_bBlinkState == false )
 			{
 				// Ping when the light is going to come back on
+#ifdef REVERSION_CATALYST
+				EmitSound( GetPingSound() );
+#else
 				EmitSound( "NPC_FloorTurret.AlarmPing" );
+#endif
 			}
 
 			SetEyeState( TURRET_EYE_ALARM );
@@ -1512,7 +1575,11 @@ bool CNPC_FloorTurret::PreThink( turretState_e state )
 				SpinUp();
 				if ( !m_bNoAlarmSounds )
 				{
+#ifdef REVERSION_CATALYST
+					EmitSound( GetAlarmSound() );
+#else
 					EmitSound( "NPC_FloorTurret.Alarm" );
+#endif
 				}
 			}
 			else
@@ -1679,7 +1746,11 @@ void CNPC_FloorTurret::Ping( void )
 		return;
 
 	//Ping!
+#ifdef REVERSION_CATALYST
+	EmitSound( GetPingSound() );
+#else
 	EmitSound( "NPC_FloorTurret.Ping" );
+#endif
 
 	SetEyeState( TURRET_EYE_SEEKING_TARGET );
 
@@ -2156,13 +2227,21 @@ void CNPC_FloorTurret::SelfDestructThink( void )
 	{
 		// Figure out what our beep pitch will be
 		float flBeepPitch = SELF_DESTRUCT_BEEP_MIN_PITCH + ( ( SELF_DESTRUCT_BEEP_MAX_PITCH - SELF_DESTRUCT_BEEP_MIN_PITCH ) * flDestructPerc );
-		
+
+#ifdef REVERSION_CATALYST
+		StopSound( GetPingSound() );
+#else
 		StopSound( "NPC_FloorTurret.AlarmPing" );
+#endif
 
 		// Play the beep
 		CPASAttenuationFilter filter( this, "NPC_FloorTurret.AlarmPing" );
 		EmitSound_t params;
+#ifdef REVERSION_CATALYST
+		params.m_pSoundName = GetPingSound();
+#else
 		params.m_pSoundName = "NPC_FloorTurret.AlarmPing";
+#endif
 		params.m_nPitch = floor( flBeepPitch );
 		params.m_nFlags = SND_CHANGE_PITCH;
 		EmitSound( filter, entindex(), params );

@@ -21,6 +21,10 @@ enum turretState_e
 	TURRET_TIPPED,
 	TURRET_SELF_DESTRUCTING,
 
+#ifdef REVERSION_CATALYST
+	TURRET_DEAD,
+#endif
+
 	TURRET_STATE_TOTAL
 };
 
@@ -200,6 +204,9 @@ protected:
 	virtual bool	PreThink( turretState_e state );
 	virtual void	Shoot( const Vector &vecSrc, const Vector &vecDirToEnemy, bool bStrict = false );
 	virtual void	SetEyeState( eyeState_t state );
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	void			Ping( void );	
 	void			Toggle( void );
 	void			Enable( void );
@@ -210,9 +217,25 @@ protected:
 	virtual bool	OnSide( void );
 
 	bool	IsCitizenTurret( void ) { return HasSpawnFlags( SF_FLOOR_TURRET_CITIZEN ); }
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	bool	UpdateFacing( void );
 	void	DryFire( void );
 	void	UpdateMuzzleMatrix();
+
+#ifdef REVERSION_CATALYST
+	virtual const char *GetRetireSound()	{ return "NPC_FloorTurret.Retire"; }
+	virtual const char *GetRetractSound()	{ return "NPC_FloorTurret.Retract"; }
+	virtual const char *GetDeploySound()	{ return "NPC_FloorTurret.Deploy"; }
+	virtual const char *GetMoveSound()		{ return "NPC_FloorTurret.Move"; }
+	virtual const char *GetActivateSound()	{ return "NPC_FloorTurret.Activate"; }
+	virtual const char *GetAlertSound()		{ return "NPC_FloorTurret.Alert"; }
+	virtual const char *GetAlarmSound()		{ return "NPC_FloorTurret.Alarm"; }
+	virtual const char *GetShootSound()		{ return "NPC_FloorTurret.ShotSounds"; }
+	virtual const char *GetPingSound()		{ return "NPC_FloorTurret.AlarmPing"; }
+	virtual const char *GetDieSound()		{ return "NPC_FloorTurret.Die"; }
+#endif
 
 protected:
 	matrix3x4_t m_muzzleToWorld;
