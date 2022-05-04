@@ -315,6 +315,16 @@ void CNPC_BM_HumanFemaleAssassin::HandleAnimEvent( animevent_t *pEvent )
 		SpeakIfAllowed( TLK_CMB_KICK );
 		return;
 	}
+	else if ( pEvent->event == AE_NPC_LEFTFOOT)
+	{
+		EmitSound( "NPC_Assassin.FootstepLeft" );
+		return;
+	}
+	else if ( pEvent->event == AE_NPC_RIGHTFOOT)
+	{
+		EmitSound( "NPC_Assassin.FootstepRight" );
+		return;
+	}
 
 	//switch( pEvent->event )
 	//{
