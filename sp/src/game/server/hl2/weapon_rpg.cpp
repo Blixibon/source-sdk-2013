@@ -1858,11 +1858,7 @@ void CWeaponRPG::ItemPostFrame( void )
 
 	//Player has toggled guidance state
 	//Adrian: Players are not allowed to remove the laser guide in single player anymore, bye!
-#ifdef REVERSION_CATALYST
-	if ( g_pGameRules->IsMultiplayer() == true && !IsBlackMesa() )
-#else
 	if ( g_pGameRules->IsMultiplayer() == true )
-#endif
 	{
 		if ( pPlayer->m_afButtonPressed & IN_ATTACK2 )
 		{
@@ -2540,20 +2536,7 @@ void CLaserDot::MakeInvisible( void )
 //=============================================================================
 BEGIN_DATADESC( CBM_Missile )
 
-	DEFINE_FIELD( m_hOwner,					FIELD_EHANDLE ),
-	DEFINE_FIELD( m_hRocketTrail,			FIELD_EHANDLE ),
-	DEFINE_FIELD( m_flAugerTime,			FIELD_TIME ),
-	DEFINE_FIELD( m_flMarkDeadTime,			FIELD_TIME ),
-	DEFINE_FIELD( m_flGracePeriodEndsAt,	FIELD_TIME ),
-	DEFINE_FIELD( m_flDamage,				FIELD_FLOAT ),
-	DEFINE_FIELD( m_bCreateDangerSounds,	FIELD_BOOLEAN ),
-	
-	// Function Pointers
-	DEFINE_FUNCTION( MissileTouch ),
-	DEFINE_FUNCTION( AccelerateThink ),
-	DEFINE_FUNCTION( AugerThink ),
-	DEFINE_FUNCTION( IgniteThink ),
-	DEFINE_FUNCTION( SeekThink ),
+	//DEFINE_FIELD( m_bLaunchedByPlayer, FIELD_BOOLEAN ),
 
 END_DATADESC()
 
@@ -2579,6 +2562,9 @@ CBM_Missile *CBM_Missile::Create( const Vector &vecOrigin, const QAngle &vecAngl
 //=============================================================================
 
 BEGIN_DATADESC( CWeapon_BM_RPG )
+
+	DEFINE_FIELD( m_bGuidingDisabled, FIELD_BOOLEAN ),
+
 END_DATADESC()
 
 IMPLEMENT_SERVERCLASS_ST( CWeapon_BM_RPG, DT_Weapon_BM_RPG )
@@ -2605,5 +2591,27 @@ void CWeapon_BM_RPG::SecondaryAttack( void )
 	ToggleGuiding();
 
 	m_flNextSecondaryAttack = gpGlobals->curtime + 0.25f;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Toggle the guiding laser
+//-----------------------------------------------------------------------------
+void CWeapon_BM_RPG::ToggleGuiding( void )
+{
+	BaseClass::ToggleGuiding();
+
+	m_bGuidingDisabled = !IsGuiding();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+// Input  : state - 
+//-----------------------------------------------------------------------------
+void CWeapon_BM_RPG::SuppressGuiding( bool state )
+{
+	if (m_bGuidingDisabled)
+		return;
+
+	BaseClass::SuppressGuiding( state );
 }
 #endif

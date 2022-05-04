@@ -228,6 +228,9 @@ public:
 #endif
 	void	StartGuiding( void );
 	void	StopGuiding( void );
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	void	ToggleGuiding( void );
 	bool	IsGuiding( void );
 
@@ -235,6 +238,9 @@ public:
 
 	bool	HasAnyAmmo( void );
 
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	void	SuppressGuiding( bool state = true );
 
 	void	CreateLaserPointer( void );
@@ -290,9 +296,13 @@ class CBM_Missile : public CMissile
 public:
 	static CBM_Missile *Create( const Vector &vecOrigin, const QAngle &vecAngles, edict_t *pentOwner );
 
-	virtual Class_T Classify ( void ) { return CLASS_MILITARY; }
+	//virtual Class_T Classify ( void ) { return CLASS_MILITARY; }
 
 	virtual const char *GetIgniteSound() { return "grenade_bm_rpg.TrailLoop"; }
+
+private:
+
+	//bool m_bLaunchedByPlayer;
 };
 
 //-----------------------------------------------------------------------------
@@ -309,9 +319,16 @@ public:
 
 	void	SecondaryAttack( void );
 
+	void	ToggleGuiding( void );
+	void	SuppressGuiding( bool state = true );
+
 	CMissile *CreateMissile( const Vector &vecOrigin, const QAngle &vecAngles, edict_t *pentOwner = NULL ) { return CBM_Missile::Create( vecOrigin, vecAngles, pentOwner ); }
 
 	DECLARE_DATADESC();
+
+private:
+
+	bool m_bGuidingDisabled;
 };
 #endif
 

@@ -608,6 +608,9 @@ void CNPC_CombineGunship::Spawn( void )
 
 	AddRelationship( "env_flare D_LI 9",	NULL );
 	AddRelationship( "rpg_missile D_HT 99", NULL );
+#ifdef REVERSION_CATALYST
+	AddRelationship( "rpg_bm_missile D_HT 99", NULL );
+#endif
 
 	m_flTimeNextPing = gpGlobals->curtime + 2;
 
@@ -3180,7 +3183,11 @@ void CNPC_CombineGunship::StopLoopingSounds( void )
 bool CNPC_CombineGunship::IsValidEnemy( CBaseEntity *pEnemy )
 {
 	// Always track missiles
+#ifdef REVERSION_CATALYST
+	if ( pEnemy->IsAlive() && !pEnemy->MyNPCPointer() && FClassnameIs( pEnemy, "rpg*missile" ) )
+#else
 	if ( pEnemy->IsAlive() && !pEnemy->MyNPCPointer() && FClassnameIs( pEnemy, "rpg_missile" ) )
+#endif
 		return true;
 
 	// If we're shooting off a burst, don't pick up a new enemy
@@ -3216,7 +3223,11 @@ bool CNPC_CombineGunship::IsTargettingMissile( void )
 	if ( GetEnemy() == NULL )
 		return false;
 
+#ifdef REVERSION_CATALYST
+	if ( FClassnameIs( GetEnemy(), "rpg*missile" ) == false )
+#else
 	if ( FClassnameIs( GetEnemy(), "rpg_missile" ) == false )
+#endif
 		return false;
 
 	return true;
