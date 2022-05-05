@@ -639,10 +639,11 @@ public:
 	void	DoImpactEffect( trace_t& tr, int nDamageType );
 
 	float	GetFireRate( void ) { return 0.1f; }
-	
-	// Use the AR2 activity table instead
-	acttable_t *ActivityList( void ) { return GetAR2Acttable(); }
-	int ActivityListCount( void ) { return GetAR2ActtableCount(); }
+
+	virtual acttable_t		*GetBackupActivityList() { return GetAR2Acttable(); }
+	virtual int				GetBackupActivityListCount() { return GetAR2ActtableCount(); }
+
+	DECLARE_ACTTABLE();
 };
 
 IMPLEMENT_SERVERCLASS_ST( CWeapon_BM_MP5, DT_Weapon_BM_MP5 )
@@ -652,6 +653,84 @@ LINK_ENTITY_TO_CLASS( weapon_bm_mp5, CWeapon_BM_MP5 );
 LINK_ENTITY_TO_CLASS( weapon_mp5, CWeapon_BM_MP5 ); // For simplicity/ease of use/etc.
 
 PRECACHE_WEAPON_REGISTER( weapon_bm_mp5 );
+
+acttable_t	CWeapon_BM_MP5::m_acttable[] =
+{
+	{ ACT_RANGE_ATTACK1, ACT_RANGE_ATTACK_AR1, true },
+
+#if EXPANDED_HL2_UNUSED_WEAPON_ACTIVITIES
+	// Optional new NPC activities
+	// (these should fall back to AR2 animations when they don't exist on an NPC)
+	{ ACT_RELOAD,					ACT_RELOAD_AR1,			true },
+	{ ACT_IDLE,						ACT_IDLE_AR1,				true },
+	{ ACT_IDLE_ANGRY,				ACT_IDLE_ANGRY_AR1,		true },
+
+	// Readiness activities (not aiming)
+	{ ACT_IDLE_RELAXED,				ACT_IDLE_AR1_RELAXED,			false },//never aims
+	{ ACT_IDLE_STIMULATED,			ACT_IDLE_AR1_STIMULATED,		false },
+	{ ACT_IDLE_AGITATED,			ACT_IDLE_ANGRY_AR1,			false },//always aims
+
+	{ ACT_WALK_RELAXED,				ACT_WALK_AR1_RELAXED,			false },//never aims
+	{ ACT_WALK_STIMULATED,			ACT_WALK_AR1_STIMULATED,		false },
+	{ ACT_WALK_AGITATED,			ACT_WALK_AIM_AR1,				false },//always aims
+
+	{ ACT_RUN_RELAXED,				ACT_RUN_AR1_RELAXED,			false },//never aims
+	{ ACT_RUN_STIMULATED,			ACT_RUN_AR1_STIMULATED,		false },
+	{ ACT_RUN_AGITATED,				ACT_RUN_AIM_AR1,				false },//always aims
+
+	// Readiness activities (aiming)
+	{ ACT_IDLE_AIM_RELAXED,			ACT_IDLE_AR1_RELAXED,			false },//never aims	
+	{ ACT_IDLE_AIM_STIMULATED,		ACT_IDLE_AIM_AR1_STIMULATED,	false },
+	{ ACT_IDLE_AIM_AGITATED,		ACT_IDLE_ANGRY_AR1,			false },//always aims
+
+	{ ACT_WALK_AIM_RELAXED,			ACT_WALK_AR1_RELAXED,			false },//never aims
+	{ ACT_WALK_AIM_STIMULATED,		ACT_WALK_AIM_AR1_STIMULATED,	false },
+	{ ACT_WALK_AIM_AGITATED,		ACT_WALK_AIM_AR1,				false },//always aims
+
+	{ ACT_RUN_AIM_RELAXED,			ACT_RUN_AR1_RELAXED,			false },//never aims
+	{ ACT_RUN_AIM_STIMULATED,		ACT_RUN_AIM_AR1_STIMULATED,	false },
+	{ ACT_RUN_AIM_AGITATED,			ACT_RUN_AIM_AR1,				false },//always aims
+	//End readiness activities
+
+	{ ACT_WALK,						ACT_WALK_AR1,					true },
+	{ ACT_WALK_AIM,					ACT_WALK_AIM_AR1,				true },
+	{ ACT_WALK_CROUCH,				ACT_WALK_CROUCH_RIFLE,					true },
+	{ ACT_WALK_CROUCH_AIM,			ACT_WALK_CROUCH_AIM_RIFLE,				true },
+	{ ACT_RUN,						ACT_RUN_AR1,					true },
+	{ ACT_RUN_AIM,					ACT_RUN_AIM_AR1,				true },
+	{ ACT_RUN_CROUCH,				ACT_RUN_CROUCH_RIFLE,					true },
+	{ ACT_RUN_CROUCH_AIM,			ACT_RUN_CROUCH_AIM_RIFLE,				true },
+	{ ACT_GESTURE_RANGE_ATTACK1,	ACT_GESTURE_RANGE_ATTACK_AR1,	true },
+	{ ACT_RANGE_ATTACK1_LOW,		ACT_RANGE_ATTACK_AR1_LOW,		true },
+	{ ACT_COVER_LOW,				ACT_COVER_AR1_LOW,				false },
+	{ ACT_RANGE_AIM_LOW,			ACT_RANGE_AIM_AR1_LOW,			false },
+	{ ACT_RELOAD_LOW,				ACT_RELOAD_AR1_LOW,			false },
+	{ ACT_GESTURE_RELOAD,			ACT_GESTURE_RELOAD_AR1,		true },
+
+	{ ACT_ARM,						ACT_ARM_RIFLE,					false },
+	{ ACT_DISARM,					ACT_DISARM_RIFLE,				false },
+
+#if EXPANDED_HL2_COVER_ACTIVITIES
+	{ ACT_RANGE_AIM_MED,			ACT_RANGE_AIM_AR1_MED,			false },
+	{ ACT_RANGE_ATTACK1_MED,		ACT_RANGE_ATTACK_AR1_MED,		false },
+#endif
+
+#if EXPANDED_HL2DM_ACTIVITIES
+	// HL2:DM activities (for third-person animations in SP)
+	{ ACT_HL2MP_IDLE,                    ACT_HL2MP_IDLE_AR1,                    false },
+	{ ACT_HL2MP_RUN,                    ACT_HL2MP_RUN_AR1,                    false },
+	{ ACT_HL2MP_IDLE_CROUCH,            ACT_HL2MP_IDLE_CROUCH_AR1,            false },
+	{ ACT_HL2MP_WALK_CROUCH,            ACT_HL2MP_WALK_CROUCH_AR1,            false },
+	{ ACT_HL2MP_GESTURE_RANGE_ATTACK,    ACT_HL2MP_GESTURE_RANGE_ATTACK_AR1,    false },
+	{ ACT_HL2MP_GESTURE_RELOAD,            ACT_HL2MP_GESTURE_RELOAD_AR1,        false },
+	{ ACT_HL2MP_JUMP,                    ACT_HL2MP_JUMP_AR1,                    false },
+	{ ACT_HL2MP_WALK,					ACT_HL2MP_WALK_AR1,					false },
+	{ ACT_HL2MP_GESTURE_RANGE_ATTACK2,	ACT_HL2MP_GESTURE_RANGE_ATTACK2_AR1,    false },
+#endif
+#endif
+};
+
+IMPLEMENT_ACTTABLE( CWeapon_BM_MP5 );
 
 //-----------------------------------------------------------------------------
 // Purpose: 
