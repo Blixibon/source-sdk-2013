@@ -23,10 +23,14 @@ public:
 
 	void		PrescheduleThink( void );
 
+	Vector		GetShootEnemyDir( const Vector &shootOrigin, bool bNoisy );
+	Vector		GetActualShootPosition( const Vector &shootOrigin );
+
 	Activity	NPC_TranslateActivity( Activity eNewActivity );
 	void		OnChangeActivity( Activity eNewActivity );
 
 	virtual bool		ShouldFlip();
+	virtual float		MaxHeadshotDistance() { return 0.0f; }
 
 	float		m_flLastFlipEndTime;
 };
@@ -69,6 +73,79 @@ template <class BASE_NPC>
 void CAI_Base_BM_Assassin<BASE_NPC>::PrescheduleThink( void )
 {
 	BaseClass::PrescheduleThink();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+// Input  :
+// Output :
+//-----------------------------------------------------------------------------
+template <class BASE_NPC>
+Vector CAI_Base_BM_Assassin<BASE_NPC>::GetShootEnemyDir( const Vector &shootOrigin, bool bNoisy )
+{
+	CBaseEntity *pEnemy = this->GetEnemy();
+
+	if ( pEnemy )
+	{
+		Vector vecEnemyLKP = this->GetEnemyLKP();
+		Vector vecEnemyOffset;
+
+		if (pEnemy->IsNPC())
+		{
+			float flDist = this->EnemyDistance( pEnemy );
+			if (flDist < this->MaxHeadshotDistance() && flDist > 32.0f)
+			{
+				// Aim for the head
+				vecEnemyOffset = pEnemy->HeadTarget( shootOrigin ) - pEnemy->GetAbsOrigin();
+			}
+		}
+		else
+		{
+			vecEnemyOffset = pEnemy->BodyTarget( shootOrigin, bNoisy ) - pEnemy->GetAbsOrigin();
+		}
+
+		Vector retval = vecEnemyOffset + vecEnemyLKP - shootOrigin;
+		VectorNormalize( retval );
+		return retval;
+	}
+	else
+	{
+		Vector forward;
+		AngleVectors( this->GetLocalAngles(), &forward );
+		return forward;
+	}
+}
+
+extern ConVar ai_lead_time;
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+template <class BASE_NPC>
+Vector CAI_Base_BM_Assassin<BASE_NPC>::GetActualShootPosition( const Vector &shootOrigin )
+{
+	if ( this->GetEnemy() && this->GetEnemy()->IsNPC() )
+	{
+		float flDist = this->EnemyDistance( this->GetEnemy() );
+		if (flDist < this->MaxHeadshotDistance() && flDist > 32.0f)
+		{
+			// Aim for the head
+			Vector vecEnemyLKP = this->GetEnemyLKP();
+			Vector vecEnemyOffset = this->GetEnemy()->HeadTarget( shootOrigin ) - this->GetEnemy()->GetAbsOrigin();
+
+			// Scale down towards the torso the closer the target is
+			if (flDist < 192.0f)
+			{
+				vecEnemyOffset *= ( ((flDist / 192.0f) * 0.5f) + 0.5f );
+			}
+
+			Vector vecTargetPosition = vecEnemyOffset + vecEnemyLKP;
+
+			// lead for some fraction of a second.
+			return (vecTargetPosition + ( this->GetEnemy()->GetSmoothedVelocity() * ai_lead_time.GetFloat() ));
+		}
+	}
+
+	return BaseClass::GetActualShootPosition( shootOrigin );
 }
 
 //-----------------------------------------------------------------------------
@@ -142,6 +219,8 @@ public:
 	void		KickAttack( bool bLow );
 	bool		ShouldFlip();
 
+	float		MaxHeadshotDistance() { return 1024.0f; }
+
 	WeaponProficiency_t CalcWeaponProficiency( CBaseCombatWeapon *pWeapon );
 
 	void		HandleAnimEvent( animevent_t *pEvent );
@@ -208,6 +287,8 @@ public:
 
 	bool		ShouldFlip();
 	bool		ShouldHaveSpeedBoost();
+
+	float		MaxHeadshotDistance() { return 256.0f; }
 
 	void		PrescheduleThink( void );
 	float		GetSequenceGroundSpeed( CStudioHdr *pStudioHdr, int iSequence );
