@@ -36,6 +36,9 @@ public:
 	const char	*GetCharacterClassname();
 	void		DeathSound( const CTakeDamageInfo &info );
 
+	bool		DoHolster( void );
+	bool		DoUnholster( void );
+
 	void		PrescheduleThink( void );
 	void		BuildScheduleTestBits( void );
 	int			SelectSchedule ( void );
@@ -78,6 +81,9 @@ public:
 
 private:
 	bool		ShouldHitPlayer( const Vector &targetDir, float targetDist );
+
+protected:
+	bool		IsSidearm( CBaseEntity *pWeapon ) { return pWeapon->ClassMatches( "weapon_css_deagle" ); }
 
 public:
 	Activity	NPC_TranslateActivity( Activity eNewActivity );

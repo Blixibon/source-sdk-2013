@@ -140,6 +140,19 @@ void CNPC_BM_HumanGrunt::Spawn( void )
 		}
 		*/
 	}
+
+	if (GetActiveWeapon() && GetActiveWeapon()->WeaponClassify() == WEPCLASS_HANDGUN)
+	{
+		/*if (!m_fWeaponDrawn)
+		{
+			DoHolster();
+		}
+		else*/ if (GetBodygroup(BODYGROUP_HOLSTER) != 0)
+		{
+			// Empty holster
+			SetBodygroup( BODYGROUP_HOLSTER, 2 );
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -231,6 +244,40 @@ void CNPC_BM_HumanGrunt::DeathSound( const CTakeDamageInfo &info )
 
 	GetSentences()->Speak( "COMBINE_DIE", SENTENCE_PRIORITY_INVALID, SENTENCE_CRITERIA_ALWAYS ); 
 #endif
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose: Allows NPC to holster from more than just the animation event
+//-----------------------------------------------------------------------------
+bool CNPC_BM_HumanGrunt::DoHolster( void )
+{
+	if (GetActiveWeapon() && IsSidearm( GetActiveWeapon() ) && GetBodygroup( BODYGROUP_HOLSTER ) == 2)
+	{
+		// Toggle our holster bodygroup
+		SetBodygroup( BODYGROUP_HOLSTER, 1 );
+	}
+
+	return BaseClass::DoHolster();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Allows NPC to unholster from more than just the animation event
+//-----------------------------------------------------------------------------
+bool CNPC_BM_HumanGrunt::DoUnholster( void )
+{
+	bool bBase = BaseClass::DoUnholster();
+
+	if (bBase)
+	{
+		if (GetActiveWeapon() && IsSidearm( GetActiveWeapon() ) && GetBodygroup( BODYGROUP_HOLSTER ) == 1)
+		{
+			// Toggle our holster bodygroup
+			SetBodygroup( BODYGROUP_HOLSTER, 2 );
+		}
+	}
+
+	return bBase;
 }
 
 
