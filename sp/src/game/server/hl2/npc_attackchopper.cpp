@@ -3564,7 +3564,12 @@ void CNPC_AttackHelicopter::TraceAttack( const CTakeDamageInfo &info, const Vect
 	// Take no damage from trace attacks unless it's blast damage. RadiusDamage() sometimes calls
 	// TraceAttack() as a means for delivering blast damage. Usually when the explosive penetrates
 	// the target. (RPG missiles do this sometimes).
-#ifdef MAPBASE
+#if defined(REVERSION_CATALYST)
+	if ( ( ( info.GetDamageType() & DMG_AIRBOAT ) == 0 ) || ( ( info.GetDamageType() & DMG_SHOCK ) == 0 ) || 
+		 ( info.GetInflictor()->Classify() == CLASS_MISSILE ) || 
+		 ( info.GetAttacker()->Classify() == CLASS_MISSILE ) ||
+		 m_bAllowAnyDamage )
+#elif defined(MAPBASE)
 	if ( ( info.GetDamageType() & DMG_AIRBOAT ) || 
 		 ( info.GetInflictor()->Classify() == CLASS_MISSILE ) || 
 		 ( info.GetAttacker()->Classify() == CLASS_MISSILE ) ||
@@ -3592,9 +3597,15 @@ int CNPC_AttackHelicopter::OnTakeDamage( const CTakeDamageInfo &info )
 	if( info.GetInflictor() != this )
 #endif
 	{
+#ifdef REVERSION_CATALYST
+		if ( ( ( info.GetDamageType() & DMG_AIRBOAT ) == 0 ) && ( ( info.GetDamageType() & DMG_SHOCK ) == 0 ) && 
+			( info.GetInflictor()->Classify() != CLASS_MISSILE ) && 
+			( info.GetAttacker()->Classify() != CLASS_MISSILE ) )
+#else
 		if ( ( ( info.GetDamageType() & DMG_AIRBOAT ) == 0 ) && 
 			( info.GetInflictor()->Classify() != CLASS_MISSILE ) && 
 			( info.GetAttacker()->Classify() != CLASS_MISSILE ) )
+#endif
 			return 0;
 	}
 

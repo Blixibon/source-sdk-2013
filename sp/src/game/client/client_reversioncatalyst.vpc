@@ -28,6 +28,9 @@ $Project
 			$File	"reversioncatalyst\c_npc_bm_human_scientist.h"
 			$File	"reversioncatalyst\c_npc_bm_human_security.cpp"
 			$File	"reversioncatalyst\c_npc_bm_human_security.h"
+			$File	"$SRCDIR\game\shared\reversioncatalyst\weapon_bm_base.cpp"
+			$File	"$SRCDIR\game\shared\reversioncatalyst\weapon_bm_base.h"
+			$File	"reversioncatalyst\c_weapon_bm_gauss.cpp"
 			
 			$File	"$SRCDIR\game\shared\reversioncatalyst\rc_bm_character_manifest.cpp"
 			$File	"$SRCDIR\game\shared\reversioncatalyst\rc_bm_character_manifest.h"

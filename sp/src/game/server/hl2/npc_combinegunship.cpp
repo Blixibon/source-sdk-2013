@@ -2856,7 +2856,10 @@ void CNPC_CombineGunship::MakeTracer( const Vector &vecTracerSrc, const trace_t 
 void CNPC_CombineGunship::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator )
 {
 	// Reflect bullets
-#ifdef MAPBASE
+#if defined(REVERSION_CATALYST)
+	if ( info.GetDamageType() & DMG_BULLET && !(info.GetDamageType() & DMG_SHOCK) &&
+		(!m_bAllowAnyDamage || !PassesDamageFilter(info)) )
+#elif defined(MAPBASE)
 	// There's a keyvalue that allows any damage, but still reflect if the bullets wouldn't pass our damage filter.
 	if ( info.GetDamageType() & DMG_BULLET &&
 		(!m_bAllowAnyDamage || !PassesDamageFilter(info)) )
@@ -2943,7 +2946,9 @@ void CNPC_CombineGunship::FireDamageOutputsUpto( int iDamageNumber )
 int	CNPC_CombineGunship::OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo )
 {
 	// Allow npc_kill to kill me
-#ifdef MAPBASE
+#if defined(REVERSION_CATALYST)
+	if ( !(inputInfo.GetDamageType() & (DMG_SHOCK|DMG_GENERIC)) && !m_bAllowAnyDamage )
+#elif defined(MAPBASE)
 	if ( inputInfo.GetDamageType() != DMG_GENERIC && !m_bAllowAnyDamage )
 #else
 	if ( inputInfo.GetDamageType() != DMG_GENERIC )

@@ -933,21 +933,23 @@ public:
 };
 LINK_ENTITY_TO_CLASS( item_bm_ammo_357, CItem_BM_357Ammo );
 
+// TODO: Actual values
+#define SIZE_AMMO_ENERGY				10
+#define SIZE_AMMO_ENERGY_LARGE			20
+
 // ========================================================================
 //	>> Uranium
 // ========================================================================
-/*
 class CItem_BM_UraniumAmmo : public CItem_BM_BaseAmmo
 {
 public:
 	DECLARE_CLASS( CItem_BM_UraniumAmmo, CItem_BM_BaseAmmo );
 
 	virtual const char *GetAmmoModel() { return "models/weapons/w_gaussammo.mdl"; }
-	virtual const char *GetAmmoType() { return "TODO"; }
-	virtual int GetAmmoCount() { return SIZE_AMMO_TODO; }
+	virtual const char *GetAmmoType() { return "GaussEnergy"; }
+	virtual int GetAmmoCount() { return SIZE_AMMO_ENERGY; }
 };
 LINK_ENTITY_TO_CLASS( item_bm_ammo_energy, CItem_BM_UraniumAmmo );
-*/
 #endif
 
 // ==================================================================

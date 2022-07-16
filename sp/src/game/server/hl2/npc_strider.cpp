@@ -3133,7 +3133,11 @@ int CNPC_Strider::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	}
 
 	//int healthIncrement = 5 - ( m_iHealth / ( m_iMaxHealth / 5 ) );
+#ifdef REVERSION_CATALYST
+	if ( (info.GetDamageType() & DMG_BLAST|DMG_SHOCK) && info.GetMaxDamage() > 50 )
+#else
 	if ( (info.GetDamageType() & DMG_BLAST) && info.GetMaxDamage() > 50 )
+#endif
 	{
 		Vector headPos = BodyTarget( info.GetDamagePosition(), false );
 		

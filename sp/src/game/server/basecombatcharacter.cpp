@@ -1727,6 +1727,25 @@ bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vec
 	}
 #endif //HL2_DLL
 
+#ifdef REVERSION_CATALYST
+	// >100 shock damage causes ragdoll boogie (for tau cannon)
+	if (info.GetDamageType() == DMG_SHOCK && info.GetDamage() > 100 && !( GetEFlags() & EFL_NO_MEGAPHYSCANNON_RAGDOLL ) && !IsPlayer())
+	{
+		if ( CanBecomeServerRagdoll() == false )
+			return false;
+
+		CBaseEntity *pRagdoll = CreateServerRagdoll( this, m_nForceBone, newinfo, COLLISION_GROUP_INTERACTIVE_DEBRIS, true );
+		FixupBurningServerRagdoll( pRagdoll );
+		RemoveDeferred();
+			
+		// 255, 160, 64
+		static const Vector vecTauColor( 1.0f, 0.6275f, 0.25f );
+		CRagdollBoogie::Create( pRagdoll, 100, gpGlobals->curtime, 1.0f + ((float)info.GetDamage() / 100.0f), SF_RAGDOLL_BOOGIE_ELECTRICAL, &vecTauColor );
+
+		return true;
+	}
+#endif
+
 	return BecomeRagdollOnClient( forceVector );
 }
 

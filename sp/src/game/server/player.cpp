@@ -6521,6 +6521,9 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveAmmo( 90,	"556mm" );
 		GiveAmmo( 60,	"762mm" );
 #endif
+#ifdef REVERSION_CATALYST
+		GiveAmmo( 255,	"GaussEnergy" );
+#endif
 		GiveNamedItem( "weapon_smg1" );
 		GiveNamedItem( "weapon_frag" );
 		GiveNamedItem( "weapon_crowbar" );
@@ -6534,6 +6537,9 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveNamedItem( "weapon_crossbow" );
 #ifdef HL2_EPISODIC
 		// GiveNamedItem( "weapon_magnade" );
+#endif
+#ifdef REVERSION_CATALYST
+		GiveNamedItem( "weapon_bm_gauss" );
 #endif
 		if ( GetHealth() < 100 )
 		{

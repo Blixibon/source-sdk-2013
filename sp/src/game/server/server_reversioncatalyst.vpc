@@ -32,8 +32,9 @@ $Project
 			$File	"reversioncatalyst\npc_bm_osprey.h"
 			$File	"reversioncatalyst\npc_bm_sentry_ground.cpp"
 			$File	"reversioncatalyst\npc_bm_sentry_ground.h"
-			$File	"reversioncatalyst\weapon_bm_base.cpp"
-			$File	"reversioncatalyst\weapon_bm_base.h"
+			$File	"$SRCDIR\game\shared\reversioncatalyst\weapon_bm_base.cpp"
+			$File	"$SRCDIR\game\shared\reversioncatalyst\weapon_bm_base.h"
+			$File	"reversioncatalyst\weapon_bm_gauss.cpp"
 			
 			$File	"$SRCDIR\game\shared\reversioncatalyst\rc_bm_character_manifest.cpp"
 			$File	"$SRCDIR\game\shared\reversioncatalyst\rc_bm_character_manifest.h"
