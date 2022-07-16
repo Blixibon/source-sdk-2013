@@ -119,6 +119,9 @@ public:
 #ifdef MAPBASE
 	bool			IsAltFireCapable();
 	bool			IsGrenadeCapable();
+#ifdef REVERSION_CATALYST
+	virtual
+#endif
 	const char*		GetGrenadeAttachment() { return "lefthand"; }
 #else
 #endif
