@@ -58,12 +58,12 @@ int CCharacterManifestSystem::SelectCharacterFromEntity( const char *pszEntName,
 	{
 		if (FStrEq( m_CharacterList[i].pszName.String(), pszEntName ))
 		{
-			Msg( "Character '%s' (%i) matches classname '%s'\n", m_CharacterList[i].pszName.String(), i, pszEntName );
+			//Msg( "Character '%s' (%i) matches classname '%s'\n", m_CharacterList[i].pszName.String(), i, pszEntName );
 			specificCharacters.AddToTail( i );
 		}
 		else if (FStrEq( m_CharacterList[i].pszName.String(), pszClassname ))
 		{
-			Msg( "Character '%s' (%i) matches classname '%s'\n", m_CharacterList[i].pszName.String(), i, pszClassname );
+			//Msg( "Character '%s' (%i) matches classname '%s'\n", m_CharacterList[i].pszName.String(), i, pszClassname );
 			classCharacters.AddToTail( i );
 		}
 	}
