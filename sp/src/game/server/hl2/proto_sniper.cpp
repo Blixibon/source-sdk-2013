@@ -953,6 +953,14 @@ void CProtoSniper::OnScheduleChange( void )
 {
 	LaserOff();
 
+#ifdef MAPBASE
+	if ( m_bKilledPlayer && HasCondition( COND_SEE_PLAYER ) )
+	{
+		// IMPOSSIBLE! (possible when SP respawn is enabled)
+		m_bKilledPlayer = false;
+	}
+#endif
+
 	BaseClass::OnScheduleChange();
 }
 
@@ -3452,6 +3460,18 @@ AI_BEGIN_CUSTOM_NPC( proto_sniper, CProtoSniper )
 
 	//=========================================================
 	//=========================================================
+#ifdef MAPBASE
+	DEFINE_SCHEDULE
+	(
+	SCHED_PSNIPER_PLAYER_DEAD,
+
+	"	Tasks"
+	"		TASK_SNIPER_PLAYER_DEAD		0"
+	"	"
+	"	Interrupts"
+	"		COND_SEE_PLAYER"
+	)
+#else
 	DEFINE_SCHEDULE
 	(
 	SCHED_PSNIPER_PLAYER_DEAD,
@@ -3461,6 +3481,7 @@ AI_BEGIN_CUSTOM_NPC( proto_sniper, CProtoSniper )
 	"	"
 	"	Interrupts"
 	)
+#endif
 
 AI_END_CUSTOM_NPC()
 
