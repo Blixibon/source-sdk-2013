@@ -1,0 +1,18 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "models/zombie_medic/zombie_classic_sheet"
+	"$bumpmap" "models/zombie_medic/zombie_classic_sheet_n"
+	"$model" "1"
+	"$phong" "1"
+	"$phongboost" "5"
+	"$halflambert" "1"
+//	"$phongexponenttexture" "models/zombie_classic/zombie_classic_phong"
+	"$phongalbedotint" "1"										
+	"$phongfresnelranges"	"[0.1 .5  1]"
+	"$phongexponent" 30
+	
+	//rimlight parameters
+	"$rimlight" "1"
+	"$rimlightexponent" "24"
+	"$rimlightboost" "1"
+}
