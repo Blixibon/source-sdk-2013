@@ -463,6 +463,7 @@ void CBaseViewModel::CalcViewModelView( CBasePlayer *owner, const Vector& eyePos
 	}
 
 #ifdef MAPBASE
+#ifdef CSS_WEAPONS_IN_HL2 // This code originates from Mapbase v7.0. In the event of a merge conflict, it should take precedence over this code.
 	// Flip the view if we should be flipping
 	if (ShouldFlipViewModel())
 	{
