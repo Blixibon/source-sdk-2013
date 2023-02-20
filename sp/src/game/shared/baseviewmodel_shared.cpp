@@ -462,6 +462,7 @@ void CBaseViewModel::CalcViewModelView( CBasePlayer *owner, const Vector& eyePos
 		g_ClientVirtualReality.OverrideViewModelTransform( vmorigin, vmangles, pWeapon && pWeapon->ShouldUseLargeViewModelVROverride() );
 	}
 
+
 #ifdef MAPBASE
 	// Flip the view if we should be flipping
 	if (ShouldFlipViewModel())
