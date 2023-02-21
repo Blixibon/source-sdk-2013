@@ -350,12 +350,12 @@ void CBaseHLCombatWeapon::AddViewmodelBob( CBaseViewModel *viewmodel, Vector &or
 	origin[2] += g_verticalBob * 0.1f;
 	
 	// bob the angles
-	angles[ ROLL ]	+= g_verticalBob * 0.5f;
-	angles[ PITCH ]	-= g_verticalBob * 0.4f;
+	angles[ ROLL ]	+= g_verticalBob * 0.1f;
+	angles[ PITCH ]	-= g_verticalBob * 0.1f;
 
-	angles[ YAW ]	-= g_lateralBob  * 0.3f;
+	angles[ YAW ]	-= g_lateralBob  * 0.1f;
 
-	VectorMA( origin, g_lateralBob * 0.8f, right, origin );
+	VectorMA( origin, g_lateralBob * 0.1f, right, origin );
 }
 
 //-----------------------------------------------------------------------------

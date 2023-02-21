@@ -1,0 +1,9 @@
+"VertexLitGeneric"
+{
+	// Original shader: VertexLitTexture
+	"$basetexture" "Models/Items/box45acp"
+
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[0.075 0.075 0.075]"
+	"$envmapsaturation" "0.1"
+}
