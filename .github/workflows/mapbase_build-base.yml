@@ -94,7 +94,6 @@ jobs:
       run: |
         msbuild -m -p:Configuration=${{inputs.configuration}} raytrace\raytrace.vcxproj || exit /b
         msbuild -m -p:Configuration=${{inputs.configuration}} tier1\tier1.vcxproj || exit /b
-        msbuild -m -p:Configuration=${{inputs.configuration}} vgui2\vgui_controls\vgui_controls.vcxproj || exit /b
         msbuild -m -p:Configuration=${{inputs.configuration}} vscript\vscript.vcxproj || exit /b
 
     - name: Build Map Tools
@@ -121,6 +120,7 @@ jobs:
       working-directory: '${{inputs.branch}}/src'
       shell: cmd
       run: |
+        msbuild -m -p:Configuration=${{inputs.configuration}} vgui2\vgui_controls\vgui_controls.vcxproj || exit /b
         msbuild -m -p:Configuration=${{inputs.configuration}} responserules\runtime\responserules.vcxproj || exit /b
         msbuild -m -p:Configuration=${{inputs.configuration}} game\client\client_${{inputs.game}}.vcxproj || exit /b
         msbuild -m -p:Configuration=${{inputs.configuration}} game\server\server_${{inputs.game}}.vcxproj || exit /b
