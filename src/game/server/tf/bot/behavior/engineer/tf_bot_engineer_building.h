@@ -57,6 +57,10 @@ private:
 	bool CheckIfSentryIsOutOfPosition( CTFBot *me ) const;
 
 	void UpgradeAndMaintainBuildings( CTFBot *me );
+#ifdef MAPBASE
+	void UpgradeAndMaintainBuildingsAdvanced( CTFBot *me );
+	int GetBuildingTaskPriority( CBaseObject *obj );
+#endif
 	bool IsMetalSourceNearby( CTFBot *me ) const;
 };
 

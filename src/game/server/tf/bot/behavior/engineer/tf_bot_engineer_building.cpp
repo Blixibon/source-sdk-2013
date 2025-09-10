@@ -28,6 +28,9 @@
 ConVar tf_bot_engineer_retaliate_range( "tf_bot_engineer_retaliate_range", "750", FCVAR_CHEAT, "If attacker who destroyed sentry is closer than this, attack. Otherwise, retreat" );
 ConVar tf_bot_engineer_exit_near_sentry_range( "tf_bot_engineer_exit_near_sentry_range", "2500", FCVAR_CHEAT, "Maximum travel distance between a bot's Sentry gun and its Teleporter Exit" );
 ConVar tf_bot_engineer_max_sentry_travel_distance_to_point( "tf_bot_engineer_max_sentry_travel_distance_to_point", "2500", FCVAR_CHEAT, "Maximum travel distance between a bot's Sentry gun and the currently contested point" );
+#ifdef MAPBASE
+ConVar tf_bot_engineer_expand_maintenance( "tf_bot_engineer_expand_maintenance", "1", FCVAR_NONE, "If enabled, engineers will maintain teleporters and the buildings of other engineers" );
+#endif
 
 extern ConVar tf_bot_path_lookahead_range;
 
@@ -63,11 +66,216 @@ ActionResult< CTFBot >	CTFBotEngineerBuilding::OnStart( CTFBot *me, Action< CTFB
 }
 
 
+#ifdef MAPBASE
+//---------------------------------------------------------------------------------------------
+int CTFBotEngineerBuilding::GetBuildingTaskPriority( CBaseObject *obj )
+{
+	int iPriority = 0;
+
+	if ( obj->HasSapper() || obj->IsPlasmaDisabled() )
+	{
+		iPriority = 8;
+	}
+	// HACKHACK: GetHealth() returns m_flHealth, which in testing doesn't seem to change in response to being repaired
+	else if ( obj->GetTimeSinceLastInjury() < 1.0f || obj->m_iHealth < obj->GetMaxHealth() ) // obj->GetHealth()
+	{
+		iPriority = 7;
+	}
+	else if ( obj->IsBuilding() )
+	{
+		iPriority = 6;
+	}
+	else if ( obj->GetUpgradeLevel() < 3 )
+	{
+		iPriority = 5;
+	}
+
+	// UNDONE: Type-specific priorities
+	/*
+	switch ( obj->GetType() )
+	{
+		case OBJ_SENTRYGUN:
+			{
+				CObjectSentrygun *mySentry = (CObjectSentrygun *)obj;
+			}
+			break;
+		case OBJ_DISPENSER:
+			{
+				CObjectDispenser *myDispenser = (CObjectDispenser *)obj;
+			}
+			break;
+		case OBJ_TELEPORTER:
+			{
+				CObjectTeleporter *myTeleporter = (CObjectTeleporter *)obj;
+			}
+			break;
+	}
+	*/
+
+	return iPriority;
+}
+
+//---------------------------------------------------------------------------------------------
+// Expanded version of UpgradeAndMaintainBuildings() which iterates through buildings directly,
+// maintaining teleporters and friendly buildings.
+//---------------------------------------------------------------------------------------------
+void CTFBotEngineerBuilding::UpgradeAndMaintainBuildingsAdvanced( CTFBot *me )
+{	
+	CUtlVector<CBaseObject *> vecNestObjects;
+	for ( int i = 0; i < me->GetObjectCount(); i++ )
+	{
+		CBaseObject *myBuilding = me->GetObject( i );
+		if ( !myBuilding )
+			continue;
+
+		if ( myBuilding->GetType() == OBJ_TELEPORTER /*&& ((CObjectTeleporter *)myBuilding)->IsEntrance()*/ )
+		{
+			// Don't count teleporters as part of the nest
+			continue;
+		}
+
+		vecNestObjects.AddToTail( myBuilding );
+	}
+
+	// Center of the nest
+	Vector betweenMyBuildings = vec3_origin;
+
+	CBaseObject *workTarget = NULL;
+	float rangeToWorkTarget = 0.0f;
+
+	bool bTooFar = true;
+	bool bCrouch = true;
+	int iWorkPriority = 0;
+
+	const float tooFarRange = 75.0f;
+
+	for ( int i = 0; i < vecNestObjects.Count(); i++ )
+	{
+		CBaseObject *myBuilding = vecNestObjects[ i ];
+		if ( !myBuilding )
+			continue;
+
+		betweenMyBuildings += myBuilding->GetAbsOrigin();
+		
+		int iCurPriority = GetBuildingTaskPriority( myBuilding );
+		if ( iCurPriority > iWorkPriority )
+		{
+			float rangeToBuilding = me->GetDistanceBetween( myBuilding );
+			if ( rangeToBuilding >= 1.2f * tooFarRange )
+				bCrouch = false;
+
+			if ( rangeToBuilding <= tooFarRange )
+				bTooFar = false;
+
+			workTarget = myBuilding;
+			iWorkPriority = iCurPriority;
+			rangeToWorkTarget = rangeToBuilding;
+		}
+	}
+
+	if ( vecNestObjects.Count() > 1 )
+		betweenMyBuildings /= (float)vecNestObjects.Count();
+
+	// See if anyone else's buildings need our attention more
+	// (NOTE: This technically counts our own teleporters as well)
+	bool bOthersBuilding = false;
+	for ( int i=0; i<IBaseObjectAutoList::AutoList().Count(); ++i )
+	{
+		CBaseObject* theirBuilding = static_cast< CBaseObject* >( IBaseObjectAutoList::AutoList()[i] );
+		//if ( theirBuilding->GetBuilder() != me && theirBuilding->GetTeamNumber() == me->GetTeamNumber() && !theirBuilding->IsHostileUpgrade() )
+		if ( !vecNestObjects.HasElement( theirBuilding ) && theirBuilding->GetTeamNumber() == me->GetTeamNumber() && !theirBuilding->IsHostileUpgrade())
+		{
+			const float theirTooFarRange = 350.0f;
+			float rangeToBuilding = me->GetDistanceBetween( theirBuilding );
+			if ( rangeToBuilding >= theirTooFarRange )
+				continue;
+	
+			int iCurPriority = GetBuildingTaskPriority( theirBuilding );
+			if ( iCurPriority > iWorkPriority )
+			{
+				workTarget = theirBuilding;
+				iWorkPriority = iCurPriority;
+				rangeToWorkTarget = rangeToBuilding;
+				bOthersBuilding = true;
+			}
+		}
+	}
+
+	if ( bOthersBuilding )
+	{
+		// Reset everything so that we go to the building
+		bCrouch = false;
+		betweenMyBuildings = workTarget->GetAbsOrigin();
+		rangeToWorkTarget = me->GetDistanceBetween( workTarget );
+		bTooFar = rangeToWorkTarget > tooFarRange;
+	}
+	else if ( !workTarget )
+	{
+		// Always work on sentry if no target is chosen
+		workTarget = me->GetObjectOfType( OBJ_SENTRYGUN );
+		if ( workTarget )
+		{
+			rangeToWorkTarget = me->GetDistanceBetween( workTarget );
+			bTooFar = rangeToWorkTarget > tooFarRange;
+		}
+	}
+
+	if ( bCrouch )
+	{
+		// crouch both for cover behind our buildings, but also to slow us down so we hit our move goal more accurately
+		me->PressCrouchButton();
+	}
+
+	// try to equalize distance between both
+	const float equalToleranceSqr = Square( 25.0f );
+	if ( bTooFar || ( me->GetAbsOrigin() - betweenMyBuildings ).LengthSqr() > equalToleranceSqr )
+	{
+		if ( m_repathTimer.IsElapsed() )
+		{
+			m_repathTimer.Start( RandomFloat( 1.0f, 2.0f ) );
+
+			CTFBotPathCost cost( me, FASTEST_ROUTE );
+			m_path.Compute( me, betweenMyBuildings, cost );
+		}
+
+		m_path.Update( me );
+	}
+
+	if ( workTarget )
+	{
+		CBaseCombatWeapon *wrench = me->Weapon_GetSlot( TF_WPN_TYPE_MELEE );
+		if ( wrench )
+		{
+			me->Weapon_Switch( wrench );
+		}
+
+		if ( !bTooFar )
+		{
+			// we are (nearly) in position - work on our buildings
+			m_searchTimer.Invalidate();
+
+			me->StopLookingAroundForEnemies();
+			me->GetBodyInterface()->AimHeadTowards( workTarget->WorldSpaceCenter(), IBody::CRITICAL, 1.0f, NULL, "Work on my buildings" );
+			me->PressFireButton();
+		}
+	}
+}
+#endif
+
+
 //---------------------------------------------------------------------------------------------
 // Everything is built, upgrade/maintain it
 // TODO: Upgrade/maintain nearby friendly buildings, too.
 void CTFBotEngineerBuilding::UpgradeAndMaintainBuildings( CTFBot *me )
 {
+#ifdef MAPBASE
+	if ( tf_bot_engineer_expand_maintenance.GetBool() )
+	{
+		UpgradeAndMaintainBuildingsAdvanced( me );
+		return;
+	}
+#endif
+
 	CObjectSentrygun *mySentry = (CObjectSentrygun *)me->GetObjectOfType( OBJ_SENTRYGUN );
 	CObjectDispenser *myDispenser = (CObjectDispenser *)me->GetObjectOfType( OBJ_DISPENSER );
 
