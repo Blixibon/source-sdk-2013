@@ -30,6 +30,8 @@
 
 #ifdef PORTAL
 	#include "portal_util_shared.h"
+#elif defined(USE_PORTALS)
+	#include "mapbase/sdk_portals/sdk_portal_util_shared.h"
 #endif
 
 #ifdef HL2_DLL
@@ -2039,6 +2041,16 @@ void CWeaponRPG::UpdateLaserPosition( Vector vecMuzzlePos, Vector vecEndPos )
 	UTIL_Portal_TraceRay( rayLaser, (MASK_SHOT & ~CONTENTS_WINDOW), this, COLLISION_GROUP_NONE, &tr );
 	g_bBulletPortalTrace = false;
 #else
+#ifdef USE_PORTALS
+	if ( GameHasPortals() )
+	{
+		// TODO: Figure out what g_bBulletPortalTrace is used for
+		Ray_t rayLaser;
+		rayLaser.Init( vecMuzzlePos, vecEndPos );
+		UTIL_Portal_TraceRay( rayLaser, (MASK_SHOT & ~CONTENTS_WINDOW), this, COLLISION_GROUP_NONE, &tr );
+	}
+	else
+#endif
 	UTIL_TraceLine( vecMuzzlePos, vecEndPos, (MASK_SHOT & ~CONTENTS_WINDOW), this, COLLISION_GROUP_NONE, &tr );
 #endif
 

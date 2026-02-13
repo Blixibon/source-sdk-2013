@@ -484,6 +484,11 @@ public:
 	bool			m_bDrawPlayerModelExternally;
 
 	bool			m_bInTriggerFall;
+
+#ifdef USE_PORTALS
+	// The player is poking their head through a portal (view is changed while entity stays in same place)
+	bool			m_bPokingThroughPortal;
+#endif
 #endif
 
 protected:

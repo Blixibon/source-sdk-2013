@@ -93,6 +93,8 @@
 
 #ifdef PORTAL
 	#include "prop_portal_shared.h"
+#elif defined(USE_PORTALS)
+	#include "mapbase/sdk_portals/sdk_portal_util_shared.h"
 #endif
 
 #ifdef MAPBASE
@@ -11121,15 +11123,20 @@ Vector CAI_BaseNPC::GetShootEnemyDir( const Vector &shootOrigin, bool bNoisy )
 
 		Vector vecEnemyOffset = pEnemy->BodyTarget( shootOrigin, bNoisy ) - pEnemy->GetAbsOrigin();
 
-#ifdef PORTAL
-		// Translate the enemy's position across the portals if it's only seen in the portal view cone
-		if ( !FInViewCone( vecEnemyLKP ) || !FVisible( vecEnemyLKP ) )
+#ifdef USE_PORTALS
+		if ( GameHasPortals() )
 		{
-			CProp_Portal *pPortal = FInViewConeThroughPortal( vecEnemyLKP );
-			if ( pPortal )
+			// Translate the enemy's position across the portals if it's only seen in the portal view cone
+			if ( !FInViewCone( vecEnemyLKP ) || !FVisible( vecEnemyLKP ) )
 			{
-				UTIL_Portal_VectorTransform( pPortal->m_hLinkedPortal->MatrixThisToLinked(), vecEnemyOffset, vecEnemyOffset );
-				UTIL_Portal_PointTransform( pPortal->m_hLinkedPortal->MatrixThisToLinked(), vecEnemyLKP, vecEnemyLKP );
+				CProp_Portal *pPortal = FInViewConeThroughPortal( vecEnemyLKP );
+				if ( pPortal )
+				{
+					Vector vecIn = vecEnemyOffset;
+					UTIL_Portal_VectorTransform( pPortal->m_hLinkedPortal->MatrixThisToLinked(), vecIn, vecEnemyOffset );
+					vecIn = vecEnemyLKP;
+					UTIL_Portal_PointTransform( pPortal->m_hLinkedPortal->MatrixThisToLinked(), vecIn, vecEnemyLKP );
+				}
 			}
 		}
 #endif
@@ -11218,7 +11225,7 @@ Vector CAI_BaseNPC::GetActualShootPosition( const Vector &shootOrigin )
 	Vector vecEnemyOffset = GetEnemy()->BodyTarget( shootOrigin ) - GetEnemy()->GetAbsOrigin();
 	Vector vecTargetPosition = vecEnemyOffset + vecEnemyLKP;
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	// Check if it's also visible through portals
 	CProp_Portal *pPortal = FInViewConeThroughPortal( vecEnemyLKP );
 	if ( pPortal )
@@ -13423,6 +13430,23 @@ int CAI_BaseNPC::UpdateTransmitState()
 
 	return BaseClass::UpdateTransmitState();
 }
+
+#ifdef USE_PORTALS
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CAI_BaseNPC::PreEnterPortal( CBasePortal *pPortal, Vector &vecOrigin, QAngle &angAngles, Vector &vecVelocity )
+{
+	BaseClass::PreEnterPortal( pPortal, vecOrigin, angAngles, vecVelocity );
+
+	// Most NPCs use yaw only
+	if ( GetMoveType() == MOVETYPE_STEP )
+	{
+		angAngles.x = GetAbsAngles().x;
+		angAngles.z = GetAbsAngles().z;
+	}
+}
+#endif
 
 //-----------------------------------------------------------------------------
 

@@ -129,6 +129,8 @@ extern ConVar tf_mm_servermode;
 #ifdef PORTAL
 #include "prop_portal_shared.h"
 #include "portal_player.h"
+#elif defined(USE_PORTALS)
+#include "mapbase/sdk_portals/sdk_portal_util_shared.h"
 #endif
 
 #if defined( REPLAY_ENABLED )
@@ -2982,7 +2984,7 @@ void CServerGameClients::ClientSettingsChanged( edict_t *pEdict )
 }
 
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 //-----------------------------------------------------------------------------
 // Purpose: Runs CFuncAreaPortalBase::UpdateVisibility on each portal
 // Input  : pAreaPortal - The Area portal to test for visibility from portals
@@ -3087,11 +3089,22 @@ void CServerGameClients::ClientSetupVisibility( edict_t *pViewEntity, edict_t *p
 		portalNums[iOutPortal] = pCur->m_portalNumber;
 		isOpen[iOutPortal] = pCur->UpdateVisibility( org, fovDistanceAdjustFactor, bIsOpenOnClient );
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 		// If the client doesn't need this open, test if portals might need this area portal open
 		if ( isOpen[iOutPortal] == 0 )
 		{
+#ifdef PORTAL
 			isOpen[iOutPortal] = TestAreaPortalVisibilityThroughPortals( pCur, pViewEntity, pvs, pvssize );
+#else
+			bool bOpenThroughPortal = TestAreaPortalVisibilityThroughPortals( pCur, pViewEntity, pvs, pvssize );
+			if ( bOpenThroughPortal )
+			{
+				// Need to turn on bIsOpenOnClient as well
+				// TODO: Hook into the reasoning explained in CFuncAreaPortalBase::UpdateVisibility?
+				isOpen[iOutPortal] = true;
+				bIsOpenOnClient = true;
+			}
+#endif
 		}
 #endif
 
@@ -3133,6 +3146,8 @@ void CServerGameClients::ClientSetupVisibility( edict_t *pViewEntity, edict_t *p
 		{
 			pPortalPlayer->UpdatePortalViewAreaBits( pvs, pvssize );
 		}
+#elif defined(USE_PORTALS)
+		pPlayer->m_Local.UpdatePortalViewAreaBits( pPlayer, pvs, pvssize );
 #endif //PORTAL
 	}
 }

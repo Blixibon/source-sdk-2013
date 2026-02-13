@@ -61,6 +61,10 @@
 #include "mapbase/protagonist_system.h"
 #endif
 
+#ifdef USE_PORTALS
+#include "mapbase/sdk_portals/sdk_portal_util_shared.h"
+#endif
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -2383,6 +2387,19 @@ void CHL2_Player::SetupVisibility( CBaseEntity *pViewEntity, unsigned char *pvs,
 			engine->AddOriginToPVS( vecOrigin );
 		}
 	}
+
+#ifdef USE_PORTALS
+	// Add visible portals
+	FOR_EACH_VEC( CBasePortal::AllPortals, i )
+	{
+		CBasePortal *pPortal = CBasePortal::AllPortals[i];
+		if ( pPortal && pPortal->m_bActivated && pPortal->m_hLinkedPortal && pPortal->NetworkProp() &&
+			pPortal->FInViewCone( this ) && pPortal->NetworkProp()->IsInPVS( edict(), pvs, pvssize ) )
+		{
+			engine->AddOriginToPVS( pPortal->m_hLinkedPortal->GetAbsOrigin() );
+		}
+	}
+#endif
 }
 
 

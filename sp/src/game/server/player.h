@@ -1063,6 +1063,10 @@ protected:
 	//CNetworkHandle( CBaseEntity, m_hTonemapController );
 #endif
 
+#ifdef USE_PORTALS
+	virtual void			PreEnterPortal( CBasePortal *pPortal, Vector &vecOrigin, QAngle &angAngles, Vector &vecVelocity );
+#endif
+
 private:
 	void HandleFuncTrain();
 

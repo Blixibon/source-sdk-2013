@@ -52,6 +52,8 @@
 	#include "portal_util_shared.h"
 	#include "prop_portal_shared.h"
 	#include "portal_shareddefs.h"
+#elif defined(USE_PORTALS)
+	#include "mapbase/sdk_portals/sdk_portal_util_shared.h"
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -582,7 +584,7 @@ bool CBaseCombatCharacter::ShouldUseVisibilityCache( CBaseEntity *pEntity )
 }
 #endif
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 bool CBaseCombatCharacter::FVisibleThroughPortal( const CProp_Portal *pPortal, CBaseEntity *pEntity, int traceMask, CBaseEntity **ppBlocker )
 {
 	VPROF( "CBaseCombatCharacter::FVisible" );
@@ -680,7 +682,7 @@ bool CBaseCombatCharacter::FInViewCone( const Vector &vecSpot )
 	return false;
 }
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 //=========================================================
 // FInViewCone - returns true is the passed ent is in
 // the caller's forward view cone. The dot product is performed

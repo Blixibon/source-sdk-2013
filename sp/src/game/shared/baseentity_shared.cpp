@@ -46,6 +46,8 @@ ConVar hl2_episodic( "hl2_episodic", "0", FCVAR_REPLICATED );
 
 #ifdef PORTAL
 	#include "prop_portal_shared.h"
+#elif defined(USE_PORTALS)
+	#include "mapbase/sdk_portals/sdk_portal_util_shared.h"
 #endif
 
 #ifdef TF_DLL
@@ -1771,7 +1773,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 
 		vecEnd = info.m_vecSrc + vecDir * info.m_flDistance;
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 		CProp_Portal *pShootThroughPortal = NULL;
 		float fPortalFraction = 2.0f;
 #endif
@@ -1780,42 +1782,52 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 		if( IsPlayer() && info.m_iShots > 1 && iShot % 2 )
 		{
 			// Half of the shotgun pellets are hulls that make it easier to hit targets with the shotgun.
-#ifdef PORTAL
-			Ray_t rayBullet;
-			rayBullet.Init( info.m_vecSrc, vecEnd );
-			pShootThroughPortal = UTIL_Portal_FirstAlongRay( rayBullet, fPortalFraction );
-			if ( !UTIL_Portal_TraceRay_Bullets( pShootThroughPortal, rayBullet, MASK_SHOT, &traceFilter, &tr ) )
+#ifdef USE_PORTALS
+			if ( GameHasPortals() )
 			{
-				pShootThroughPortal = NULL;
+				Ray_t rayBullet;
+				rayBullet.Init( info.m_vecSrc, vecEnd, Vector( -3, -3, -3 ), Vector( 3, 3, 3 ) );
+				pShootThroughPortal = UTIL_Portal_FirstAlongRay( rayBullet, fPortalFraction );
+				if ( !UTIL_Portal_TraceRayHull_Bullets( pShootThroughPortal, rayBullet, Vector( -3, -3, -3 ), Vector( 3, 3, 3 ), MASK_SHOT, &traceFilter, &tr ) )
+				{
+					pShootThroughPortal = NULL;
+				}
 			}
-#else
-			AI_TraceHull( info.m_vecSrc, vecEnd, Vector( -3, -3, -3 ), Vector( 3, 3, 3 ), MASK_SHOT, &traceFilter, &tr );
+			else
 #endif //#ifdef PORTAL
+			AI_TraceHull( info.m_vecSrc, vecEnd, Vector( -3, -3, -3 ), Vector( 3, 3, 3 ), MASK_SHOT, &traceFilter, &tr );
 		}
 		else
 		{
-#ifdef PORTAL
-			Ray_t rayBullet;
-			rayBullet.Init( info.m_vecSrc, vecEnd );
-			pShootThroughPortal = UTIL_Portal_FirstAlongRay( rayBullet, fPortalFraction );
-			if ( !UTIL_Portal_TraceRay_Bullets( pShootThroughPortal, rayBullet, MASK_SHOT, &traceFilter, &tr ) )
+#ifdef USE_PORTALS
+			if ( GameHasPortals() )
 			{
-				pShootThroughPortal = NULL;
-			}
-#elif TF_DLL
-			CTraceFilterIgnoreFriendlyCombatItems traceFilterCombatItem( this, COLLISION_GROUP_NONE, GetTeamNumber() );
-			if ( TFGameRules() && TFGameRules()->GameModeUsesUpgrades() )
-			{
-				CTraceFilterChain traceFilterChain( &traceFilter, &traceFilterCombatItem );
-				AI_TraceLine(info.m_vecSrc, vecEnd, MASK_SHOT, &traceFilterChain, &tr);
+				Ray_t rayBullet;
+				rayBullet.Init( info.m_vecSrc, vecEnd );
+				pShootThroughPortal = UTIL_Portal_FirstAlongRay( rayBullet, fPortalFraction );
+				if ( !UTIL_Portal_TraceRay_Bullets( pShootThroughPortal, rayBullet, MASK_SHOT, &traceFilter, &tr ) )
+				{
+					pShootThroughPortal = NULL;
+				}
 			}
 			else
-			{
-				AI_TraceLine(info.m_vecSrc, vecEnd, MASK_SHOT, &traceFilter, &tr);
-			}
-#else
-			AI_TraceLine(info.m_vecSrc, vecEnd, MASK_SHOT, &traceFilter, &tr);
 #endif //#ifdef PORTAL
+			{
+#ifdef TF_DLL
+				CTraceFilterIgnoreFriendlyCombatItems traceFilterCombatItem( this, COLLISION_GROUP_NONE, GetTeamNumber() );
+				if ( TFGameRules() && TFGameRules()->GameModeUsesUpgrades() )
+				{
+					CTraceFilterChain traceFilterChain( &traceFilter, &traceFilterCombatItem );
+					AI_TraceLine(info.m_vecSrc, vecEnd, MASK_SHOT, &traceFilterChain, &tr);
+				}
+				else
+				{
+					AI_TraceLine(info.m_vecSrc, vecEnd, MASK_SHOT, &traceFilter, &tr);
+				}
+#else
+				AI_TraceLine(info.m_vecSrc, vecEnd, MASK_SHOT, &traceFilter, &tr);
+#endif
+			}
 		}
 
 		// Tracker 70354/63250:  ywb 8/2/07
@@ -1830,8 +1842,8 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 		}
 
 	// bullet's final direction can be changed by passing through a portal
-#ifdef PORTAL
-		if ( !tr.startsolid )
+#ifdef USE_PORTALS
+		if ( pShootThroughPortal && !tr.startsolid )
 		{
 			vecDir = tr.endpos - tr.startpos;
 			VectorNormalize( vecDir );
@@ -1849,7 +1861,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 			Vector vBubbleStart = info.m_vecSrc;
 			Vector vBubbleEnd = tr.endpos;
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 			if ( pShootThroughPortal )
 			{
 				vBubbleEnd = info.m_vecSrc + ( vecEnd - info.m_vecSrc ) * fPortalFraction;
@@ -1858,7 +1870,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 
 			CreateBubbleTrailTracer( vBubbleStart, vBubbleEnd, vecDir );
 			
-#ifdef PORTAL
+#ifdef USE_PORTALS
 			if ( pShootThroughPortal )
 			{
 				Vector vTransformedIntersection;
@@ -2018,7 +2030,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 				Tracer = tr;
 				Tracer.endpos = vecTracerDest;
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 				if ( pShootThroughPortal )
 				{
 					Tracer.endpos = info.m_vecSrc + ( vecEnd - info.m_vecSrc ) * fPortalFraction;
@@ -2027,11 +2039,19 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 
 				MakeTracer( vecTracerSrc, Tracer, pAmmoDef->TracerType(info.m_iAmmoType) );
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 				if ( pShootThroughPortal )
 				{
 					Vector vTransformedIntersection;
 					UTIL_Portal_PointTransform( pShootThroughPortal->MatrixThisToLinked(), Tracer.endpos, vTransformedIntersection );
+#ifdef MAPBASE
+					if ( !IsPlayer() && MyCombatCharacterPointer() && MyCombatCharacterPointer()->GetActiveWeapon() )
+					{
+						// Don't let our weapon influence the portal tracer
+						vecTracerSrc = vTransformedIntersection;
+					}
+					else
+#endif
 					ComputeTracerStartPosition( vTransformedIntersection, &vecTracerSrc );
 
 					Tracer.endpos = vecTracerDest;

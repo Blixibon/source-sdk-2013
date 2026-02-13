@@ -43,6 +43,9 @@
 #ifdef MAPBASE
 #include "mapbase/GlobalStrings.h"
 #endif
+#ifdef USE_PORTALS
+#include "mapbase/sdk_portals/sdk_portal_util_shared.h"
+#endif
 // NVNT haptic utils
 #include "haptics/haptic_utils.h"
 
@@ -74,6 +77,11 @@ ConVar sv_player_enable_gravgun_sprint("sv_player_enable_gravgun_sprint", "0", F
 #endif
 extern ConVar hl2_normspeed;
 extern ConVar hl2_walkspeed;
+
+#ifdef USE_PORTALS
+// Used briefly for ____
+static CBasePortal *g_pPhyscannonTracePortal = NULL;
+#endif
 
 #define PHYSCANNON_BEAM_SPRITE "sprites/orangelight1.vmt"
 #define PHYSCANNON_GLOW_SPRITE "sprites/glow04_noz.vmt"
@@ -230,6 +238,10 @@ protected:
 //-----------------------------------------------------------------------------
 void UTIL_PhyscannonTraceLine( const Vector &vecAbsStart, const Vector &vecAbsEnd, CBaseEntity *pTraceOwner, trace_t *pTrace )
 {
+#ifdef USE_PORTALS
+	g_pPhyscannonTracePortal = NULL;
+#endif
+
 	// Default to HL2 vanilla
 	if ( hl2_episodic.GetBool() == false )
 	{
@@ -255,6 +267,34 @@ void UTIL_PhyscannonTraceLine( const Vector &vecAbsStart, const Vector &vecAbsEn
 			*pTrace = testTrace;
 		}
 	}
+
+#ifdef USE_PORTALS
+	if ( pTrace->fraction == 1 || !pTrace->m_pEnt )
+	{
+		if ( GameHasPortals() )
+		{
+			// If that didn't work, then look through any nearby portals
+			float flPortalFrac;
+			Ray_t ray;
+			ray.Init( vecAbsStart, vecAbsEnd );
+			g_pPhyscannonTracePortal = UTIL_Portal_FirstAlongRay( ray, flPortalFrac );
+			if ( g_pPhyscannonTracePortal )
+			{
+				Vector vecPortalStartPos, vecPortalEndPos;
+				UTIL_Portal_PointTransform( g_pPhyscannonTracePortal->MatrixThisToLinked(), vecAbsStart + ( ray.m_Delta * flPortalFrac ), vecPortalStartPos );
+				UTIL_Portal_PointTransform( g_pPhyscannonTracePortal->MatrixThisToLinked(), vecAbsEnd, vecPortalEndPos );
+
+				UTIL_TraceLine( vecPortalStartPos, vecPortalEndPos, (MASK_SHOT | CONTENTS_GRATE), &filter, pTrace );
+
+				// Need to pretend the trace had a longer distance
+				Vector vecFakeStart;
+				UTIL_Portal_PointTransform( g_pPhyscannonTracePortal->MatrixThisToLinked(), vecAbsStart, vecFakeStart );
+				pTrace->startpos = vecFakeStart;
+				pTrace->fraction = flPortalFrac + (pTrace->fraction * flPortalFrac);
+			}
+		}
+	}
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -287,6 +327,34 @@ void UTIL_PhyscannonTraceHull( const Vector &vecAbsStart, const Vector &vecAbsEn
 			*pTrace = testTrace;
 		}
 	}
+
+#ifdef USE_PORTALS
+	if ( pTrace->fraction == 1 || !pTrace->m_pEnt )
+	{
+		CBasePortal *pPortal = NULL;
+		if ( GameHasPortals() )
+		{
+			// If that didn't work, then look through any nearby portals
+			float flPortalFrac;
+			Ray_t ray;
+			ray.Init( vecAbsStart, vecAbsEnd );
+			pPortal = UTIL_Portal_FirstAlongRay( ray, flPortalFrac );
+			if ( pPortal )
+			{
+				Vector vecPortalStartPos, vecPortalEndPos;
+				UTIL_Portal_PointTransform( pPortal->MatrixThisToLinked(), vecAbsStart + ( ray.m_Delta * flPortalFrac ), vecPortalStartPos );
+				UTIL_Portal_PointTransform( pPortal->MatrixThisToLinked(), vecAbsEnd, vecPortalEndPos );
+
+				UTIL_TraceHull( vecPortalStartPos, vecPortalEndPos, vecAbsMins, vecAbsMaxs, (MASK_SHOT | CONTENTS_GRATE), &filter, pTrace );
+
+				// 
+				Vector vecFakeStart;
+				UTIL_Portal_PointTransform( pPortal->MatrixThisToLinked(), vecAbsStart, vecFakeStart );
+				pTrace->startpos = vecFakeStart;
+			}
+		}
+	}
+#endif
 }
 
 static void MatrixOrthogonalize( matrix3x4_t &matrix, int column )
@@ -493,6 +561,9 @@ public:
 #ifdef MAPBASE
 	void SetDontUseListMass( bool bDontUse ) { m_bDontUseListMass = bDontUse; }
 #endif
+#ifdef USE_PORTALS
+	CBasePortal *GetPortal() { return m_hPortal.Get(); }
+#endif
 	QAngle TransformAnglesToPlayerSpace( const QAngle &anglesIn, CBasePlayer *pPlayer );
 	QAngle TransformAnglesFromPlayerSpace( const QAngle &anglesIn, CBasePlayer *pPlayer );
 
@@ -538,6 +609,11 @@ private:
 	// Prevents using the added mass of every part of the object
 	// (not saved due to only being used upon attach)
 	bool			m_bDontUseListMass;
+#endif
+
+#ifdef USE_PORTALS
+	// For when the object is being carried inside of a portal
+	CHandle<CBasePortal>	m_hPortal;
 #endif
 
 	friend class CWeaponPhysCannon;
@@ -1226,6 +1302,15 @@ void CPlayerPickupController::Use( CBaseEntity *pActivator, CBaseEntity *pCaller
 #endif
 			massFactor = RemapVal( massFactor, 0.5, 15, 0.5, 4 );
 			vecLaunch *= player_throwforce.GetFloat() * massFactor;
+
+#ifdef USE_PORTALS
+			if ( m_grabController.GetPortal() )
+			{
+				// Translate through portal
+				Vector vecTemp = vecLaunch;
+				UTIL_Portal_VectorTransform( m_grabController.GetPortal()->MatrixThisToLinked(), vecTemp, vecLaunch );
+			}
+#endif
 
 			pPhys->ApplyForceCenter( vecLaunch );
 			AngularImpulse aVel = RandomAngularImpulse( -10, 10 ) * massFactor;
@@ -2246,13 +2331,26 @@ void CWeaponPhysCannon::PrimaryAttack( void )
 		Vector forward;
 		pOwner->EyeVectors( &forward );
 
+		Vector vecOwnerCenter = pOwner->WorldSpaceCenter();
+
 		// Validate the item is within punt range
 		CBaseEntity *pHeld = m_grabController.GetAttached();
 		Assert( pHeld != NULL );
 
+#ifdef USE_PORTALS
+		if ( m_grabController.GetPortal() != NULL )
+		{
+			// Translate through portal
+			Vector vecTemp = forward;
+			UTIL_Portal_VectorTransform( m_grabController.GetPortal()->MatrixThisToLinked(), vecTemp, forward );
+			vecTemp = vecOwnerCenter;
+			UTIL_Portal_PointTransform( m_grabController.GetPortal()->MatrixThisToLinked(), vecTemp, vecOwnerCenter );
+		}
+#endif
+
 		if ( pHeld != NULL )
 		{
-			float heldDist = pHeld->CollisionProp()->CalcDistanceFromPoint(pOwner->WorldSpaceCenter() );
+			float heldDist = pHeld->CollisionProp()->CalcDistanceFromPoint( vecOwnerCenter );
 
 			if ( heldDist > physcannon_tracelength.GetFloat() )
 			{
@@ -2334,6 +2432,15 @@ void CWeaponPhysCannon::PrimaryAttack( void )
 		DryFire();
 		return;
 	}
+	
+#ifdef USE_PORTALS
+	if ( g_pPhyscannonTracePortal != NULL )
+	{
+		// Translate through portal
+		Vector vecTemp = forward;
+		UTIL_Portal_VectorTransform( g_pPhyscannonTracePortal->MatrixThisToLinked(), vecTemp, forward );
+	}
+#endif
 
 	// See if we hit something
 	if ( pEntity->GetMoveType() != MOVETYPE_VPHYSICS )
@@ -2693,6 +2800,14 @@ CWeaponPhysCannon::FindObjectResult_t CWeaponPhysCannon::FindObject( void )
 			physcannon_cone.GetFloat(), physcannon_ball_cone.GetFloat(), bAttach || bPull );
 	}
 
+#ifdef USE_PORTALS
+	if ( g_pPhyscannonTracePortal )
+	{
+		Vector vecTemp = start;
+		UTIL_Portal_PointTransform( g_pPhyscannonTracePortal->MatrixThisToLinked(), vecTemp, start );
+	}
+#endif
+
 	if ( pConeEntity )
 	{
 		pEntity = pConeEntity;
@@ -2957,6 +3072,33 @@ bool CGrabController::UpdateObject( CBasePlayer *pPlayer, float flError )
 	Vector playerMins, playerMaxs, nearest;
 	pPlayer->CollisionProp()->WorldSpaceAABB( &playerMins, &playerMaxs );
 	Vector playerLine = pPlayer->CollisionProp()->WorldSpaceCenter();
+#ifdef USE_PORTALS
+	if ( GameHasPortals() )
+	{
+		// Be able to grab stuff through portals
+		// Translate player's position through it
+		float flPortalFrac;
+		Ray_t ray;
+		ray.Init( start, end );
+		m_hPortal = UTIL_Portal_FirstAlongRay( ray, flPortalFrac );
+		if ( m_hPortal )
+		{
+			// Only if the object is closer to the portal's partner than us
+			if ( ( pEntity->GetAbsOrigin() - m_hPortal->GetPartner()->GetAbsOrigin() ).LengthSqr() < ( pEntity->GetAbsOrigin() - start ).LengthSqr() )
+			{
+				UTIL_Portal_PointTransform( m_hPortal->MatrixThisToLinked(), ray.m_Start, start );
+				UTIL_Portal_PointTransform( m_hPortal->MatrixThisToLinked(), ray.m_Start + ray.m_Delta, end );
+
+				Vector vecTemp = playerLine;
+				UTIL_Portal_PointTransform( m_hPortal->MatrixThisToLinked(), vecTemp, playerLine );
+			}
+			else
+			{
+				m_hPortal = NULL;
+			}
+		}
+	}
+#endif
 	CalcClosestPointOnLine( end, playerLine+Vector(0,0,playerMins.z), playerLine+Vector(0,0,playerMaxs.z), nearest, NULL );
 
 	if( !m_bAllowObjectOverhead )
@@ -2983,15 +3125,36 @@ bool CGrabController::UpdateObject( CBasePlayer *pPlayer, float flError )
 	}
 
 	QAngle angles = TransformAnglesFromPlayerSpace( m_attachedAnglesPlayerSpace, pPlayer );
+	matrix3x4_t playerMatrix = pPlayer->EntityToWorldTransform();
+
+#ifdef USE_PORTALS
+	if ( m_hPortal )
+	{
+		QAngle tempAngles = angles;
+		UTIL_Portal_AngleTransform( m_hPortal->MatrixThisToLinked(), tempAngles, angles );
+
+		matrix3x4_t tempMatrix = playerMatrix;
+		UTIL_Portal_Matrix3x4Transform( m_hPortal->MatrixThisToLinked(), tempMatrix, playerMatrix );
+	}
+#endif
 	
 	// If it has a preferred orientation, update to ensure we're still oriented correctly.
-	Pickup_GetPreferredCarryAngles( pEntity, pPlayer, pPlayer->EntityToWorldTransform(), angles );
+	Pickup_GetPreferredCarryAngles( pEntity, pPlayer, playerMatrix, angles );
 
 	// We may be holding a prop that has preferred carry angles
 	if ( m_bHasPreferredCarryAngles )
 	{
 		matrix3x4_t tmp;
 		ComputePlayerMatrix( pPlayer, tmp );
+
+#ifdef USE_PORTALS
+		if ( m_hPortal )
+		{
+			playerMatrix = tmp;
+			UTIL_Portal_Matrix3x4Transform( m_hPortal->MatrixThisToLinked(), playerMatrix, tmp );
+		}
+#endif
+
 		angles = TransformAnglesToWorldSpace( m_vecPreferredCarryAngles, tmp );
 	}
 

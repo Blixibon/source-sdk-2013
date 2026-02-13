@@ -14,6 +14,9 @@
 #include "playernet_vars.h"
 #include "fogcontroller.h"
 #include "tier0/vprof.h"
+#ifdef USE_PORTALS
+#include "mapbase/sdk_portals/sdk_portal_util_shared.h"
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -246,6 +249,37 @@ void CPlayerLocalData::UpdateAreaBits( CBasePlayer *pl, unsigned char chAreaPort
 			m_chAreaPortalBits.Set( i, chAreaPortalBits[i] );
 	}
 }
+
+#ifdef USE_PORTALS
+void CPlayerLocalData::UpdatePortalViewAreaBits( CBasePlayer *pl, unsigned char *pvs, int pvssize )
+{
+	// We also see through any portals within our PVS
+	unsigned char tempBits[32];
+	COMPILE_TIME_ASSERT( sizeof( tempBits ) >= sizeof( ((CPlayerLocalData*)0)->m_chAreaBits ) );
+
+	FOR_EACH_VEC( CBasePortal::AllPortals, i )
+	{
+		CBasePortal *pPortal = CBasePortal::AllPortals[i];
+		if ( pPortal && pPortal->m_bActivated && pPortal->m_hLinkedPortal && pPortal->NetworkProp() &&
+			pPortal->FInViewCone( pl ) && pPortal->NetworkProp()->IsInPVS( pl->edict(), pvs, pvssize ) )
+		{
+			int j;
+			int area = engine->GetArea( pPortal->m_hLinkedPortal->GetAbsOrigin() );
+			engine->GetAreaBits( area, tempBits, sizeof( tempBits ) );
+			for ( j=0; j < m_chAreaBits.Count(); j++ )
+			{
+				// Flip on any areas within this portal that aren't on already
+				if ( tempBits[j] != m_chAreaBits[ j ] )
+				{
+					m_chAreaBits.Set( j, tempBits[j] | m_chAreaBits[j] );
+				}
+			}
+
+			memset( tempBits, 0, sizeof( tempBits ) );
+		}
+	}
+}
+#endif
 
 //-----------------------------------------------------------------------------
 // Purpose: Fills in CClientData values for local player just before sending over wire

@@ -187,7 +187,7 @@ public:
 	VPlane *		GetFrustum();
 	virtual int		GetDrawFlags() { return 0; }
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	virtual	void	EnableWorldFog() {};
 #endif
 
@@ -257,7 +257,7 @@ protected:
 	// Purpose: Computes the actual world list info based on the render flags
 	void			PruneWorldListInfo();
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	virtual bool	ShouldDrawPortals() { return true; }
 #endif
 
@@ -272,6 +272,49 @@ protected:
 	CClientRenderablesList *m_pRenderablesList;
 	ClientWorldListInfo_t *m_pWorldListInfo;
 	ViewCustomVisibility_t *m_pCustomVisibility;
+};
+
+//-----------------------------------------------------------------------------
+// 
+//-----------------------------------------------------------------------------
+class CBaseWorldView : public CRendering3dView
+{
+	DECLARE_CLASS( CBaseWorldView, CRendering3dView );
+protected:
+	CBaseWorldView(CViewRender *pMainView) : CRendering3dView( pMainView ) {}
+
+	virtual bool	AdjustView( float waterHeight );
+
+	void			DrawSetup( float waterHeight, int flags, float waterZAdjust, int iForceViewLeaf = -1 );
+	void			DrawExecute( float waterHeight, view_id_t viewID, float waterZAdjust );
+
+	virtual void	PushView( float waterHeight );
+	virtual void	PopView();
+
+	void			SSAO_DepthPass();
+	void			DrawDepthOfField();
+
+#ifdef MAPBASE
+	virtual ITexture	*GetRefractionTexture();
+	virtual ITexture	*GetReflectionTexture();
+#endif
+};
+
+//-----------------------------------------------------------------------------
+// Draws the scene when there's no water or only cheap water
+//-----------------------------------------------------------------------------
+class CSimpleWorldView : public CBaseWorldView
+{
+	DECLARE_CLASS( CSimpleWorldView, CBaseWorldView );
+public:
+	CSimpleWorldView(CViewRender *pMainView) : CBaseWorldView( pMainView ) {}
+
+	void			Setup( const CViewSetup &view, int nClearFlags, bool bDrawSkybox, const VisibleFogVolumeInfo_t &fogInfo, const WaterRenderInfo_t& info, ViewCustomVisibility_t *pCustomVisibility = NULL );
+	void			Draw();
+
+private: 
+	VisibleFogVolumeInfo_t m_fogInfo;
+
 };
 
 
@@ -486,7 +529,7 @@ private:
 	virtual void			ViewDrawScene_Intro( const CViewSetup &view, int nClearFlags, const IntroData_t &introData );
 #endif
 
-#ifdef PORTAL 
+#ifdef USE_PORTALS 
 	// Intended for use in the middle of another ViewDrawScene call, this allows stencils to be drawn after opaques but before translucents are drawn in the main view.
 	void			ViewDrawScene_PortalStencil( const CViewSetup &view, ViewCustomVisibility_t *pCustomVisibility );
 	void			Draw3dSkyboxworld_Portal( const CViewSetup &view, int &nClearFlags, bool &bDrew3dSkybox, SkyboxVisibility_t &nSkyboxVisible, ITexture *pRenderTarget = NULL );
@@ -543,6 +586,8 @@ private:
 #ifdef PORTAL
 	friend class CPortalRender; //portal drawing needs muck with views in weird ways
 	friend class CPortalRenderable;
+#elif defined(USE_PORTALS)
+	friend class PortalRendering;
 #endif
 	int				m_BuildRenderableListsNumber;
 

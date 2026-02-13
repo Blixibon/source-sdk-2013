@@ -16,6 +16,8 @@
 
 #ifdef PORTAL
 	#include "portal_util_shared.h"
+#elif defined(USE_PORTALS)
+	#include "mapbase/sdk_portals/sdk_portal_util_shared.h"
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -170,7 +172,7 @@ bool CAI_Senses::CanSeeEntity( CBaseEntity *pSightEnt )
 	return ( GetOuter()->FInViewCone( pSightEnt ) && GetOuter()->FVisible( pSightEnt ) );
 }
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 bool CAI_Senses::CanSeeEntityThroughPortal( const CProp_Portal *pPortal, CBaseEntity *pSightEnt )
 {
 	return GetOuter()->FVisibleThroughPortal( pPortal, pSightEnt );
@@ -406,7 +408,7 @@ bool CAI_Senses::Look( CBaseEntity *pSightEnt )
 	return false;
 }
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 bool CAI_Senses::LookThroughPortal( const CProp_Portal *pPortal, CBaseEntity *pSightEnt )
 {
 	if ( WaitingUntilSeen( pSightEnt ) )
@@ -446,7 +448,7 @@ int CAI_Senses::LookForHighPriorityEntities( int iDistance )
 				{
 					nSeen++;
 				}
-#ifdef PORTAL
+#ifdef USE_PORTALS
 				else
 				{
 					CProp_Portal *pPortal = GetOuter()->FInViewConeThroughPortal( pPlayer );
@@ -499,12 +501,22 @@ int CAI_Senses::LookForNPCs( int iDistance )
 			
 			for ( i = 0; i < g_AI_Manager.NumAIs(); i++ )
 			{
-				if ( ppAIs[i] != GetOuter() && ( ppAIs[i]->ShouldNotDistanceCull() || origin.DistToSqr(ppAIs[i]->GetAbsOrigin()) < distSq ) )
+				if ( ppAIs[i] != GetOuter() )
 				{
-					if ( Look( ppAIs[i] ) )
+					if ( ( ppAIs[i]->ShouldNotDistanceCull() || origin.DistToSqr(ppAIs[i]->GetAbsOrigin()) < distSq ) && Look( ppAIs[i] ) )
 					{
 						nSeen++;
 					}
+#ifdef USE_PORTALS
+					else
+					{
+						CProp_Portal *pPortal = GetOuter()->FInViewConeThroughPortal( ppAIs[i] );
+						if ( pPortal && ( ppAIs[i]->ShouldNotDistanceCull() || UTIL_Portal_DistanceThroughPortalSqr( pPortal, origin, ppAIs[i]->GetAbsOrigin() ) < distSq ) && LookThroughPortal( pPortal, ppAIs[i] ) )
+						{
+							nSeen++;
+						}
+					}
+#endif
 				}
 			}
 

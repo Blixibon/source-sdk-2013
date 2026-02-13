@@ -98,6 +98,9 @@ class CSkyCamera;
 class CEntityMapData;
 class CWorld;
 class INextBot;
+#ifdef USE_PORTALS
+class CBasePortal;
+#endif
 
 
 typedef CUtlVector< CBaseEntity* > EntityList_t;
@@ -873,6 +876,11 @@ public:
 	// Returns true if the command was handled successfully.
 	virtual bool	HandleEntityCommand(CBasePlayer* pClient, KeyValues* pKeyValues) { return false; }
 #endif // MAPBASE
+
+#ifdef USE_PORTALS
+	// See base_portal.cpp
+	virtual void	PreEnterPortal( CBasePortal *pPortal, Vector &vecOrigin, QAngle &angAngles, Vector &vecVelocity ) {}
+#endif
 
 private:
 	int SaveDataDescBlock( ISave &save, datamap_t *dmap );

@@ -51,6 +51,13 @@
 #include "sixense/in_sixense.h"
 #endif
 
+#ifdef USE_PORTALS
+#include "mapbase/sdk_portals/sdk_portal_util_shared.h"
+#ifdef CLIENT_DLL
+#include "mapbase/sdk_portals/c_portal_mimic_entity.h"
+#endif
+#endif
+
 // NVNT haptic utils
 #include "haptics/haptic_utils.h"
 // memdbgon must be the last include file in a .cpp file!!!
@@ -1082,6 +1089,38 @@ CBaseEntity *CBasePlayer::FindUseEntity()
 	// Search for objects in a sphere (tests for entities that are not solid, yet still useable)
 	Vector searchCenter = EyePosition();
 
+	float searchDistFrac = 1.0f;
+
+#ifdef USE_PORTALS
+	static bool bCheckPortals = false;
+	if ( bCheckPortals )
+	{
+		// Evaluate using portals rather than the player's direct eye
+		float flPortalFrac;
+		Ray_t ray;
+		
+		// Use a box to find the portal to try to catch cases where we're trying to interact with
+		// a mimic entity on our side of the portal
+		ray.Init( searchCenter, searchCenter + forward * 72, Vector(-32,-32,-32), Vector(32,32,32) );
+
+		CBasePortal *pPortal = UTIL_Portal_FirstAlongRay( ray, flPortalFrac );
+		if ( pPortal )
+		{
+			searchDistFrac = flPortalFrac;
+			UTIL_Portal_PointTransform( pPortal->MatrixThisToLinked(), ray.m_Start + ( ray.m_Delta * flPortalFrac ), searchCenter );
+
+			Vector vecTemp = forward;
+			UTIL_Portal_VectorTransform( pPortal->MatrixThisToLinked(), vecTemp, forward );
+			vecTemp = up;
+			UTIL_Portal_VectorTransform( pPortal->MatrixThisToLinked(), vecTemp, up );
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+#endif
+
 	// NOTE: Some debris objects are useable too, so hit those as well
 	// A button, etc. can be made out of clip brushes, make sure it's +useable via a traceline, too.
 	int useableContents = MASK_SOLID | CONTENTS_DEBRIS | CONTENTS_PLAYERCLIP;
@@ -1112,13 +1151,13 @@ CBaseEntity *CBasePlayer::FindUseEntity()
 	{
 		if ( i == 0 )
 		{
-			UTIL_TraceLine( searchCenter, searchCenter + forward * 1024, useableContents, this, COLLISION_GROUP_NONE, &tr );
+			UTIL_TraceLine( searchCenter, searchCenter + forward * ( 1024 * searchDistFrac ), useableContents, this, COLLISION_GROUP_NONE, &tr );
 		}
 		else
 		{
 			Vector down = forward - tangents[i]*up;
 			VectorNormalize(down);
-			UTIL_TraceHull( searchCenter, searchCenter + down * 72, -Vector(16,16,16), Vector(16,16,16), useableContents, this, COLLISION_GROUP_NONE, &tr );
+			UTIL_TraceHull( searchCenter, searchCenter + down * ( 72 * searchDistFrac ), -Vector(16,16,16), Vector(16,16,16), useableContents, this, COLLISION_GROUP_NONE, &tr );
 		}
 		pObject = tr.m_pEnt;
 
@@ -1205,7 +1244,7 @@ CBaseEntity *CBasePlayer::FindUseEntity()
 		}
 	}
 
-	for ( CEntitySphereQuery sphere( searchCenter, PLAYER_USE_RADIUS ); ( pObject = sphere.GetCurrentEntity() ) != NULL; sphere.NextEntity() )
+	for ( CEntitySphereQuery sphere( searchCenter, PLAYER_USE_RADIUS * searchDistFrac ); ( pObject = sphere.GetCurrentEntity() ) != NULL; sphere.NextEntity() )
 	{
 		if ( !pObject )
 			continue;
@@ -1246,6 +1285,32 @@ CBaseEntity *CBasePlayer::FindUseEntity()
 			}
 		}
 	}
+
+#ifdef USE_PORTALS
+	if ( GameHasPortals() )
+	{
+		if ( bCheckPortals )
+		{
+			// Nothing found
+			return NULL;
+		}
+		else
+		{
+			// Go back and check with portal position
+			bCheckPortals = true;
+			CBaseEntity *pPortalUseEnt = FindUseEntity();
+			if ( pPortalUseEnt )
+			{
+				bCheckPortals = false;
+				return pPortalUseEnt;
+			}
+			else
+			{
+				bCheckPortals = false;
+			}
+		}
+	}
+#endif
 
 #ifndef CLIENT_DLL
 	if ( !pNearest )
@@ -1672,6 +1737,42 @@ void CBasePlayer::CalcPlayerView( Vector& eyeOrigin, QAngle& eyeAngles, float& f
 	GetPredictionErrorSmoothingVector( vSmoothOffset );
 	eyeOrigin += vSmoothOffset;
 	m_flObserverChaseDistance = 0.0;
+
+#ifdef USE_PORTALS
+	m_bPokingThroughPortal = false;
+
+	if ( GameHasPortals() && IsLocalPlayer() )
+	{
+		// Sometimes, the player's view passes the portal before they can be teleported on the server.
+		// This could probably be considered a hack, but I don't know if there's a better way of solving this.
+		// We currently only do this clientside for the local player due to the limited nature of this problem.
+		FOR_EACH_VEC( C_BasePortal::AllPortals, i )
+		{
+			C_BasePortal *pPortal = C_BasePortal::AllPortals[i];
+			if ( pPortal->IsEntityTouching( this ) )
+			{
+				Vector vecForward;
+				pPortal->GetVectors( &vecForward, NULL, NULL );
+
+				if ( pPortal->IsBehindPortal( EyePosition(), vecForward ) )
+				{
+					//Msg( "Placing player view behind portal\n" );
+					m_bPokingThroughPortal = true;
+
+					eyeOrigin = pPortal->MatrixThisToLinked() * eyeOrigin;
+					eyeAngles = TransformAnglesToWorldSpace( eyeAngles, pPortal->MatrixThisToLinked().As3x4() );
+
+					// Hide the mimic entity so that it doesn't poke into our view
+					//C_PortalMimicEntity *pMimic = pPortal->GetMimicEntity( this );
+					//if ( pMimic )
+					//	pMimic->m_bPlayerPokingThrough = true;
+
+					break;
+				}
+			}
+		}
+	}
+#endif
 #endif
 
 	// calc current FOV

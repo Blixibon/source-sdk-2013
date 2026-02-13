@@ -4768,6 +4768,25 @@ void CBasePlayer::UpdateTonemapController( void )
 }
 #endif
 
+#ifdef USE_PORTALS
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CBasePlayer::PreEnterPortal( CBasePortal *pPortal, Vector &vecOrigin, QAngle &angAngles, Vector &vecVelocity )
+{
+	BaseClass::PreEnterPortal( pPortal, vecOrigin, angAngles, vecVelocity );
+
+	// Player needs to have roll go into punch angle instead
+	QAngle angPunchAngles = vec3_angle;
+	angPunchAngles.z = angAngles.z;
+
+	m_Local.m_vecPunchAngle += angPunchAngles;
+	//m_Local.m_vecPunchAngleVel += angPunchAngles * 0.5f;
+
+	angAngles.z = GetAbsAngles().z;
+}
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------

@@ -34,6 +34,11 @@ class CNavArea;
 class CScriptedTarget;
 typedef CHandle<CBaseCombatWeapon> CBaseCombatWeaponHandle;
 
+#ifdef USE_PORTALS
+class CBasePortal;
+#define CProp_Portal CBasePortal
+#endif
+
 // -------------------------------------
 //  Capability Bits
 // -------------------------------------
@@ -143,14 +148,14 @@ public:
 	virtual bool		ShouldUseVisibilityCache( CBaseEntity *pEntity );
 #endif
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	virtual	bool		FVisibleThroughPortal( const CProp_Portal *pPortal, CBaseEntity *pEntity, int traceMask = MASK_BLOCKLOS, CBaseEntity **ppBlocker = NULL );
 #endif
 
 	virtual bool		FInViewCone( CBaseEntity *pEntity );
 	virtual bool		FInViewCone( const Vector &vecSpot );
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	virtual CProp_Portal*	FInViewConeThroughPortal( CBaseEntity *pEntity );
 	virtual CProp_Portal*	FInViewConeThroughPortal( const Vector &vecSpot );
 #endif

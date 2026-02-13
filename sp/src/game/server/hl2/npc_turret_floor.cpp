@@ -26,6 +26,8 @@
 #ifdef PORTAL
 	#include "prop_portal_shared.h"
 	#include "portal_util_shared.h"
+#elif defined(USE_PORTALS)
+	#include "mapbase/sdk_portals/sdk_portal_util_shared.h"
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -1204,7 +1206,7 @@ bool CNPC_FloorTurret::IsValidEnemy( CBaseEntity *pEnemy )
 	//	- Can only aim +-15 degrees, + the 10 degree slop they're allowed.
 	Vector vEnemyPos = pEnemy->EyePosition();
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	if ( !FInViewCone( pEnemy ) || !FVisible( pEnemy ) )
 	{
 		CProp_Portal *pPortal = FInViewConeThroughPortal( pEnemy );

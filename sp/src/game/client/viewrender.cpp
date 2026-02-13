@@ -58,7 +58,10 @@
 //#include "C_Portal_Player.h"
 #include "portal_render_targets.h"
 #include "PortalRender.h"
+#elif defined(USE_PORTALS)
+#include "mapbase/sdk_portals/portalrendering.h"
 #endif
+
 #if defined( HL2_CLIENT_DLL ) || defined( CSTRIKE_DLL )
 #define USE_MONITORS
 #endif
@@ -398,7 +401,7 @@ public:
 
 protected:
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	virtual bool ShouldDrawPortals() { return false; }
 #endif
 
@@ -417,7 +420,7 @@ protected:
 //-----------------------------------------------------------------------------
 // 3d skybox view when drawing portals
 //-----------------------------------------------------------------------------
-#ifdef PORTAL
+#ifdef USE_PORTALS
 class CPortalSkyboxView : public CSkyboxView
 {
 	DECLARE_CLASS( CPortalSkyboxView, CSkyboxView );
@@ -474,49 +477,18 @@ private:
 	CMaterialReference m_TranslucentSingleColor;
 };
 
-//-----------------------------------------------------------------------------
-// 
-//-----------------------------------------------------------------------------
-class CBaseWorldView : public CRendering3dView
-{
-	DECLARE_CLASS( CBaseWorldView, CRendering3dView );
-protected:
-	CBaseWorldView(CViewRender *pMainView) : CRendering3dView( pMainView ) {}
-
-	virtual bool	AdjustView( float waterHeight );
-
-	void			DrawSetup( float waterHeight, int flags, float waterZAdjust, int iForceViewLeaf = -1 );
-	void			DrawExecute( float waterHeight, view_id_t viewID, float waterZAdjust );
-
-	virtual void	PushView( float waterHeight );
-	virtual void	PopView();
-
-	void			SSAO_DepthPass();
-	void			DrawDepthOfField();
+// looking for CSimpleWorldView or CBaseWorldView? Check viewrender.h
 
 #ifdef MAPBASE
-	virtual ITexture	*GetRefractionTexture() { return GetWaterRefractionTexture(); }
-	virtual ITexture	*GetReflectionTexture() { return GetWaterReflectionTexture(); }
-#endif
-};
-
-
-//-----------------------------------------------------------------------------
-// Draws the scene when there's no water or only cheap water
-//-----------------------------------------------------------------------------
-class CSimpleWorldView : public CBaseWorldView
+ITexture *CBaseWorldView::GetRefractionTexture()
 {
-	DECLARE_CLASS( CSimpleWorldView, CBaseWorldView );
-public:
-	CSimpleWorldView(CViewRender *pMainView) : CBaseWorldView( pMainView ) {}
-
-	void			Setup( const CViewSetup &view, int nClearFlags, bool bDrawSkybox, const VisibleFogVolumeInfo_t &fogInfo, const WaterRenderInfo_t& info, ViewCustomVisibility_t *pCustomVisibility = NULL );
-	void			Draw();
-
-private: 
-	VisibleFogVolumeInfo_t m_fogInfo;
-
-};
+	return GetWaterRefractionTexture();
+}
+ITexture *CBaseWorldView::GetReflectionTexture()
+{
+	return GetWaterReflectionTexture();
+}
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -910,7 +882,7 @@ void SetupCurrentView( const Vector &vecOrigin, const QAngle &angles, view_id_t 
 	modelinfo->SetViewScreenFadeRange( flScreenFadeMinSize, flScreenFadeMaxSize );
 
 	CMatRenderContextPtr pRenderContext( materials );
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	if ( g_pPortalRender->GetViewRecursionLevel() == 0 )
 	{
 		pRenderContext->SetIntRenderingParameter( INT_RENDERPARM_WRITE_DEPTH_TO_DESTALPHA, ((viewID == VIEW_MAIN) || (viewID == VIEW_3DSKY)) ? 1 : 0 );
@@ -1095,7 +1067,7 @@ void CViewRender::DrawViewModels( const CViewSetup &view, bool drawViewmodel )
 
 	render->Push3DView( viewModelSetup, 0, pRTColor, GetFrustum(), pRTDepth );
 
-#ifdef PORTAL //the depth range hack doesn't work well enough for the portal mod (and messing with the depth hack values makes some models draw incorrectly)
+#ifdef USE_PORTALS //the depth range hack doesn't work well enough for the portal mod (and messing with the depth hack values makes some models draw incorrectly)
 				//step up to a full depth clear if we're extremely close to a portal (in a portal environment)
 	extern bool LocalPlayerIsCloseToPortal( void ); //defined in C_Portal_Player.cpp, abstracting to a single bool function to remove explicit dependence on c_portal_player.h/cpp, you can define the function as a "return true" in other build configurations at the cost of some perf
 	bool bUseDepthHack = !LocalPlayerIsCloseToPortal();
@@ -2602,7 +2574,7 @@ void CViewRender::DetermineWaterRenderInfo( const VisibleFogVolumeInfo_t &fogVol
 #endif
 	bool bForceReflectEntities = r_waterforcereflectentities.GetBool();
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	switch( g_pPortalRender->ShouldForceCheaperWaterLevel() )
 	{
 	case 0: //force cheap water
@@ -2738,7 +2710,7 @@ void CViewRender::DrawWorldAndEntities( bool bDrawSkybox, const CViewSetup &view
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
 
 	VisibleFogVolumeInfo_t fogVolumeInfo;
-#ifdef PORTAL //in portal, we can't use the fog volume for the camera since it's almost never in the same fog volume as what's in front of the portal
+#ifdef USE_PORTALS //in portal, we can't use the fog volume for the camera since it's almost never in the same fog volume as what's in front of the portal
 	if( g_pPortalRender->GetViewRecursionLevel() == 0 )
 	{
 		render->GetVisibleFogVolume( viewIn.origin, &fogVolumeInfo );
@@ -2855,7 +2827,7 @@ bool DoesViewPlaneIntersectWater( float waterZ, int leafWaterDataID )
 	if ( leafWaterDataID == -1 )
 		return false;
 
-#ifdef PORTAL //when rendering portal views point/plane intersections just don't cut it.
+#ifdef USE_PORTALS //when rendering portal views point/plane intersections just don't cut it.
 	if( g_pPortalRender->GetViewRecursionLevel() != 0 )
 		return g_pPortalRender->DoesExitPortalViewIntersectWaterPlane( waterZ, leafWaterDataID );
 #endif
@@ -2908,7 +2880,7 @@ bool DoesViewPlaneIntersectWater( float waterZ, int leafWaterDataID )
 	return render->DoesBoxIntersectWaterVolume( mins, maxs, leafWaterDataID );
 } 
 
-#ifdef PORTAL 
+#ifdef USE_PORTALS 
 
 //-----------------------------------------------------------------------------
 // Purpose: Draw the scene during another draw scene call. We must draw our portals
@@ -2932,6 +2904,7 @@ void CViewRender::ViewDrawScene_PortalStencil( const CViewSetup &viewIn, ViewCus
 	int iRecursionLevel = g_pPortalRender->GetViewRecursionLevel();
 	Assert( iRecursionLevel > 0 );
 
+#ifdef PORTAL // TODO
 	//get references to reflection textures
 	CTextureReference pPrimaryWaterReflectionTexture;
 	pPrimaryWaterReflectionTexture.Init( GetWaterReflectionTexture() );
@@ -2951,6 +2924,7 @@ void CViewRender::ViewDrawScene_PortalStencil( const CViewSetup &viewIn, ViewCus
 
 	if( pReplacementWaterRefractionTexture != NULL )
 		pPrimaryWaterRefractionTexture->SwapContents( pReplacementWaterRefractionTexture );
+#endif
 
 	bool bDrew3dSkybox = false;
 	SkyboxVisibility_t nSkyboxVisible = SKYBOX_NOT_VISIBLE;
@@ -2988,6 +2962,34 @@ void CViewRender::ViewDrawScene_PortalStencil( const CViewSetup &viewIn, ViewCus
 	if ( waterInfo.m_bCheapWater )
 	{		     
 		cplane_t glassReflectionPlane;
+#ifdef MAPBASE
+		// New expansions allow for custom render targets and multiple mirror renders
+		Frustum_t frustum;
+		GeneratePerspectiveFrustum( viewIn.origin, viewIn.angles, viewIn.zNear, viewIn.zFar, viewIn.fov, viewIn.m_flAspectRatio, frustum );
+
+		ITexture *pTextureTargets[2];
+		C_BaseEntity *pReflectiveGlass = NextReflectiveGlass( NULL, viewIn, glassReflectionPlane, frustum, pTextureTargets );
+		while ( pReflectiveGlass != NULL )
+		{		
+			if (pTextureTargets[0])
+			{
+				CRefPtr<CReflectiveGlassView> pGlassReflectionView = new CReflectiveGlassView( this );
+				pGlassReflectionView->m_pRenderTarget = pTextureTargets[0];
+				pGlassReflectionView->Setup( viewIn, VIEW_CLEAR_DEPTH | VIEW_CLEAR_COLOR, drawSkybox, fogInfo, waterInfo, glassReflectionPlane );
+				AddViewToScene( pGlassReflectionView );
+			}
+
+			if (pTextureTargets[1])
+			{
+				CRefPtr<CRefractiveGlassView> pGlassRefractionView = new CRefractiveGlassView( this );
+				pGlassRefractionView->Setup( viewIn, VIEW_CLEAR_DEPTH | VIEW_CLEAR_COLOR, drawSkybox, fogInfo, waterInfo, glassReflectionPlane );
+				pGlassRefractionView->m_pRenderTarget = pTextureTargets[1];
+				AddViewToScene( pGlassRefractionView );
+			}
+
+			pReflectiveGlass = NextReflectiveGlass( pReflectiveGlass, viewIn, glassReflectionPlane, frustum, pTextureTargets );
+		}
+#else
 		if ( IsReflectiveGlassInView( viewIn, glassReflectionPlane ) )
 		{								    
 			CRefPtr<CReflectiveGlassView> pGlassReflectionView = new CReflectiveGlassView( this );
@@ -2998,6 +3000,7 @@ void CViewRender::ViewDrawScene_PortalStencil( const CViewSetup &viewIn, ViewCus
 			pGlassRefractionView->Setup( viewIn, VIEW_CLEAR_DEPTH | VIEW_CLEAR_COLOR | VIEW_CLEAR_OBEY_STENCIL, drawSkybox, fogInfo, waterInfo, glassReflectionPlane );
 			AddViewToScene( pGlassRefractionView );
 		}
+#endif
 
 		CSimpleWorldView *pClientView = new CSimpleWorldView( this );
 		pClientView->Setup( view, VIEW_CLEAR_OBEY_STENCIL, drawSkybox, fogInfo, waterInfo, pCustomVisibility );
@@ -3044,12 +3047,14 @@ void CViewRender::ViewDrawScene_PortalStencil( const CViewSetup &viewIn, ViewCus
 	g_CurrentViewID = iCurrentViewID; //just in case the cast to view_id_t screwed up the id #
 
 
+#ifdef PORTAL // TODO
 	//swap back the water render targets
 	if( pReplacementWaterReflectionTexture != NULL )
 		pPrimaryWaterReflectionTexture->SwapContents( pReplacementWaterReflectionTexture );
 
 	if( pReplacementWaterRefractionTexture != NULL )
 		pPrimaryWaterRefractionTexture->SwapContents( pReplacementWaterRefractionTexture );
+#endif
 }
 
 void CViewRender::Draw3dSkyboxworld_Portal( const CViewSetup &view, int &nClearFlags, bool &bDrew3dSkybox, SkyboxVisibility_t &nSkyboxVisible, ITexture *pRenderTarget ) 
@@ -3686,7 +3691,7 @@ bool CViewRender::DrawFakeWorldPortal( ITexture *pRenderTarget, C_FuncFakeWorldP
 
 void CViewRender::DrawMonitors( const CViewSetup &cameraView )
 {
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	g_pPortalRender->DrawPortalsToTextures( this, cameraView );
 #endif
 
@@ -4903,7 +4908,7 @@ void CRendering3dView::DrawTranslucentRenderables( bool bInSkybox, bool bShadowD
 {
 	const ClientWorldListInfo_t& info = *m_pWorldListInfo;
 
-#ifdef PORTAL //if we're in the portal mod, we need to make a detour so we can render portal views using stencil areas
+#ifdef USE_PORTALS //if we're in the portal mod, we need to make a detour so we can render portal views using stencil areas
 	if( ShouldDrawPortals() ) //no recursive stencil views during skybox rendering (although we might be drawing a skybox while already in a recursive stencil view)
 	{
 		int iDrawFlagsBackup = m_DrawFlags;
@@ -4957,7 +4962,26 @@ void CRendering3dView::DrawTranslucentRenderables( bool bInSkybox, bool bShadowD
 			//done recursing in, time to go back out and do translucents
 			CMatRenderContextPtr pRenderContext( materials );		
 
+#ifdef MAPBASE
+			//opaques generally write depth, and translucents generally don't.
+			//So immediately after opaques are done is the best time to snap off the depth buffer to a texture.
+			switch ( g_CurrentViewID )
+			{				 
+			case VIEW_MAIN:
+#ifdef _X360
+			case VIEW_INTRO_CAMERA:
+			case VIEW_INTRO_PLAYER:
+#endif
+				UpdateFullScreenDepthTexture();
+				break;
+
+			default:
+				materials->GetRenderContext()->SetFullScreenDepthTextureValidityFlag( false );
+				break;
+			}
+#else
 			UpdateFullScreenDepthTexture();
+#endif
 		}
 	}
 #else
@@ -5187,7 +5211,7 @@ void CRendering3dView::SetFogVolumeState( const VisibleFogVolumeInfo_t &fogInfo,
 {
 	render->SetFogVolumeState( fogInfo.m_nVisibleFogVolume, bUseHeightFog );
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 
 	//the idea behind fog shifting is this...
 	//Normal fog simulates the effect of countless tiny particles between your viewpoint and whatever geometry is rendering.
@@ -5563,7 +5587,7 @@ void CSkyboxView::Draw()
 }
 
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 //-----------------------------------------------------------------------------
 // 
 //-----------------------------------------------------------------------------
@@ -6425,7 +6449,7 @@ void CAboveWaterView::Setup( const CViewSetup &view, bool bDrawSkybox, const Vis
 	m_DrawFlags = DF_RENDER_ABOVEWATER | DF_DRAW_ENTITITES;
 	m_ClearFlags = VIEW_CLEAR_DEPTH;
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	if( g_pPortalRender->ShouldObeyStencilForClears() )
 		m_ClearFlags |= VIEW_CLEAR_OBEY_STENCIL;
 #endif
@@ -6485,7 +6509,7 @@ void CAboveWaterView::Draw()
 		m_ClearFlags |= VIEW_CLEAR_COLOR;
 	}
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	if( g_pPortalRender->ShouldObeyStencilForClears() )
 		m_ClearFlags |= VIEW_CLEAR_OBEY_STENCIL;
 #endif
@@ -6550,7 +6574,7 @@ void CAboveWaterView::CReflectionView::Setup( bool bReflectEntities )
 //-----------------------------------------------------------------------------
 void CAboveWaterView::CReflectionView::Draw()
 {
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	g_pPortalRender->WaterRenderingHandler_PreReflection();
 #endif
 
@@ -6569,7 +6593,7 @@ void CAboveWaterView::CReflectionView::Draw()
 
 	r_visocclusion.SetValue( bVisOcclusion );
 	
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	// deal with stencil
 	g_pPortalRender->WaterRenderingHandler_PostReflection();
 #endif
@@ -6603,7 +6627,7 @@ void CAboveWaterView::CRefractionView::Setup()
 //-----------------------------------------------------------------------------
 void CAboveWaterView::CRefractionView::Draw()
 {
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	g_pPortalRender->WaterRenderingHandler_PreRefraction();
 #endif
 
@@ -6617,7 +6641,7 @@ void CAboveWaterView::CRefractionView::Draw()
 	SetClearColorToFogColor();
 	DrawExecute( GetOuter()->m_waterHeight, VIEW_REFRACTION, GetOuter()->m_waterZAdjust );
 
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	// deal with stencil
 	g_pPortalRender->WaterRenderingHandler_PostRefraction();
 #endif

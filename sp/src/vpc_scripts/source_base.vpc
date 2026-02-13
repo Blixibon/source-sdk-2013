@@ -22,6 +22,7 @@ $Conditional MAPBASE	"1" // Equivalent to (and required for) our MAPBASE preproc
 $Conditional MAPBASE_RPC	"0" // Toggles Mapbase's Rich Presence Client implementations (requires discord-rpc.dll in game bin)
 $Conditional MAPBASE_VSCRIPT	"1" // Toggles VScript implementation (note: interfaces still exist, just the provided implementation is not present)
 $Conditional NEW_RESPONSE_SYSTEM	"1" // Toggles the new Response System library based on the Alien Swarm SDK
+$Conditional SDK_PORTALS	"1" // Toggles SDK-based stencil portals
 
 //-----------------------------------------------------------------------------
 

@@ -13,6 +13,7 @@ $Configuration
 		$PreprocessorDefinitions		"$BASE;MAPBASE_RPC;DISCORD_RPC;STEAM_RPC"	[$MAPBASE_RPC&&!$LINUXALL]
 		$PreprocessorDefinitions		"$BASE;MAPBASE_VSCRIPT"		[$MAPBASE_VSCRIPT]
 		$PreprocessorDefinitions		"$BASE;NEW_RESPONSE_SYSTEM"		[$NEW_RESPONSE_SYSTEM]
+		$PreprocessorDefinitions		"$BASE;USE_PORTALS;CLIENTSIDE_PORTAL_MIMIC"		[$SDK_PORTALS||$PORTAL]
 	}
 }
 
@@ -76,6 +77,31 @@ $Project
 			$File	"mapbase\c_weapon_custom_hl2.cpp"
 			$File	"mapbase\mapbase_autocubemap.cpp"
 			$File	"mapbase\hud_generic_timer.cpp"
+		
+			$Folder	"SDK Portals"	[$SDK_PORTALS]
+			{
+				$File	"mapbase\sdk_portals\c_base_portal.cpp"
+				$File	"mapbase\sdk_portals\c_base_portal.h"
+				$File	"mapbase\sdk_portals\c_linked_portal_door.cpp"
+				$File	"mapbase\sdk_portals\c_linked_portal_door.h"
+				$File	"mapbase\sdk_portals\c_portal_mimic_entity.cpp"
+				$File	"mapbase\sdk_portals\c_portal_mimic_entity.h"
+				$File	"mapbase\sdk_portals\portalrendering.cpp"
+				$File	"mapbase\sdk_portals\portalrendering.h"
+				$File	"mapbase\sdk_portals\c_stencil.cpp"
+				$File	"mapbase\sdk_portals\c_stencil.h"
+				$File	"$SRCDIR\game\shared\mapbase\sdk_portals\sdk_portal_util_shared.cpp"
+				$File	"$SRCDIR\game\shared\mapbase\sdk_portals\sdk_portal_util_shared.h"
+				$File	"$SRCDIR\game\shared\mapbase\sdk_portals\base_portal_shared.cpp"
+				$File	"$SRCDIR\game\shared\mapbase\sdk_portals\base_portal_shared.h"
+				
+				//$File	"portals\c_point_portal.cpp"
+				//$File	"portals\c_point_portal.h"
+				//$File	"portals\portalrendering.cpp"
+				//$File	"portals\portalrendering.h"
+				//$File	"portals\c_stencil.cpp"
+				//$File	"portals\c_stencil.h"
+			}
 		}
 		
 		$Folder "HL2 DLL"

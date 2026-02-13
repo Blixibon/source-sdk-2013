@@ -70,6 +70,10 @@ extern ConVar replay_rendersetting_renderglow;
 #include "clienteffectprecachesystem.h"
 #endif
 
+#ifdef USE_PORTALS
+#include "mapbase/sdk_portals/c_base_portal.h"
+#endif
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -282,6 +286,33 @@ static void __MsgFunc_VGUIMenu( bf_read &msg )
 	gViewPortInterface->ShowPanel( viewport, bShow );
 }
 
+#ifdef USE_PORTALS
+static void __MsgFunc_EntityEnterPortal( bf_read &msg )
+{
+	C_BaseEntity *pEntity = C_BaseEntity::Instance( msg.ReadShort() );
+	C_BaseEntity *pPortal1 = C_BaseEntity::Instance( msg.ReadShort() );
+	//C_BaseEntity *pPortal2 = C_BaseEntity::Instance( msg.ReadShort() );
+
+	if ( !pEntity || !pPortal1 )
+		return;
+
+	static_cast<C_BasePortal *>(pPortal1)->OnEntityEnterPortal( pEntity );
+}
+
+static void __MsgFunc_EntityExitPortal( bf_read &msg )
+{
+	C_BaseEntity *pEntity = C_BaseEntity::Instance( msg.ReadShort() );
+	C_BaseEntity *pPortal1 = C_BaseEntity::Instance( msg.ReadShort() );
+	//C_BaseEntity *pPortal2 = C_BaseEntity::Instance( msg.ReadShort() );
+	bool bPassedThrough = msg.ReadOneBit();
+
+	if ( !pEntity || !pPortal1 )
+		return;
+
+	static_cast<C_BasePortal *>(pPortal1)->OnEntityExitPortal( pEntity, bPassedThrough );
+}
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -387,6 +418,12 @@ void ClientModeShared::Init()
 
 	HOOK_MESSAGE( VGUIMenu );
 	HOOK_MESSAGE( Rumble );
+
+#ifdef USE_PORTALS
+	// TODO: Move to a CAutoGameSystem that's more directly related to portals
+	HOOK_MESSAGE( EntityEnterPortal );
+	HOOK_MESSAGE( EntityExitPortal );
+#endif
 }
 
 

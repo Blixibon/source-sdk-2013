@@ -74,7 +74,7 @@ public:
 
 	bool			ShouldSeeEntity( CBaseEntity *pEntity ); // logical query
 	bool			CanSeeEntity( CBaseEntity *pSightEnt ); // more expensive cone & raycast test
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	bool			CanSeeEntityThroughPortal( const CProp_Portal *pPortal, CBaseEntity *pSightEnt ); // more expensive cone & raycast test
 #endif
 	
@@ -114,7 +114,7 @@ private:
 	void			EndGather( int nSeen, CUtlVector<EHANDLE> *pResult );
 	
 	bool 			Look( CBaseEntity *pSightEnt );
-#ifdef PORTAL
+#ifdef USE_PORTALS
 	bool 			LookThroughPortal( const CProp_Portal *pPortal, CBaseEntity *pSightEnt );
 #endif
 

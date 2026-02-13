@@ -595,6 +595,10 @@ public:
 
 	virtual int			UpdateTransmitState();
 
+#ifdef USE_PORTALS
+	virtual void		PreEnterPortal( CBasePortal *pPortal, Vector &vecOrigin, QAngle &angAngles, Vector &vecVelocity );
+#endif
+
 	//---------------------------------
 	// Component creation factories
 	// 

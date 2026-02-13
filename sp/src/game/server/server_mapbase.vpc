@@ -11,6 +11,7 @@ $Configuration
 		$PreprocessorDefinitions		"$BASE;ASW_PROJECTED_TEXTURES;DYNAMIC_RTT_SHADOWS;GLOWS_ENABLE"
 		$PreprocessorDefinitions		"$BASE;MAPBASE_VSCRIPT"		[$MAPBASE_VSCRIPT]
 		$PreprocessorDefinitions		"$BASE;NEW_RESPONSE_SYSTEM"		[$NEW_RESPONSE_SYSTEM]
+		$PreprocessorDefinitions		"$BASE;USE_PORTALS"		[$SDK_PORTALS||$PORTAL]
 	}
 }
 
@@ -98,6 +99,21 @@ $Project
 			
 			$File	"mapbase\logic_eventlistener.cpp"
 			$File	"mapbase\logic_register_activator.cpp"
+		
+			$Folder "SDK Portals"	[$SDK_PORTALS]
+			{
+				$File	"mapbase\sdk_portals\base_portal.cpp"
+				$File	"mapbase\sdk_portals\base_portal.h"
+				$File	"mapbase\sdk_portals\linked_portal_door.cpp"
+				$File	"mapbase\sdk_portals\portal_mimic_entity.cpp"
+				$File	"mapbase\sdk_portals\portal_mimic_entity.h"
+				$File	"$SRCDIR\game\shared\mapbase\sdk_portals\sdk_portal_util_shared.cpp"
+				$File	"$SRCDIR\game\shared\mapbase\sdk_portals\sdk_portal_util_shared.h"
+				$File	"$SRCDIR\game\shared\mapbase\sdk_portals\base_portal_shared.cpp"
+				$File	"$SRCDIR\game\shared\mapbase\sdk_portals\base_portal_shared.h"
+				
+				//$File	"portals\point_portal.cpp"
+			}
 		}
 		
 		$Folder "HL2 DLL"

@@ -35,6 +35,9 @@ public:
 	CPlayerLocalData();
 
 	void UpdateAreaBits( CBasePlayer *pl, unsigned char chAreaPortalBits[MAX_AREA_PORTAL_STATE_BYTES] );
+#ifdef USE_PORTALS
+	void UpdatePortalViewAreaBits( CBasePlayer *pl, unsigned char *pvs, int pvssize );
+#endif
 
 
 public:

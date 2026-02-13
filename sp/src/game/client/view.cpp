@@ -57,6 +57,8 @@
 
 #ifdef PORTAL
 #include "c_prop_portal.h" //portal surface rendering functions
+#elif defined(USE_PORTALS)
+#include "mapbase/sdk_portals/sdk_portal_util_shared.h"
 #endif
 
 	
@@ -610,6 +612,15 @@ float CViewRender::GetZNear()
 #ifdef MAPBASE
 	if (r_nearz.GetFloat() > 0)
 		return r_nearz.GetFloat();
+#endif
+
+#ifdef USE_PORTALS
+	// HACKHACK: Don't let the view clip through the portal as it's passed through
+	extern bool LocalPlayerIsCloseToPortal( void );
+	if ( LocalPlayerIsCloseToPortal() )
+	{
+		return 0.1f;
+	}
 #endif
 
 	return VIEW_NEARZ;

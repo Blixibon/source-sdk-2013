@@ -58,6 +58,10 @@
 #include "viewrender.h"
 #endif
 
+#ifdef USE_PORTALS
+#include "mapbase/sdk_portals/portalrendering.h"
+#endif
+
 // NVNT haptics system interface
 #include "haptics/ihaptics.h"
 
@@ -1503,6 +1507,12 @@ bool C_BasePlayer::InPerspectiveView() const
 	// VIEW_NONE is used by the water intersection view, see CAboveWaterView::CIntersectionView::Draw()
 	// (TODO: Consider changing the view ID at the source to VIEW_REFRACTION? VIEW_NONE could be an oversight)
 	view_id_t viewID = CurrentViewID();
+
+#ifdef USE_PORTALS
+	if ( m_bPokingThroughPortal && g_pPortalRender->GetViewRecursionLevel() <= 1 )
+		return ( viewID == VIEW_PORTAL );
+#endif
+
 	return (viewID == VIEW_MAIN || viewID == VIEW_INTRO_CAMERA || viewID == VIEW_REFRACTION || viewID == VIEW_NONE);
 }
 
