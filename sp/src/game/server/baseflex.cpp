@@ -665,6 +665,13 @@ bool CBaseFlex::HandleStartGestureSceneEvent( CSceneEventInfo *info, CChoreoScen
 
 		seqKeyValues->deleteThis();
 	}
+#ifdef MAPBASE
+	else if ( V_strstr( event->GetName(), "force_gesture" ) )
+	{
+		// Force to be gesture even if not specified by sequence KV
+		info->m_bIsGesture = true;
+	}
+#endif
 
 	// initialize posture suppression
 	// FIXME: move priority of base animation so that layers can be inserted before
