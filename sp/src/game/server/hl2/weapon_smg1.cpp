@@ -17,6 +17,9 @@
 #include "soundent.h"
 #include "rumble_shared.h"
 #include "gamestats.h"
+#ifdef EZ2
+#include "weapon_rpg.h"
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -51,6 +54,12 @@ public:
 	int		GetMaxBurst() { return 15; }
 #endif
 
+	void	ItemPostFrame( void );
+	void	OnRestore( void );
+	bool	Deploy( void );
+	bool	Holster( CBaseCombatWeapon *pSwitchingTo = NULL );
+	void	Drop( const Vector &vecVelocity );
+
 	virtual void Equip( CBaseCombatCharacter *pOwner );
 	bool	Reload( void );
 
@@ -67,7 +76,7 @@ public:
 #else
 		static const Vector coneEZ1 = VECTOR_CONE_2DEGREES;
 		static const Vector cone = VECTOR_CONE_5DEGREES;
-		return weapon_smg1_use_ez1_accuracy.GetBool() ? coneEZ1 : cone;
+		return (weapon_smg1_use_ez1_accuracy.GetBool() || m_bLaserEquipped) ? coneEZ1 : cone;
 #endif
 	}
 
@@ -77,12 +86,21 @@ public:
 	void Operator_ForceNPCFire( CBaseCombatCharacter  *pOperator, bool bSecondary );
 	void Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
 
+#ifdef EZ2
+	void	InputSetLaserEquipped( inputdata_t &inputdata );
+#endif
+
 	DECLARE_ACTTABLE();
 
 protected:
 
 	Vector	m_vecTossVelocity;
 	float	m_flNextGrenadeCheck;
+#ifdef EZ2
+	bool		m_bLaserEquipped = false;
+	bool		m_bLaserPrimed = false;
+	EHANDLE		m_hLaserDot = NULL;
+#endif
 };
 
 IMPLEMENT_SERVERCLASS_ST(CWeaponSMG1, DT_WeaponSMG1)
@@ -95,6 +113,13 @@ BEGIN_DATADESC( CWeaponSMG1 )
 
 	DEFINE_FIELD( m_vecTossVelocity, FIELD_VECTOR ),
 	DEFINE_FIELD( m_flNextGrenadeCheck, FIELD_TIME ),
+
+#ifdef EZ2
+	DEFINE_KEYFIELD( m_bLaserEquipped, FIELD_BOOLEAN, "LaserEquipped" ),
+	//DEFINE_FIELD( m_bLaserPrimed, FIELD_BOOLEAN ), // Not necessary
+	DEFINE_FIELD( m_hLaserDot, FIELD_EHANDLE ),
+	DEFINE_INPUTFUNC( FIELD_BOOLEAN, "SetLaserEquipped", InputSetLaserEquipped ),
+#endif
 
 END_DATADESC()
 
@@ -211,8 +236,223 @@ void CWeaponSMG1::Precache( void )
 {
 	UTIL_PrecacheOther("grenade_ar2");
 
+#ifdef EZ2
+	if ( m_bLaserEquipped )
+		PrecacheModel( "sprites/smg1laserdot.vmt" );
+#endif
+
 	BaseClass::Precache();
 }
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CWeaponSMG1::OnRestore( void )
+{
+	BaseClass::OnRestore();
+
+#ifdef EZ2
+	if ( ( GetOwner() && GetOwner()->GetActiveWeapon() == this ) && m_bLaserEquipped )
+	{
+		// Create the laser after restore
+		if ( !m_hLaserDot )
+		{
+			m_hLaserDot = CreateLaserDot( GetAbsOrigin(), GetOwner(), true );
+			m_hLaserDot->SetModel( "sprites/smg1laserdot.vmt" );
+			EnableLaserDot( m_hLaserDot, m_bLaserPrimed );
+		}
+	}
+#endif
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CWeaponSMG1::ItemPostFrame( void )
+{
+	BaseClass::ItemPostFrame();
+	
+#ifdef EZ2
+	if ( m_hLaserDot && GetOwner() && GetOwner()->IsPlayer() )
+	{
+		// Turn off the laser when in a non-idle activity
+		bool bOldLaserPrimed = m_bLaserPrimed;
+		switch ( GetActivity() )
+		{
+			case ACT_VM_IDLE:
+			case ACT_VM_PRIMARYATTACK:
+			case ACT_VM_RECOIL1:
+			case ACT_VM_RECOIL2:
+			case ACT_VM_RECOIL3:
+				m_bLaserPrimed = true;
+				break;
+			default:
+				m_bLaserPrimed = false;
+				break;
+		}
+
+		if ( m_bLaserPrimed != bOldLaserPrimed )
+			EnableLaserDot( m_hLaserDot, m_bLaserPrimed );
+
+		if ( m_bLaserPrimed )
+		{
+			CBaseCombatCharacter *pOwner = GetOwner();
+			trace_t tr;
+
+			Vector vecForward;
+			//ToBasePlayer( pOwner )->EyeVectors( &vecForward );
+
+			// Start with CalcView() so that we have the view punch
+			Vector vecOrigin;
+			QAngle angAngles;
+			float zNear, zFar, fov;
+			ToBasePlayer( pOwner )->CalcView( vecOrigin, angAngles, zNear, zFar, fov );
+			AngleVectors( angAngles, &vecForward );
+
+			if ( m_fFireDuration > 0.0f )
+			{
+				CBaseViewModel *pVM = ToBasePlayer( GetOwner() )->GetViewModel( m_nViewModelIndex, false );
+				if ( pVM )
+				{
+					SetViewModel();
+
+					Vector vecOrigin;
+					int nLaserAttach = pVM->LookupAttachment( "laser" );
+					if ( nLaserAttach > 0 )
+						pVM->GetAttachment( nLaserAttach, vecOrigin, &vecForward );
+				}
+
+				// Lerping from VECTOR_CONE_1DEGREES to VECTOR_CONE_10DEGREES
+				// Mimics GetBulletSpread()
+				float ramp = RemapValClamped( m_fFireDuration, 0.0f, 2.0f, 0.0f, 1.0f );
+				float noise = Lerp( ramp, 0.00873, 0.08716 ) * 0.5f;
+
+				vecForward.x += RandomGaussianFloat( 0.0f, noise );
+				vecForward.y += RandomGaussianFloat( 0.0f, noise );
+				vecForward.z += RandomGaussianFloat( 0.0f, noise );
+
+				if ( !pVM )
+				{
+					float viewKick = (0.1f * RemapValClamped( noise, 0.00873, 0.08716, 0.0f, 1.0f ));
+					vecForward.z += viewKick;
+					vecForward.y += (viewKick * -0.15f);
+				}
+			}
+
+			// Also account for the previous position
+			Vector vecCurDir = m_hLaserDot->GetAbsOrigin() - pOwner->Weapon_ShootPosition();
+			VectorNormalize( vecCurDir );
+			vecForward = VectorLerp( vecCurDir, vecForward, 0.5f );
+
+			UTIL_TraceLine( pOwner->Weapon_ShootPosition(), pOwner->Weapon_ShootPosition() + (vecForward * MAX_TRACE_LENGTH), MASK_SHOT, pOwner, COLLISION_GROUP_NONE, &tr );
+
+			m_hLaserDot->SetAbsOrigin( tr.endpos );
+
+			if ( tr.DidHitNonWorldEntity() && tr.m_pEnt && tr.m_pEnt->m_takedamage )
+			{
+				SetLaserDotTarget( m_hLaserDot, tr.m_pEnt );
+			}
+			else
+			{
+				SetLaserDotTarget( m_hLaserDot, NULL );
+			}
+		}
+	}
+#endif
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+bool CWeaponSMG1::Deploy( void )
+{
+	if ( !BaseClass::Deploy() )
+		return false;
+
+#ifdef EZ2
+	if ( m_bLaserEquipped )
+	{
+		// Create the laser and have it ready to be primed in ItemPostFrame()
+		if ( !m_hLaserDot )
+		{
+			m_hLaserDot = CreateLaserDot( GetAbsOrigin(), GetOwner(), true );
+			m_hLaserDot->SetModel( "sprites/smg1laserdot.vmt" );
+			EnableLaserDot( m_hLaserDot, false );
+			m_bLaserPrimed = false;
+		}
+	}
+#endif
+
+	return true;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+bool CWeaponSMG1::Holster( CBaseCombatWeapon *pSwitchingTo )
+{
+	if ( !BaseClass::Holster( pSwitchingTo ) )
+		return false;
+
+#ifdef EZ2
+	if ( m_hLaserDot )
+	{
+		UTIL_Remove( m_hLaserDot );
+		m_hLaserDot = NULL;
+	}
+
+	m_bLaserPrimed = false;
+#endif
+
+	return true;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeaponSMG1::Drop( const Vector &vecVelocity )
+{
+#ifdef EZ2
+	if ( m_hLaserDot )
+	{
+		UTIL_Remove( m_hLaserDot );
+		m_hLaserDot = NULL;
+	}
+
+	m_bLaserPrimed = false;
+#endif
+
+	BaseClass::Drop( vecVelocity );
+}
+
+#ifdef EZ2
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CWeaponSMG1::InputSetLaserEquipped( inputdata_t &inputdata )
+{
+	m_bLaserEquipped = inputdata.value.Bool();
+
+	if ( m_bLaserEquipped )
+	{
+		PrecacheModel( "sprites/smg1laserdot.vmt", false );
+
+		// Create the laser and have it ready to be primed in ItemPostFrame()
+		if ( !m_hLaserDot )
+		{
+			m_hLaserDot = CreateLaserDot( GetAbsOrigin(), GetOwner(), true );
+			m_hLaserDot->SetModel( "sprites/smg1laserdot.vmt" );
+			EnableLaserDot( m_hLaserDot, false );
+			m_bLaserPrimed = false;
+		}
+	}
+	else if ( m_hLaserDot )
+	{
+		UTIL_Remove( m_hLaserDot );
+		m_hLaserDot = NULL;
+	}
+}
+#endif
 
 //-----------------------------------------------------------------------------
 // Purpose: Give this weapon longer range when wielded by an ally NPC.
