@@ -24,6 +24,10 @@
 #include "mapbase/GlobalStrings.h"
 #endif
 
+#ifdef EZU
+#include "ezu/npc_bec.h"
+#endif
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -3936,6 +3940,36 @@ void CNPC_MetroPolice::Event_Killed( const CTakeDamageInfo &info )
 		DropGrenadeItemsOnDeath( info, pPlayer );
 #endif
 	}
+	
+#ifdef EZU
+	// Bec and Bloody need to be notified to call out dead metrocops (since metrocops are not companions)
+	// A lot of this is taken from CNPC_PlayerCompanion::FindSpeechTarget()
+	CNPC_Bec *pClosestBec = NULL;
+	float flClosestBecDistSqr = FLT_MAX;
+	for ( CNPC_Bec *pBec = CNPC_Bec::GetDuo(); pBec != NULL; pBec = pBec->m_pNext )
+	{
+		float flDistSqr = (GetAbsOrigin() - pBec->GetAbsOrigin()).LengthSqr();
+		if (flDistSqr > Square(TALKRANGE_MIN) || flClosestBecDistSqr < flDistSqr)
+			continue;
+
+		if (pBec->IRelationType( this ) != D_LI)
+			continue;
+
+		if (!pBec->IsAlive() || pBec->GetFlags() & FL_NOTARGET
+			|| (pBec->m_NPCState == NPC_STATE_SCRIPT || pBec->m_NPCState == NPC_STATE_PRONE)
+			|| pBec->IsInAScript() || !pBec->CanBeUsedAsAFriend())
+			continue;
+		
+		pClosestBec = pBec;
+		flClosestBecDistSqr = flDistSqr;
+	}
+
+	if (pClosestBec)
+	{
+		pClosestBec->SetSpeechTarget( this );
+		pClosestBec->SpeakIfAllowed( TLK_ALLY_KILLED );
+	}
+#endif
 
 	BaseClass::Event_Killed( info );
 }
