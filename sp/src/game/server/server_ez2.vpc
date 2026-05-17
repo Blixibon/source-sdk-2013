@@ -5,7 +5,8 @@
 //-----------------------------------------------------------------------------
 
 $Macro SRCDIR		"..\.."
-$Macro GAMENAME 	"mod_ez2"
+$Macro GAMENAME 	"mod_ez2" [!$EZU]
+$Macro GAMENAME 	"mod_ezu" [$EZU]
 
 $Include "$SRCDIR\game\server\server_base.vpc"
 
