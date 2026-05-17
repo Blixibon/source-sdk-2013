@@ -45,6 +45,7 @@ protected:
 
 #ifdef MAPBASE
 	virtual bool UsesUniqueSecondaryColor() const { return false; }
+	virtual void ApplySettings( KeyValues *inResourceData );
 #endif
 
 protected:
@@ -55,6 +56,11 @@ protected:
 	bool m_bDisplayValue, m_bDisplaySecondaryValue;
 	bool m_bIndent;
 	bool m_bIsTime;
+
+#ifdef MAPBASE
+	// Label is defined by control settings instead of code
+	bool m_bOverrideLabel;
+#endif
 
 	CPanelAnimationVar( float, m_flBlur, "Blur", "0" );
 	CPanelAnimationVar( Color, m_TextColor, "TextColor", "FgColor" );
