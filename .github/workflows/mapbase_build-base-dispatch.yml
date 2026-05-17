@@ -28,10 +28,11 @@ on:
         - mp
       game:
         description: 'Name of the game to build (if relevant)'
-        default: 'ez2'
+        default: 'ezu'
         required: false
         type: choice
         options:
+        - ezu
         - ez2
         - ez1
       project-group:
