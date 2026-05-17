@@ -99,7 +99,9 @@ $Project "Server (Entropy Zero 2)"
 		$Folder "EZU DLL"
 		{
 			$File	"ezu\npc_bec.cpp"
+			$File	"ezu\npc_bec.h"
 			$File	"ezu\npc_red.cpp"
+			$File	"ezu\npc_red.h"
 			$File	"ezu\ezu_cvars.cpp"
 		}
 		$File	"ai_eventresponse.cpp"
