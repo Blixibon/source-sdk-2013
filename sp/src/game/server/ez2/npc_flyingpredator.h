@@ -41,6 +41,8 @@ public:
 	virtual float	InnateRange1MinRange( void ) { return 64.0f; }
 	virtual float	InnateRange1MaxRange( void ) { return m_flDistTooFar; }
 
+	bool FValidateHintType( CAI_Hint *pHint );
+
 	float GetMaxSpitWaitTime( void );
 	float GetMinSpitWaitTime( void );
 	float GetEatInCombatPercentHealth( void );
@@ -49,6 +51,9 @@ public:
 	virtual bool IsSameSpecies( CBaseEntity* pTarget ) { return pTarget ? ClassMatches( pTarget->GetClassname() ) : false; } // Is this NPC the same species as me?
 
 	Disposition_t IRelationType( CBaseEntity *pTarget );
+
+	bool IsValidEnemy( CBaseEntity *pEnemy );
+	bool CanBeAnEnemyOf( CBaseEntity *pEnemy );
 
 	virtual void	GatherConditions( void );
 	bool CanLand();
@@ -73,6 +78,7 @@ public:
 	// No fly. Jump good!
 	bool IsJumpLegal( const Vector & startPos, const Vector & apex, const Vector & endPos ) const { return true; }
 
+	void		Event_Killed( const CTakeDamageInfo &info );
 
 	bool		ShouldGib( const CTakeDamageInfo &info );
 	bool		CorpseGib( const CTakeDamageInfo &info );
@@ -110,6 +116,7 @@ public:
 
 	void InputForceFlying( inputdata_t &inputdata );
 	void InputFly( inputdata_t &inputdata );
+	void InputPerchAt( inputdata_t &inputdata );
 
 	virtual int		DrawDebugTextOverlays( void );
 
@@ -119,6 +126,7 @@ protected:
 	float m_flDiveBombRollForce;
 
 	bool		m_bCanUseFlyNav;
+	bool		m_bPassiveWhenPerched;
 
 	bool		m_bReachedMoveGoal;
 	Vector		m_vLastStoredOrigin;

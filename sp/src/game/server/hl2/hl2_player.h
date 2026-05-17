@@ -25,7 +25,7 @@
 #if defined ( HL2MP )
 #include "basemultiplayerplayer.h"
 #elif defined ( MAPBASE )
-#include "mapbase/singleplayer_animstate.h"
+#include "mapbase/mapbase_playeranimstate.h"
 #endif
 
 class CAI_Squad;
@@ -389,6 +389,15 @@ public:
 	void AddCustomSuitDevice( int iDeviceID );
 	void RemoveCustomSuitDevice( int iDeviceID );
 	bool IsCustomSuitDeviceActive( int iDeviceID );
+
+	// Protagonist system
+	const char *GetProtagonistName() const;
+	int GetProtagonistIndex() const;
+	void InputSetProtagonist( inputdata_t &inputdata );
+	void SetProtagonist( const char *pszProtagonist );
+	void ResetProtagonist();
+	void RefreshProtagonistData();
+	void RefreshProtagonistWeaponData( CBaseCombatWeapon *pWeapon );
 #endif
 
 	CSoundPatch *m_sndLeeches;
@@ -480,10 +489,12 @@ private:
 	EHANDLE				m_hFlashlightColorCorrection;
 	bool				m_bHandledColorCorrection; // NOT saved - this tells us that within this session, CC hasn't been cleaned up yet
 
-	float				m_flNextKickAttack;
+	CNetworkVar( float, m_flNextKickAttack );
 	bool				m_bKickWeaponLowered;
 
 	string_t		    m_LegModelName;
+	int					m_nLegSkin;
+	int					m_nLegBody;
 #endif
 
 	// Aiming heuristics code
@@ -513,12 +524,19 @@ private:
 	
 	friend class CHL2GameMovement;
 
+#ifdef MAPBASE
+	// Protagonist used by protagonist_system.h
+	string_t			m_iszProtagonistName;
+	CNetworkVar( int, m_nProtagonistIndex );
+#endif
+
 #ifdef SP_ANIM_STATE
-	CSinglePlayerAnimState* m_pPlayerAnimState;
+	CMapbasePlayerAnimState* m_pPlayerAnimState;
 
 	// At the moment, we network the render angles since almost none of the player anim stuff is done on the client in SP.
 	// If any of this is ever adapted for MP, this method should be replaced with replicating/moving the anim state to the client.
 	CNetworkVar( float, m_flAnimRenderYaw );
+	CNetworkVar( float, m_flAnimRenderZ );
 #endif
 };
 

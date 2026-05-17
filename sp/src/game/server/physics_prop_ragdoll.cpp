@@ -22,6 +22,7 @@
 #include "hierarchy.h"
 #ifdef MAPBASE
 #include "decals.h"
+#include "death_pose.h"
 #endif
 #ifdef EZ2
 #include "gib.h"
@@ -33,6 +34,7 @@
 
 #ifdef MAPBASE
 ConVar ragdoll_autointeractions("ragdoll_autointeractions", "1", FCVAR_NONE, "Controls whether we should rely on hardcoded keyvalues or automatic flesh checks for ragdoll physgun interactions.");
+ConVar ai_death_pose_server_enabled("ai_death_pose_server_enabled", "1", FCVAR_NONE, "Toggles the death pose fix code, but for server ragdolls.");
 #define IsBody() VPhysicsIsFlesh()
 
 ConVar ragdoll_always_allow_use( "ragdoll_always_allow_use", "0", FCVAR_NONE, "Allows all ragdolls to be used and, if they aren't explicitly set to prevent pickup, picked up." );
@@ -42,6 +44,10 @@ ConVar ragdoll_always_allow_use( "ragdoll_always_allow_use", "0", FCVAR_NONE, "A
 ConVar ragdoll_ai_scent_radius( "ragdoll_ai_scent_radius", "2048", FCVAR_NONE, "Radius for server ragdoll AI scents" );
 ConVar ragdoll_ai_scent_time( "ragdoll_ai_scent_time", "15", FCVAR_NONE, "Duration for server ragdoll AI scents" );
 ConVar ragdoll_gibs( "ragdoll_gibs", "1", FCVAR_NONE, "Should death ragdolls be destructible?" );
+
+// TODO: Unique cvars?
+extern ConVar sk_flyingpredator_dmg_explode;
+extern ConVar sk_flyingpredator_radius_explode;
 #endif
 
 //-----------------------------------------------------------------------------
@@ -115,6 +121,8 @@ BEGIN_DATADESC(CRagdollProp)
 	DEFINE_INPUTFUNC( FIELD_VOID, "DisableScent", InputDisableScent ),
 
 	DEFINE_INPUTFUNC( FIELD_VOID, "Gib", InputGib ),
+
+	DEFINE_INPUTFUNC( FIELD_VOID, "EnableFirstCollisionInteractions", InputEnableFirstCollisionInteractions ),
 #endif
 
 #ifdef MAPBASE
@@ -832,7 +840,11 @@ void CRagdollProp::HandleFirstCollisionInteractions( int index, gamevcollisionev
 		info.SetDamage( m_iHealth );
 		info.SetAttacker( this );
 		info.SetInflictor( this );
+#ifdef EZ2
+		info.SetDamageType( DMG_CRUSH | DMG_ALWAYSGIB );
+#else
 		info.SetDamageType( DMG_GENERIC );
+#endif
 
 		Vector vecPosition;
 		Vector vecVelocity;
@@ -949,7 +961,11 @@ void CRagdollProp::SetOverlaySequence( Activity activity )
 	}
 }
 
+#ifdef MAPBASE
+void CRagdollProp::InitRagdoll( const Vector& forceVector, int forceBone, const Vector& forcePos, matrix3x4_t* pPrevBones, matrix3x4_t* pBoneToWorld, float dt, int collisionGroup, bool activateRagdoll, bool bWakeRagdoll, bool bDeathPose )
+#else
 void CRagdollProp::InitRagdoll( const Vector &forceVector, int forceBone, const Vector &forcePos, matrix3x4_t *pPrevBones, matrix3x4_t *pBoneToWorld, float dt, int collisionGroup, bool activateRagdoll, bool bWakeRagdoll )
+#endif
 {
 	SetCollisionGroup( collisionGroup );
 
@@ -983,7 +999,11 @@ void CRagdollProp::InitRagdoll( const Vector &forceVector, int forceBone, const 
 	params.forceVector = forceVector;
 	params.forceBoneIndex = forceBone;
 	params.forcePosition = forcePos;
+#ifdef MAPBASE
+	params.pCurrentBones = bDeathPose ? pPrevBones : pBoneToWorld;
+#else
 	params.pCurrentBones = pBoneToWorld;
+#endif
 	params.jointFrictionScale = 1.0;
 	params.allowStretch = HasSpawnFlags(SF_RAGDOLLPROP_ALLOW_STRETCH);
 #ifdef MAPBASE
@@ -1116,6 +1136,18 @@ int	CRagdollProp::OnTakeDamage( const CTakeDamageInfo &info )
 			else
 			{
 				CGib::SpawnRandomGibs( this, 4, GIB_ALIEN );	// throw some alien gibs.
+			}
+
+			if ( HasPhysgunInteraction( "onbreak", "explode_acid" ) )
+			{
+				// TODO - Replace this with a unique particle
+				DispatchParticleEffect( "bullsquid_explode", WorldSpaceCenter(), GetAbsAngles() );
+
+				// TODO: Unique cvars?
+				CTakeDamageInfo info( this, this, sk_flyingpredator_dmg_explode.GetFloat(), DMG_BLAST_SURFACE | DMG_ACID | DMG_ALWAYSGIB );
+
+				RadiusDamage( info, GetAbsOrigin(), sk_flyingpredator_radius_explode.GetFloat(), CLASS_NONE, this );
+				EmitSound( "NPC_FlyingPredator.Explode" );
 			}
 		}
 	}
@@ -1728,6 +1760,43 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 
 	float fPreviousCycle = clamp(pAnimating->GetCycle()-( dt * ( 1 / fSequenceDuration ) ),0.f,1.f);
 	float fCurCycle = pAnimating->GetCycle();
+
+#ifdef MAPBASE
+	int deathpose = ACT_INVALID;
+	int deathframe = 0;
+	if (ai_death_pose_server_enabled.GetBool() && pAnimating->IsNPC()) {
+		CAI_BaseNPC* npc = (CAI_BaseNPC*)pAnimating;
+		if (npc) {
+			deathpose = Activity(npc->GetDeathPose());
+			deathframe = npc->GetDeathPoseFrame();
+		}
+	}
+	if (deathpose != ACT_INVALID) {
+		int currentSequence = pAnimating->GetSequence();
+
+		//Force pAnimating to position the deathpose
+		pAnimating->SetSequence(deathpose);
+		pAnimating->SetCycle((float)deathframe / MAX_DEATHPOSE_FRAMES);
+
+		//Store the position
+		pAnimating->SetupBones(pBoneToWorldNext, BONE_USED_BY_ANYTHING);
+
+		//Restore the current sequence and cycle
+		pAnimating->SetSequence(currentSequence);
+
+		pAnimating->SetCycle(fCurCycle);
+		pAnimating->SetupBones(pBoneToWorld, BONE_USED_BY_ANYTHING);
+	}
+	else {
+		// Get current bones positions
+		pAnimating->SetupBones(pBoneToWorldNext, BONE_USED_BY_ANYTHING);
+		// Get previous bones positions
+		pAnimating->SetCycle(fPreviousCycle);
+		pAnimating->SetupBones(pBoneToWorld, BONE_USED_BY_ANYTHING);
+		// Restore current cycle
+		pAnimating->SetCycle(fCurCycle);
+	}
+#else
 	// Get current bones positions
 	pAnimating->SetupBones( pBoneToWorldNext, BONE_USED_BY_ANYTHING );
 	// Get previous bones positions
@@ -1735,6 +1804,7 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 	pAnimating->SetupBones( pBoneToWorld, BONE_USED_BY_ANYTHING );		
 	// Restore current cycle
 	pAnimating->SetCycle( fCurCycle );
+#endif
 
 	// Reset previous bone flags
 	pAnimating->ClearBoneCacheFlags( BCF_NO_ANIMATION_SKIP );
@@ -1809,7 +1879,11 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 	}
 	else
 	{
+#ifdef MAPBASE
+		pRagdoll->InitRagdoll(info.GetDamageForce(), forceBone, info.GetDamagePosition(), pBoneToWorld, pBoneToWorldNext, dt, collisionGroup, true, true, deathpose != ACT_INVALID);
+#else
 		pRagdoll->InitRagdoll( info.GetDamageForce(), forceBone, info.GetDamagePosition(), pBoneToWorld, pBoneToWorldNext, dt, collisionGroup, true );
+#endif
 	}
 
 	// Are we dissolving?
