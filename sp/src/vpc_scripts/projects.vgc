@@ -19,6 +19,7 @@ $Project "client"
 	"game\client\client_episodic.vpc"	[($WIN32||$X360||$POSIX) && $EPISODIC]
 	"game\client\client_ez1.vpc"	[($WIN32||$X360||$POSIX) && $EZ1]
 	"game\client\client_ez2.vpc"	[($WIN32||$X360||$POSIX) && $EZ2]
+	"game\client\client_ez2.vpc"	[($WIN32||$X360||$POSIX) && $EZU]
 }
 
 $Project "expanded_steam"
@@ -37,6 +38,7 @@ $Project "gamepadui"
 	"game\gamepadui\gamepadui_episodic.vpc"	[($WIN32||$LINUX) && $BUILD_GAMEPADUI && $EPISODIC]
 	"game\gamepadui\gamepadui_ez1.vpc"	[($WIN32||$LINUX) && $BUILD_GAMEPADUI && $EZ1]
 	"game\gamepadui\gamepadui_ez2.vpc"	[($WIN32||$LINUX) && $BUILD_GAMEPADUI && $EZ2]
+	"game\gamepadui\gamepadui_ez2.vpc"	[($WIN32||$LINUX) && $BUILD_GAMEPADUI && $EZU]
 }
 
 $Project "game_shader_dx9"
@@ -61,6 +63,7 @@ $Project "server"
 	"game\server\server_episodic.vpc"	[($WIN32||$X360||$POSIX) && $EPISODIC]
 	"game\server\server_ez1.vpc"	[($WIN32||$X360||$POSIX) && $EZ1]
 	"game\server\server_ez2.vpc"	[($WIN32||$X360||$POSIX) && $EZ2]
+	"game\server\server_ez2.vpc"	[($WIN32||$X360||$POSIX) && $EZU]
 }
 
 $Project "responserules"
