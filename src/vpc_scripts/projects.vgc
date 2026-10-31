@@ -82,7 +82,7 @@ $Project "mathlib"
 
 $Project "matsys_controls"
 {
-	"vgui2\matsys_controls\matsys_controls.vpc"
+	"vgui2\matsys_controls\matsys_controls.vpc" [$WIN64||$LINUX64] // SDK_MP (see source_base.vpc)
 }
 
 $Project "motionmapper"

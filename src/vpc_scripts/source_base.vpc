@@ -30,6 +30,10 @@ $Configuration "Debug"
 		$PreprocessorDefinitions		"$BASE;USE_MEM_DEBUG" [$USE_MEM_DEBUG]
 		$PreprocessorDefinitions		"$BASE;SOURCESDK" [$SOURCESDK]
 		$PreprocessorDefinitions		"$BASE;SOURCE_HAS_FREETYPE"
+		
+		// SDK branch conditionals (based on platform for now)
+		$PreprocessorDefinitions		"$BASE;SDK_MP"							[$WIN64||$LINUX64] // SDK_MP
+		$PreprocessorDefinitions		"$BASE;SDK_SP;RAD_TELEMETRY_DISABLED"	[$WIN32||$LINUX32] // SDK_SP
 
 		// Mapbase base definitions
 		$PreprocessorDefinitions		"$BASE;MAPBASE"		[$MAPBASE]
@@ -45,6 +49,10 @@ $Configuration "Release"
 		$PreprocessorDefinitions		"VPC"
 		$PreprocessorDefinitions		"$BASE;SOURCESDK" [$SOURCESDK]
 		$PreprocessorDefinitions		"$BASE;SOURCE_HAS_FREETYPE"
+		
+		// SDK branch conditionals (based on platform for now)
+		$PreprocessorDefinitions		"$BASE;SDK_MP"							[$WIN64||$LINUX64] // SDK_MP
+		$PreprocessorDefinitions		"$BASE;SDK_SP;RAD_TELEMETRY_DISABLED"	[$WIN32||$LINUX32] // SDK_SP
 
 		// Mapbase base definitions
 		$PreprocessorDefinitions		"$BASE;MAPBASE"		[$MAPBASE]
