@@ -6,7 +6,7 @@
 #
 # See mapbase_build-base.yml for more information on how this works.
 
-name: Build Game Projects (x86)
+name: Build Game Projects (SP)
 
 on:
   pull_request:
@@ -38,7 +38,7 @@ jobs:
     uses: ./.github/workflows/mapbase_build-base.yml
     with:
       configuration: ${{ matrix.configuration }}
-      game: 'tf /hl2mp' # Change this if your mod is not using these game projects
+      game: 'hl2 /episodic' # Change this if your mod is not using these game projects
       project-group: 'game'
-      build-on-linux: true # Disable this if you don't want to compile for Linux
-      arch: '64'
+      build-linux: true # Disable this if you don't want to compile for Linux
+      arch: '32'

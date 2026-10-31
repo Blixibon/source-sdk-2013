@@ -30,20 +30,26 @@ on:
         description: 'Which group of projects to compile'
         required: true
         type: string
-      build-on-linux:
-        description: 'Build on Ubuntu/Linux?'
-        default: true
-        required: false
-        type: boolean
       arch:
         description: 'Which architecture to build for'
         default: '64'
         required: false
         type: string
+      build-windows:
+        description: 'Build on Windows?'
+        default: true
+        required: false
+        type: boolean
+      build-linux:
+        description: 'Build on Linux?'
+        default: true
+        required: false
+        type: boolean
 
 jobs:
   build_windows:
-    name: Windows (VS2022)
+    if: inputs.build-windows
+    name: Windows
     runs-on: windows-latest
 
     steps:
@@ -98,8 +104,8 @@ jobs:
         if-no-files-found: error
 
   build_ubuntu:
-    if: inputs.build-on-linux == true && inputs.project-group != 'maptools' # No Linux map tools for now
-    name: Ubuntu (GCC/G++)
+    if: inputs.build-linux == true && inputs.project-group != 'maptools' # No Linux map tools for now
+    name: Linux
     runs-on: ubuntu-latest
     env:
       config: ${{ inputs.configuration }}
@@ -111,14 +117,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get -y install podman python3
-
-    - name: Install dependencies (x86)
-      if: inputs.arch == '32'
-      run: |
-        sudo dpkg --add-architecture i386
-        sudo apt update
-        sudo apt-get -y install gcc-multilib g++-multilib
-        sudo ln -s /usr/bin/i686-linux-gnu-g++ /usr/bin/i386-linux-gnu-g++
 
     - name: Pick game
       if: inputs.project-group == 'game' || inputs.project-group == 'shaders'

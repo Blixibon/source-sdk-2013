@@ -38,11 +38,6 @@ on:
         - game
         - shaders
         - maptools
-      build-on-linux:
-        description: 'Build on Ubuntu/Linux?'
-        default: true
-        required: false
-        type: boolean
       arch:
         description: 'Which architecture to build for'
         default: '64'
@@ -51,6 +46,16 @@ on:
         options:
         - 64
         - 32
+      build-windows:
+        description: 'Build on Windows?'
+        default: true
+        required: false
+        type: boolean
+      build-linux:
+        description: 'Build on Linux?'
+        default: true
+        required: false
+        type: boolean
 
 jobs:
   build_manual:
@@ -59,5 +64,6 @@ jobs:
       configuration: '${{ github.event.inputs.configuration }}'
       game: '${{ github.event.inputs.game }}'
       project-group: '${{ github.event.inputs.project-group }}'
-      build-on-linux: "${{ github.event.inputs.build-on-linux == 'true' }}"
       arch: '${{ github.event.inputs.arch }}'
+      build-windows: "${{ github.event.inputs.build-windows == 'true' }}"
+      build-linux: "${{ github.event.inputs.build-linux == 'true' }}"
