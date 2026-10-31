@@ -18,7 +18,7 @@ $CustomBuildStep "proto"
 					" --proto_path=$(InputDir) --proto_path=$SRCDIR\gcsdk --proto_path=$SRCDIR\game\shared" \
 					" $ADDITIONAL_PROTOC_ARGS --cpp_out=$GENERATED_PROTO_DIR $(InputPath)" [$LINUXALL&&!$LINUX32]
 
-	// SP/MP branch separation (see source_base.vpc)
+	// SP/MP branch separation (see sdk_sp_branch.vpc.vpc)
 	$CommandLine	"if not exist $GENERATED_PROTO_DIR mkdir $GENERATED_PROTO_DIR" "\n" \
 					"$SRCDIR\gcsdk\bin\protoc.exe --proto_path=$SRCDIR\thirdparty\protobuf-2.3.0\src --proto_path=$(InputDir) --proto_path=$SRCDIR\gcsdk --cpp_out=$GENERATED_PROTO_DIR $(InputPath)" [$WIN32]
 	$CommandLine	"mkdir $GENERATED_PROTO_DIR 2> /dev/null;"  \

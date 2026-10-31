@@ -30,7 +30,7 @@ $Group "game"
 
 $Group "shaders"
 {
-	// Differentiated through SP/MP branch separation (see source_base.vpc)
+	// Differentiated through SP/MP branch separation (see sdk_sp_branch.vpc.vpc)
 	"game_shader_generic_example"
 	"game_shader_generic_std"
 
@@ -68,7 +68,7 @@ $Group "everything"
 	"vvis_dll"
 	"vvis_launcher"
 
-	// Differentiated through SP/MP branch separation (see source_base.vpc)
+	// Differentiated through SP/MP branch separation (see sdk_sp_branch.vpc.vpc)
 	"game_shader_generic_example"
 	"game_shader_generic_std"	// For Mapbase, we want to override all shaders
 }
