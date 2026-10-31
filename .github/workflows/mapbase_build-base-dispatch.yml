@@ -20,14 +20,13 @@ on:
         - Debug
       game:
         description: 'Name of the game to build (if relevant)'
-        default: 'episodic'
+        default: 'tf /hl2mp'
         required: false
         type: choice
         options:
-        - episodic
+        - episodic /hl2
         - hl2
         - hl2mp
-        - hl2mp /episodic
         - tf
         - tf /hl2mp
       project-group:
@@ -44,6 +43,14 @@ on:
         default: true
         required: false
         type: boolean
+      arch:
+        description: 'Which architecture to build for'
+        default: '64'
+        required: false
+        type: choice
+        options:
+        - 64
+        - 32
 
 jobs:
   build_manual:
@@ -53,3 +60,4 @@ jobs:
       game: '${{ github.event.inputs.game }}'
       project-group: '${{ github.event.inputs.project-group }}'
       build-on-linux: "${{ github.event.inputs.build-on-linux == 'true' }}"
+      arch: '${{ github.event.inputs.arch }}'

@@ -35,6 +35,11 @@ on:
         default: true
         required: false
         type: boolean
+      arch:
+        description: 'Which architecture to build for'
+        default: '64'
+        required: false
+        type: string
 
 jobs:
   build_windows:
@@ -65,7 +70,7 @@ jobs:
       working-directory: 'src'
       shell: cmd
       run: |
-        devtools\bin\vpc.exe /${{inputs.game}} /define:SOURCESDK +${{inputs.project-group}} /mksln build.sln
+        devtools\bin\vpc.exe /${{inputs.game}} /win${{inputs.arch}} /define:SOURCESDK +${{inputs.project-group}} /mksln build.sln
 
       # --------------------------------------------------------------------
 
@@ -75,14 +80,14 @@ jobs:
       shell: cmd
       run: |
         devenv build.sln /upgrade
-        msbuild -m -t:Rebuild -p:Configuration=${{inputs.configuration}};Platform=win64 build.sln
+        msbuild -m -t:Rebuild -p:Configuration=${{inputs.configuration}};Platform=win${{inputs.arch}} build.sln
 
       # --------------------------------------------------------------------
 
     - name: Publish binaries
       uses: actions/upload-artifact@v4
       with:
-        name: '${{inputs.project-group}}_win64_${{ inputs.configuration }}'
+        name: '${{inputs.project-group}}_win${{inputs.arch}}_${{ inputs.configuration }}'
         path: |
           game/bin
           game/bin/x64
@@ -107,6 +112,14 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install podman python3
 
+    - name: Install dependencies (x86)
+      if: inputs.arch == '32'
+      run: |
+        sudo dpkg --add-architecture i386
+        sudo apt update
+        sudo apt-get -y install gcc-multilib g++-multilib
+        sudo ln -s /usr/bin/i686-linux-gnu-g++ /usr/bin/i386-linux-gnu-g++
+
     - name: Pick game
       if: inputs.project-group == 'game' || inputs.project-group == 'shaders'
       working-directory: 'src'
@@ -114,6 +127,7 @@ jobs:
       run: |
         sed -i 's|/hl2mp /tf|/${{inputs.game}}|' buildgameprojects
         sed -i 's|+game|+${{inputs.project-group}}|' buildgameprojects
+        sed -i 's|/linux64|/linux${{inputs.arch}}|' buildgameprojects
 
     - name: Set configuration
       working-directory: 'src'
@@ -145,7 +159,7 @@ jobs:
     - name: Publish binaries
       uses: actions/upload-artifact@v4
       with:
-        name: '${{inputs.project-group}}_linux64_${{ inputs.configuration }}'
+        name: '${{inputs.project-group}}_linux${{inputs.arch}}_${{ inputs.configuration }}'
         path: |
           game/bin/linux64/*.so
           game/bin/*.so

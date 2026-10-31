@@ -35,3 +35,4 @@ jobs:
       game: 'tf /hl2mp' # Change this if your mod is not using these game projects
       project-group: 'game'
       build-on-linux: true # Disable this if you don't want to compile for Linux
+      arch: '64'
